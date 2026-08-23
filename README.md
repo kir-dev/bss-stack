@@ -1,4 +1,9 @@
-Welcome to your new TanStack Start app! 
+# BSS stack
+
+## Product documentation
+
+- [V0 követelményspecifikáció](./docs/product-specification.md)
+- [Kártyákra bontott implementációs terv](./docs/implementation-plan.md)
 
 # Getting Started
 
