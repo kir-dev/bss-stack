@@ -62,6 +62,13 @@ export interface OptimisticUpdateParams {
   changes: Record<string, unknown>
   actor: string
   clock?: Clock
+  /** Audit műveletneve; alapértelmezetten `update`. */
+  action?: string
+  /**
+   * Tranzakción belüli kiegészítő írás (pl. kapcsolatok érvénytelenítése,
+   * slug előzmény) — sikertelen futásnál az egész mentés visszagörget.
+   */
+  afterWrite?: (tx: Executor) => Promise<void>
 }
 
 /**
@@ -126,11 +133,15 @@ export async function updateWithOptimisticLock(
       actor: params.actor,
       entityType: params.entityType,
       entityId: params.entityId,
-      action: 'update',
+      action: params.action ?? 'update',
       before,
       after,
       occurredAt: now,
     })
+
+    if (params.afterWrite !== undefined) {
+      await params.afterWrite(tx)
+    }
 
     return { version: nextVersion }
   })

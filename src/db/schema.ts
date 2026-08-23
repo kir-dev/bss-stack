@@ -138,7 +138,9 @@ export const events = pgTable(
     title: varchar({ length: 200 }).notNull(),
     description: varchar({ length: 10_000 }),
     thumbnailUrl: varchar('thumbnail_url', { length: 2048 }),
-    startDate: date('start_date').notNull(),
+    // A specifikáció szerint piszkozathoz csak cím kell; a kezdődátum
+    // publikálási feltétel (alkalmazásoldalon érvényesítve).
+    startDate: date('start_date'),
     endDate: date('end_date'),
     status: eventStatusEnum('status').notNull().default('draft'),
     createdBy: varchar('created_by', { length: 255 }).references(
