@@ -24,7 +24,7 @@ function RouteComponent() {
     const greetingName = name ? `, ${name}` : ''
 
     setSubmitMessage(
-      `Köszönjük${greetingName}! A jelentkezés sikeresen elküldve.`
+      `Köszönjük${greetingName}! A jelentkezés sikeresen elküldve.`,
     )
 
     console.log('Courses form submitted', {

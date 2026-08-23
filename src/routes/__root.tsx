@@ -44,10 +44,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
   shellComponent: RootDocument,
 })
 
-
 function RootDocument({ children }: { children: React.ReactNode }) {
-
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -56,9 +53,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
       </head>
       <body className="min-h-screen flex flex-col bg-(--bg)">
         <Navbar />
-        <div className="flex-1">
-          {children}
-        </div>
+        <div className="flex-1">{children}</div>
         <Footer />
         <TanStackDevtools
           config={{

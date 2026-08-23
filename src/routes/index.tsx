@@ -1,23 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { useRef, useEffect } from 'react'
 
-import { usersTable } from '#/db/schema.ts'
-import { db } from '#/db/drizzleConnect.ts'
-import { Button } from '#/components/ui/button.tsx'
-import { createServerFn } from '@tanstack/react-start'
 import MiniVideo from '#/components/MiniVideo.tsx'
-import Card from "#/components/Card.tsx";
-import Videoplayer from "#/components/Videoplayer.tsx";
-
-const createUser = createServerFn({ method: 'POST' }).handler(async () => {
-  const user: typeof usersTable.$inferInsert = {
-    name: 'asdf',
-    age: 11,
-    email: 'asdffdsa',
-  }
-
-  await db.insert(usersTable).values(user)
-})
+import Card from '#/components/Card.tsx'
+import Videoplayer from '#/components/Videoplayer.tsx'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -92,11 +78,15 @@ function App() {
         </div>
       </div>
 
-      <div className={"grid grid-cols-1 md:grid-cols-2 gap-y-[2dvh] gap-x-[3dvw] p-x-[3dvw] mb-[2dvh]"}>
-          <Card />
-          <Card />
-          <Card />
-          <Card />
+      <div
+        className={
+          'grid grid-cols-1 md:grid-cols-2 gap-y-[2dvh] gap-x-[3dvw] p-x-[3dvw] mb-[2dvh]'
+        }
+      >
+        <Card />
+        <Card />
+        <Card />
+        <Card />
       </div>
     </main>
   )

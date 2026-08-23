@@ -1,5 +1,4 @@
 export default function Footer() {
-
   return (
     <footer className="flex flex-col items-center gap-4 bg-(--darker-blue) py-[1dvh] text-white">
       <div className="text-lg">Kapcsolat</div>

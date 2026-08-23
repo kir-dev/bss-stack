@@ -190,7 +190,10 @@ function RouteComponent() {
               className="inline-flex w-[288px] max-w-full h-[40px] max-h-full justify-between items-center px-4 py-2 bg-(--videos-search-bg) shadow-sm hover:bg-(--videos-search-bg)"
             >
               <span className="text-sm text-(--vidoes-search-icon)">
-                {'Rendezés: ' + (sort ? options.find((o) => o.value === sort)?.label : 'Rendezés kiválasztása')}
+                {'Rendezés: ' +
+                  (sort
+                    ? options.find((o) => o.value === sort)?.label
+                    : 'Rendezés kiválasztása')}
               </span>
               <svg
                 className="w-4 h-4 ml-2"

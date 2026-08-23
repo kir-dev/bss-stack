@@ -20,15 +20,9 @@ function RouteComponent() {
       { title: 'BSTV adas 2022. aprilis 21.', role: 'musorvezeto' },
       { title: 'BSTV adas 2022. februar 24.', role: 'rendezö' },
     ],
-    2021: [
-      { title: 'BSTV adas 2021. december 15.', role: 'musorvezeto' },
-    ],
-    2020: [
-      { title: 'BSTV adas 2020. oktober 10.', role: 'producer' },
-    ],
-    2019: [
-      { title: 'BSTV adas 2019. szeptember 5.', role: 'musorvezeto' },
-    ],
+    2021: [{ title: 'BSTV adas 2021. december 15.', role: 'musorvezeto' }],
+    2020: [{ title: 'BSTV adas 2020. oktober 10.', role: 'producer' }],
+    2019: [{ title: 'BSTV adas 2019. szeptember 5.', role: 'musorvezeto' }],
   }
 
   function toggleYear(year: number) {

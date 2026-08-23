@@ -114,13 +114,6 @@ export default function ThemeToggle() {
     window.localStorage.setItem('theme', nextMode)
   }
 
-  let modeLabel = 'Light'
-  if (mode === 'dark') {
-    modeLabel = 'Dark'
-  } else if (mode === 'auto') {
-    modeLabel = 'Auto'
-  }
-
   const label =
     mode === 'auto'
       ? 'Theme mode: auto (system). Click to switch to light mode.'

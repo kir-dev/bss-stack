@@ -1,38 +1,36 @@
-
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/geist';
 
 @font-face {
-  font-family: "Bank Gothic";
-  src: url("/fonts/Bank Gothic Light Regular.otf") format("opentype");
+  font-family: 'Bank Gothic';
+  src: url('/fonts/Bank Gothic Light Regular.otf') format('opentype');
   font-weight: 300;
 }
 
 @font-face {
-  font-family: "Bank Gothic";
-  src: url("/fonts/bank gothic medium bt.ttf") format("truetype");
+  font-family: 'Bank Gothic';
+  src: url('/fonts/bank gothic medium bt.ttf') format('truetype');
   font-weight: 500;
 }
 
 @font-face {
-  font-family: "Bank Gothic";
-  src: url("/fonts/BankGothic Bold.ttf") format("truetype");
+  font-family: 'Bank Gothic';
+  src: url('/fonts/BankGothic Bold.ttf') format('truetype');
   font-weight: 700;
 }
 
 @custom-variant dark (&:is(.dark *));
 @plugin "@tailwindcss/typography";
 
-
-
 @theme {
   /*--font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;*/
-  --font-montserrat: "Montserrat", ui-sans-serif, system-ui, sans-serif;
-  --font-bank-gothic: "Bank Gothic", Montserrat, ui-sans-serif, system-ui, sans-serif;
+  --font-montserrat: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+  --font-bank-gothic:
+    'Bank Gothic', Montserrat, ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
@@ -87,42 +85,42 @@
   /*--sidebar-accent-foreground: oklch(0.205 0 0);*/
   /*--sidebar-border: oklch(0.922 0 0);*/
   /*--sidebar-ring: oklch(0.708 0 0);*/
-  --bg: #FFFFFF;
-  --orange: #FF9100;
-  --nav-bg: #FFFFFF;
-  --blue: #023E8A;
+  --bg: #ffffff;
+  --orange: #ff9100;
+  --nav-bg: #ffffff;
+  --blue: #023e8a;
   --darker-blue: #031731;
   --bss-text: var(--blue);
   --bss-text-secondary: var(--darker-blue);
-  --nav-search-bg: #F4F4F4;
+  --nav-search-bg: #f4f4f4;
   --nav-icon: var(--blue);
-  --nav-border-b: #8D8D8D;
+  --nav-border-b: #8d8d8d;
   --mini-video-triangle: var(--blue);
-  --mini-video-bg: #FFFFFF;
+  --mini-video-bg: #ffffff;
   --card-title: var(--blue);
-  --card-text: #6F6F6F;
-  --card-bg: #FFFFFF;
-  --videos-search-bg: #F4F4F4;
-  --videos-search-placeholder: #A8A8A8;
-  --vidoes-search-border-b: #8D8D8D;
+  --card-text: #6f6f6f;
+  --card-bg: #ffffff;
+  --videos-search-bg: #f4f4f4;
+  --videos-search-placeholder: #a8a8a8;
+  --vidoes-search-border-b: #8d8d8d;
   --vidoes-search-icon: #161616;
-  --videos-dropdown-hr: #E0E0E0;
-  --videos-tag: #E5E0DF;
+  --videos-dropdown-hr: #e0e0e0;
+  --videos-tag: #e5e0df;
   --videos-tag-text: #171414;
   --videos-video-title: var(--blue);
   --members-title: var(--blue);
-  --members-card-bg: #FFFFFF;
-  --members-data-category: #6F6F6F;
+  --members-card-bg: #ffffff;
+  --members-data-category: #6f6f6f;
   --members-data: var(--blue);
-  --courses-input-bg: #F4F4F4;
-  --courses-input-label: #A8A8A8;
+  --courses-input-bg: #f4f4f4;
+  --courses-input-label: #a8a8a8;
   --courses-title: var(--blue);
   --courses-input-placeholder: var(--darker-blue);
-  --events-card-bg: #FFFFFF;
+  --events-card-bg: #ffffff;
   --about-title: var(--darker-blue);
 }
 
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   /*--sea-ink: #d7ece8;*/
   /*--sea-ink-soft: #afcdc8;*/
   /*--lagoon: #60d7cf;*/
@@ -144,16 +142,16 @@
   /*--hero-b: rgba(110, 200, 154, 0.12);*/
   --bg: #262626;
   --nav-bg: #161616;
-  --bss-text: #FFFFFF;
-  --bss-text-secondary: #FFFFFF;
+  --bss-text: #ffffff;
+  --bss-text-secondary: #ffffff;
   --nav-search-bg: #262626;
-  --nav-search-placeholder: #A8A8A8;
+  --nav-search-placeholder: #a8a8a8;
   --nav-icon: var(--orange);
   --nav-border-b: #262626;
-  --mini-video-triangle: #FFFFFF;
+  --mini-video-triangle: #ffffff;
   --mini-video-bg: #161616;
   --card-title: var(--orange);
-  --card-text: #FFFFFF;
+  --card-text: #ffffff;
   --card-bg: #161616;
   --videos-video-title: var(--orange);
   --members-title: var(--blue);
@@ -165,7 +163,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme='light']) {
     /*--sea-ink: #d7ece8;*/
     /*--sea-ink-soft: #afcdc8;*/
     /*--lagoon: #60d7cf;*/
@@ -188,16 +186,16 @@
     --bg: #262626;
     --bg-color: #262626;
     --nav-bg: #161616;
-    --bss-text: #FFFFFF;
-    --bss-text-secondary: #FFFFFF;
+    --bss-text: #ffffff;
+    --bss-text-secondary: #ffffff;
     --nav-search-bg: #262626;
-    --nav-search-placeholder: #A8A8A8;
+    --nav-search-placeholder: #a8a8a8;
     --nav-icon: var(--orange);
     --nav-border-b: #262626;
-    --mini-video-triangle: #FFFFFF;
+    --mini-video-triangle: #ffffff;
     --mini-video-bg: #161616;
     --card-title: var(--orange);
-    --card-text: #FFFFFF;
+    --card-text: #ffffff;
     --card-bg: #161616;
     --videos-video-title: var(--orange);
     --members-title: var(--orange);
@@ -220,16 +218,16 @@
 /*}*/
 
 body {
-/*  margin: 0;*/
-/*  color: var(--sea-ink);*/
-/*  font-family: var(--font-bank-gothic);*/
-/*  background-color: var(--bg-base);*/
-/*  background:*/
-/*    radial-gradient(1100px 620px at -8% -10%, var(--hero-a), transparent 58%),*/
-/*    radial-gradient(1050px 620px at 112% -12%, var(--hero-b), transparent 62%),*/
-/*    radial-gradient(720px 380px at 50% 115%, rgba(79, 184, 178, 0.1), transparent 68%),*/
-/*    linear-gradient(180deg, color-mix(in oklab, var(--sand) 68%, white) 0%, var(--foam) 44%, var(--bg-base) 100%);*/
-/*  overflow-x: hidden;*/
+  /*  margin: 0;*/
+  /*  color: var(--sea-ink);*/
+  /*  font-family: var(--font-bank-gothic);*/
+  /*  background-color: var(--bg-base);*/
+  /*  background:*/
+  /*    radial-gradient(1100px 620px at -8% -10%, var(--hero-a), transparent 58%),*/
+  /*    radial-gradient(1050px 620px at 112% -12%, var(--hero-b), transparent 62%),*/
+  /*    radial-gradient(720px 380px at 50% 115%, rgba(79, 184, 178, 0.1), transparent 68%),*/
+  /*    linear-gradient(180deg, color-mix(in oklab, var(--sand) 68%, white) 0%, var(--foam) 44%, var(--bg-base) 100%);*/
+  /*  overflow-x: hidden;*/
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }

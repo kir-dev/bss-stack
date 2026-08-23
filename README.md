@@ -4,6 +4,41 @@
 
 - [V0 követelményspecifikáció](./docs/product-specification.md)
 - [Kártyákra bontott implementációs terv](./docs/implementation-plan.md)
+- [OOB bemenetek](./docs/oob-inputs.md)
+
+# Lokális környezet (fejlesztői alap)
+
+Előfeltétel: Node 24+, pnpm (pl. `corepack enable`), Docker.
+
+```bash
+pnpm install
+pnpm infra:bootstrap   # helyi titkok és Authentik blueprint generálása az oob/ könyvtárba
+docker compose -f docker-compose.dev.yml up -d
+export DATABASE_URL=postgres://bss:bss@127.0.0.1:5582/bss
+pnpm db:migrate        # tiszta adatbázison lefutó migráció
+pnpm check:oob         # OOB config ellenőrzése
+pnpm dev               # http://localhost:3000
+```
+
+A `pnpm infra:bootstrap` idempotens: meglévő titkokat nem ír felül, újraindítás nem duplikál adatot.
+
+Tesztfelhasználók és jelszavak: `oob/local-secrets.json` (gitignore-olt). Szereplők:
+
+| Felhasználó           | Szerep                               |
+| --------------------- | ------------------------------------ |
+| (nincs bejelentkezés) | névtelen látogató                    |
+| schonherz-dev         | bejelentkezett schönherzes           |
+| tag-dev               | BSS-tag, minden adminjog             |
+| vezetoseg-dev         | vezetőségi tag, kibővített jogok     |
+| további `-dev` userek | szintetikus tagprofilok státuszokhoz |
+
+# OOB bemenetek
+
+Az alkalmazás három bemenete nem érkezik a gitből: az Authentik mapping config, a helyi titkok és a seed JSON. Helyüket, formájukat és ellenőrzésüket a [docs/oob-inputs.md](./docs/oob-inputs.md) dokumentum írja le. Ellenőrzésük:
+
+```bash
+pnpm check:oob
+```
 
 # Getting Started
 
@@ -45,7 +80,6 @@ If you prefer not to use Tailwind CSS:
 
 ## Linting & Formatting
 
-
 This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:
 
 ```bash
@@ -53,7 +87,6 @@ pnpm lint
 pnpm format
 pnpm check
 ```
-
 
 ## Deploy with Nitro
 
@@ -67,8 +100,6 @@ node dist/server/index.mjs
 The build output is a self-contained Node server. To deploy, push the `dist/` directory to your host (Render, Fly.io, your own VPS, etc.) and run the server command above.
 
 For host-specific presets (Vercel, Netlify, Cloudflare, AWS Lambda, etc.) and tuning, see https://v3.nitro.build/deploy.
-
-
 
 ## Routing
 
@@ -87,7 +118,7 @@ Now that you have two routes you can use a `Link` component to navigate between 
 To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
 
 ```tsx
-import { Link } from "@tanstack/react-router";
+import { Link } from '@tanstack/react-router'
 ```
 
 Then anywhere in your JSX you can use it like so:
@@ -155,11 +186,11 @@ const getServerTime = createServerFn({
 // Use in a component
 function MyComponent() {
   const [time, setTime] = useState('')
-  
+
   useEffect(() => {
     getServerTime().then(setTime)
   }, [])
-  
+
   return <div>Server time: {time}</div>
 }
 ```

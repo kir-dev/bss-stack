@@ -1,12 +1,12 @@
-"use client"
+'use client'
 
 import { useEffect, useState } from 'react'
-import ThemeToggle from "#/components/ThemeToggle.tsx";
+import ThemeToggle from '#/components/ThemeToggle.tsx'
 import { Link } from '@tanstack/react-router'
 
 export default function Navbar() {
   const [pathname, setPathname] = useState(() =>
-    typeof window !== 'undefined' ? window.location.pathname : '/'
+    typeof window !== 'undefined' ? window.location.pathname : '/',
   )
 
   useEffect(() => {

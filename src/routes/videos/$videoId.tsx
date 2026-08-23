@@ -7,12 +7,11 @@ export const Route = createFileRoute('/videos/$videoId')({
 })
 
 function RouteComponent() {
-  const { videoId } = Route.useParams()
   return (
     <main className={'flex-1'}>
       <div className={'flex bg-black w-full justify-center items-center'}>
         <div className={'w-[55dvw]'}>
-          <Videoplayer videoId={videoId} />
+          <Videoplayer />
         </div>
       </div>
       <div className={'mx-auto flex-1 w-[55dvw] my-5'}>
@@ -37,16 +36,23 @@ function RouteComponent() {
           </div>
         </div>
         <div>
-          <span className={'text-(--videos-video-title) font-semibold'}>Felhasznalt zenek:</span>
+          <span className={'text-(--videos-video-title) font-semibold'}>
+            Felhasznalt zenek:
+          </span>
           <p>Alma egyuttes - Valami Dal</p>
           <p>Alma egyuttes - Valami Dal</p>
           <p>Alma egyuttes - Valami Dal</p>
         </div>
         <div className={'my-5'}>
-          <span className={'text-(--videos-video-title) font-semibold'}>Az esemeny datuma:{' '}</span>2022. november 03.
+          <span className={'text-(--videos-video-title) font-semibold'}>
+            Az esemeny datuma:{' '}
+          </span>
+          2022. november 03.
         </div>
         <div>
-          <span className={'text-(--videos-video-title) text-4xl font-bold'}>Tovabbi videok</span>
+          <span className={'text-(--videos-video-title) text-4xl font-bold'}>
+            Tovabbi videok
+          </span>
           <div className={'grid grid-cols-3 gap-y-[2dvh] mt-5'}>
             <MiniVideo />
             <MiniVideo />

@@ -1,3 +1,9 @@
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+
+dist
+.output
+.nitro
+.tanstack
+node_modules

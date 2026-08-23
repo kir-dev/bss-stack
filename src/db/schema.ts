@@ -1,67 +1,199 @@
-import { defineRelations } from 'drizzle-orm'
+import { sql } from 'drizzle-orm'
 import {
+  bigserial,
+  boolean,
+  check,
+  date,
+  index,
   integer,
+  jsonb,
+  pgEnum,
   pgTable,
-  varchar,
-  uuid,
-  text,
   primaryKey,
-  date, pgEnum, bytea,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+  varchar,
 } from 'drizzle-orm/pg-core'
 
-export const visibilityEnum = pgEnum('visibility', ['public', 'schonherz', 'bss'])
+export const visibilityEnum = pgEnum('visibility', [
+  'public',
+  'schonherz',
+  'bss',
+])
 
-export const homepageStatusEnum = pgEnum('homepage_status', ['live', 'highlighted_video', 'normal'])
+export const contentStatusEnum = pgEnum('content_status', [
+  'draft',
+  'published',
+  'archived',
+  'trash',
+])
 
-export const homepageStatusTable = pgTable('current_homepage_status', {
-  id: integer().primaryKey().default(0),
-  status: homepageStatusEnum().notNull().default('normal'),
-  updated_at: date().defaultNow(),
-  created_at: date().defaultNow(),
-})
+export const eventStatusEnum = pgEnum('event_status', [
+  'draft',
+  'published',
+  'archived',
+])
 
-export const usersTable = pgTable('users', {
-  id: uuid().primaryKey().defaultRandom(),
-  name: varchar({ length: 255 }).notNull(),
-  nickname: varchar({ length: 255 }),
-  profile_picture: bytea(),
-  joined_at: text(),
-  status: text(),
-  introduction: text(),
-})
+export const membershipStatusEnum = pgEnum('membership_status', [
+  'studio_member',
+  'studio_candidate',
+  'studio_applicant',
+  'senior_active',
+  'senior_archived',
+  'contributor',
+])
 
-export const videos = pgTable('videos', {
-  id: uuid().primaryKey().defaultRandom(),
-  title: text().notNull(),
-  description: text(),
-  visibility: visibilityEnum().notNull().default('bss'),
-  video_url: text().notNull(),
-  views: integer().default(0),
-  songs: text(),
-  changeable_uploaded_at: date().notNull().defaultNow(),
-  updated_at: date().defaultNow(),
-  created_at: date().defaultNow(),
-})
+export const semesterEnum = pgEnum('semester', ['spring', 'autumn'])
 
-export const relatedVideos = pgTable(
-  'related_videos',
+export const memberSyncStatusEnum = pgEnum('member_sync_status', [
+  'ok',
+  'error',
+])
+
+export const liveStatusEnum = pgEnum('live_status', [
+  'scheduled',
+  'active',
+  'ended',
+])
+
+export const slugEntityTypeEnum = pgEnum('slug_entity_type', ['video', 'event'])
+
+export const memberCache = pgTable(
+  'member_cache',
   {
-    videoId: uuid('video_id')
+    sub: varchar('sub', { length: 255 }).primaryKey(),
+    username: varchar('username', { length: 200 }).notNull(),
+    fullName: varchar('full_name', { length: 200 }).notNull(),
+    nickname: varchar('nickname', { length: 200 }),
+    avatarUrl: varchar('avatar_url', { length: 2048 }),
+    membershipStatus: membershipStatusEnum('membership_status').notNull(),
+    isLeadership: boolean('is_leadership').notNull().default(false),
+    joinedYear: integer('joined_year'),
+    joinedSemester: semesterEnum('joined_semester'),
+    joinedSemesterRaw: varchar('joined_semester_raw', { length: 100 }),
+    introduction: varchar('introduction', { length: 10_000 }),
+    syncStatus: memberSyncStatusEnum('sync_status').notNull().default('ok'),
+    lastSyncError: text('last_sync_error'),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true })
       .notNull()
-      .references(() => videos.id, { onDelete: 'cascade' }),
-    relatedVideoId: uuid('related_video_id')
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
-      .references(() => videos.id, { onDelete: 'cascade' }),
+      .defaultNow(),
   },
-  (table) => ({
-    pk: primaryKey({ columns: [table.videoId, table.relatedVideoId] }),
-  }),
+  (table) => [
+    uniqueIndex('member_cache_username_key').on(table.username),
+    index('member_cache_status_idx').on(table.membershipStatus),
+  ],
 )
 
-export const tags = pgTable('tags', {
-  id: uuid().primaryKey().defaultRandom(),
-  name: varchar({ length: 255 }).notNull().unique(),
-})
+export const events = pgTable(
+  'events',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    slug: varchar('slug', { length: 200 }).notNull(),
+    title: varchar({ length: 200 }).notNull(),
+    description: varchar({ length: 10_000 }),
+    thumbnailUrl: varchar('thumbnail_url', { length: 2048 }),
+    startDate: date('start_date').notNull(),
+    endDate: date('end_date'),
+    status: eventStatusEnum('status').notNull().default('draft'),
+    createdBy: varchar('created_by', { length: 255 }).references(
+      () => memberCache.sub,
+    ),
+    updatedBy: varchar('updated_by', { length: 255 }).references(
+      () => memberCache.sub,
+    ),
+    version: integer('version').notNull().default(1),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('events_slug_key').on(table.slug),
+    index('events_status_start_idx').on(table.status, table.startDate),
+    check(
+      'events_end_after_start_check',
+      sql`${table.endDate} is null or ${table.endDate} >= ${table.startDate}`,
+    ),
+  ],
+)
+
+export const videos = pgTable(
+  'videos',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    slug: varchar('slug', { length: 200 }).notNull(),
+    title: varchar({ length: 200 }).notNull(),
+    description: varchar({ length: 10_000 }),
+    guests: varchar({ length: 5000 }),
+    songs: varchar({ length: 5000 }),
+    videoUrl: varchar('video_url', { length: 2048 }),
+    thumbnailUrl: varchar('thumbnail_url', { length: 2048 }),
+    visibility: visibilityEnum('visibility').notNull().default('public'),
+    status: contentStatusEnum('status').notNull().default('draft'),
+    eventId: uuid('event_id').references(() => events.id, {
+      onDelete: 'set null',
+    }),
+    recordedAt: date('recorded_at'),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+    viewCount: integer('view_count').notNull().default(0),
+    createdBy: varchar('created_by', { length: 255 }).references(
+      () => memberCache.sub,
+    ),
+    updatedBy: varchar('updated_by', { length: 255 }).references(
+      () => memberCache.sub,
+    ),
+    version: integer('version').notNull().default(1),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    trashedAt: timestamp('trashed_at', { withTimezone: true }),
+    trashedBy: varchar('trashed_by', { length: 255 }).references(
+      () => memberCache.sub,
+    ),
+  },
+  (table) => [
+    uniqueIndex('videos_slug_key').on(table.slug),
+    index('videos_visibility_status_idx').on(
+      table.visibility,
+      table.status,
+      table.publishedAt,
+    ),
+    index('videos_event_idx').on(table.eventId),
+    index('videos_recorded_at_idx').on(table.recordedAt),
+    index('videos_trash_purge_idx').on(table.status, table.trashedAt),
+    check(
+      'videos_published_requires_timestamp_check',
+      sql`${table.status} <> 'published' or ${table.publishedAt} is not null`,
+    ),
+    check(
+      'videos_trash_needs_timestamp_check',
+      sql`${table.status} <> 'trash' or ${table.trashedAt} is not null`,
+    ),
+  ],
+)
+
+export const tags = pgTable(
+  'tags',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    name: varchar('name', { length: 64 }).notNull(),
+    normalizedName: varchar('normalized_name', { length: 64 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [uniqueIndex('tags_normalized_name_key').on(table.normalizedName)],
+)
 
 export const videoTags = pgTable(
   'video_tags',
@@ -73,266 +205,178 @@ export const videoTags = pgTable(
       .notNull()
       .references(() => tags.id, { onDelete: 'cascade' }),
   },
-  (table) => ({
-    pk: primaryKey({ columns: [table.videoId, table.tagId] }),
-  }),
+  (table) => [
+    primaryKey({ columns: [table.videoId, table.tagId] }),
+    index('video_tags_tag_idx').on(table.tagId),
+  ],
 )
 
-export const events = pgTable('events', {
-  id: uuid().primaryKey().defaultRandom(),
-  name: text().notNull(),
-  description: text(),
-  event_start_date: date().notNull(),
-  event_end_date: date().notNull(),
-  created_at: date().defaultNow(),
-  updated_at: date().defaultNow(),
-})
+export const staffRoles = pgTable(
+  'staff_roles',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    name: varchar('name', { length: 64 }).notNull(),
+    normalizedName: varchar('normalized_name', { length: 64 }).notNull(),
+    displayOrder: integer('display_order').notNull().default(0),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    uniqueIndex('staff_roles_normalized_name_key').on(table.normalizedName),
+    index('staff_roles_display_order_idx').on(table.displayOrder),
+  ],
+)
 
-export const roles = pgTable('roles', {
-  id: uuid().primaryKey().defaultRandom(),
-  name: text().notNull(),
-})
-
-export const videosRolesUsers = pgTable(
-  'videos_roles_users',
+export const videoStaff = pgTable(
+  'video_staff',
   {
     videoId: uuid('video_id')
       .notNull()
       .references(() => videos.id, { onDelete: 'cascade' }),
     roleId: uuid('role_id')
       .notNull()
-      .references(() => roles.id, { onDelete: 'cascade' }),
-    userId: uuid('user_id')
+      .references(() => staffRoles.id, { onDelete: 'restrict' }),
+    memberSub: varchar('member_sub', { length: 255 })
       .notNull()
-      .references(() => usersTable.id, { onDelete: 'cascade' }),
+      .references(() => memberCache.sub),
   },
-  (table) => ({
-    pk: primaryKey({
-      columns: [table.videoId, table.roleId, table.userId],
-    }),
-  }),
+  (table) => [
+    primaryKey({ columns: [table.videoId, table.roleId, table.memberSub] }),
+    index('video_staff_member_idx').on(table.memberSub),
+    index('video_staff_role_idx').on(table.roleId),
+  ],
 )
 
-export const eventsRolesUsers = pgTable(
-  'events_roles_users',
+export const relatedVideos = pgTable(
+  'related_videos',
   {
-    eventId: uuid('event_id')
+    videoId: uuid('video_id')
       .notNull()
-      .references(() => events.id, { onDelete: 'cascade' }),
-    roleId: uuid('role_id')
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    relatedVideoId: uuid('related_video_id')
       .notNull()
-      .references(() => roles.id, { onDelete: 'cascade' }),
-    userId: uuid('user_id')
-      .notNull()
-      .references(() => usersTable.id, { onDelete: 'cascade' }),
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    position: integer('position').notNull(),
   },
-  (table) => ({
-    pk: primaryKey({
-      columns: [table.eventId, table.roleId, table.userId],
-    }),
-  }),
+  (table) => [
+    primaryKey({ columns: [table.videoId, table.relatedVideoId] }),
+    check(
+      'related_videos_no_self_reference_check',
+      sql`${table.videoId} <> ${table.relatedVideoId}`,
+    ),
+  ],
 )
 
-export const videosEvents = pgTable('videos_events', {
-  videoId: uuid('video_id')
+export const slugHistory = pgTable(
+  'slug_history',
+  {
+    entityType: slugEntityTypeEnum('entity_type').notNull(),
+    slug: varchar('slug', { length: 200 }).notNull(),
+    entityId: uuid('entity_id').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.entityType, table.slug] }),
+    index('slug_history_entity_idx').on(table.entityType, table.entityId),
+  ],
+)
+
+export const liveStreams = pgTable(
+  'live_streams',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    youtubeVideoId: varchar('youtube_video_id', { length: 64 }).notNull(),
+    startsAt: timestamp('starts_at', { withTimezone: true }).notNull(),
+    endsAt: timestamp('ends_at', { withTimezone: true }).notNull(),
+    status: liveStatusEnum('status').notNull().default('scheduled'),
+    activationError: text('activation_error'),
+    activatedAt: timestamp('activated_at', { withTimezone: true }),
+    endedAt: timestamp('ended_at', { withTimezone: true }),
+    createdBy: varchar('created_by', { length: 255 }).references(
+      () => memberCache.sub,
+    ),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('live_streams_status_starts_idx').on(table.status, table.startsAt),
+    check(
+      'live_streams_end_after_start_check',
+      sql`${table.endsAt} > ${table.startsAt}`,
+    ),
+  ],
+)
+
+export const siteSettings = pgTable('site_settings', {
+  id: integer().primaryKey().default(0),
+  highlightedVideoId: uuid('highlighted_video_id').references(() => videos.id, {
+    onDelete: 'set null',
+  }),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
     .notNull()
-    .references(() => videos.id, { onDelete: 'cascade' }),
-  eventId: uuid('event_id')
-    .notNull()
-    .references(() => events.id, { onDelete: 'cascade' }),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.videoId, table.eventId] }),
-}))
+    .defaultNow(),
+})
 
-export const usersRoles = pgTable('users_roles', {
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => usersTable.id, { onDelete: 'cascade' }),
-  roleId: uuid('role_id')
-    .notNull()
-    .references(() => roles.id, { onDelete: 'cascade' }),
-}, (table) => ({
-  pk: primaryKey({ columns: [table.userId, table.roleId] }),
-}))
-
-export const usersRolesRelations = defineRelations(
-  { usersTable, roles, usersRoles },
-  (r) => ({
-    usersTable: {
-      usersRoles: r.many.usersRoles({
-        from: r.usersTable.id,
-        to: r.usersRoles.userId,
-      }),
-    },
-    roles: {
-      usersRoles: r.many.usersRoles({
-        from: r.roles.id,
-        to: r.usersRoles.roleId,
-      }),
-    },
-    usersRoles: {
-      user: r.one.usersTable({
-        from: r.usersRoles.userId,
-        to: r.usersTable.id,
-      }),
-      role: r.one.roles({
-        from: r.usersRoles.roleId,
-        to: r.roles.id,
-      }),
-    },
-  }),
+export const aboutPageVideos = pgTable(
+  'about_page_videos',
+  {
+    position: integer('position').notNull(),
+    videoId: uuid('video_id')
+      .notNull()
+      .references(() => videos.id, { onDelete: 'cascade' }),
+  },
+  (table) => [
+    primaryKey({ columns: [table.position, table.videoId] }),
+    uniqueIndex('about_page_videos_video_key').on(table.videoId),
+    check(
+      'about_page_videos_position_range_check',
+      sql`${table.position} >= 1 and ${table.position} <= 6`,
+    ),
+  ],
 )
 
-export const eventsRolesUsersRelations = defineRelations(
-  { events, roles, usersTable, eventsRolesUsers },
-  (r) => ({
-    events: {
-      eventsRolesUsers: r.many.eventsRolesUsers({
-        from: r.events.id,
-        to: r.eventsRolesUsers.eventId,
-      }),
-    },
-    roles: {
-      eventsRolesUsers: r.many.eventsRolesUsers({
-        from: r.roles.id,
-        to: r.eventsRolesUsers.roleId,
-      }),
-    },
-    usersTable: {
-      eventsRolesUsers: r.many.eventsRolesUsers({
-        from: r.usersTable.id,
-        to: r.eventsRolesUsers.userId,
-      }),
-    },
-    eventsRolesUsers: {
-      event: r.one.events({
-        from: r.eventsRolesUsers.eventId,
-        to: r.events.id,
-      }),
-      role: r.one.roles({
-        from: r.eventsRolesUsers.roleId,
-        to: r.roles.id,
-      }),
-      user: r.one.usersTable({
-        from: r.eventsRolesUsers.userId,
-        to: r.usersTable.id,
-      }),
-    },
-  }),
+export const auditLog = pgTable(
+  'audit_log',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    actor: varchar('actor', { length: 255 }).notNull(),
+    entityType: varchar('entity_type', { length: 50 }).notNull(),
+    entityId: varchar('entity_id', { length: 255 }).notNull(),
+    action: varchar('action', { length: 50 }).notNull(),
+    beforeValue: jsonb('before_value'),
+    afterValue: jsonb('after_value'),
+    occurredAt: timestamp('occurred_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('audit_log_occurred_idx').on(table.occurredAt),
+    index('audit_log_entity_idx').on(table.entityType, table.entityId),
+    index('audit_log_actor_idx').on(table.actor),
+    index('audit_log_action_idx').on(table.action),
+  ],
 )
 
-export const videosEventsRelations = defineRelations(
-  { videos, events, videosEvents },
-  (r) => ({
-    videos: {
-      videosEvents: r.many.videosEvents({
-        from: r.videos.id,
-        to: r.videosEvents.videoId,
-      }),
-    },
-    events: {
-      videosEvents: r.many.videosEvents({
-        from: r.events.id,
-        to: r.videosEvents.eventId,
-      }),
-    },
-    videosEvents: {
-      video: r.one.videos({
-        from: r.videosEvents.videoId,
-        to: r.videos.id,
-      }),
-      event: r.one.events({
-        from: r.videosEvents.eventId,
-        to: r.events.id,
-      }),
-    },
-  }),
-)
-
-export const videosRolesUsersRelations = defineRelations(
-  { videos, roles, usersTable, videosRolesUsers },
-  (r) => ({
-    videos: {
-      videosRolesUsers: r.many.videosRolesUsers({
-        from: r.videos.id,
-        to: r.videosRolesUsers.videoId,
-      }),
-    },
-    roles: {
-      videosRolesUsers: r.many.videosRolesUsers({
-        from: r.roles.id,
-        to: r.videosRolesUsers.roleId,
-      }),
-    },
-    usersTable: {
-      videosRolesUsers: r.many.videosRolesUsers({
-        from: r.usersTable.id,
-        to: r.videosRolesUsers.userId,
-      }),
-    },
-    videosRolesUsers: {
-      video: r.one.videos({
-        from: r.videosRolesUsers.videoId,
-        to: r.videos.id,
-      }),
-      role: r.one.roles({
-        from: r.videosRolesUsers.roleId,
-        to: r.roles.id,
-      }),
-      user: r.one.usersTable({
-        from: r.videosRolesUsers.userId,
-        to: r.usersTable.id,
-      }),
-    },
-  }),
-)
-
-export const videoTagRelations = defineRelations(
-  { videos, tags, videoTags },
-  (r) => ({
-    videos: {
-      videoTags: r.many.videoTags({
-        from: r.videos.id,
-        to: r.videoTags.videoId,
-      }),
-    },
-    tags: {
-      videoTags: r.many.videoTags({
-        from: r.tags.id,
-        to: r.videoTags.tagId,
-      }),
-    },
-    videoTags: {
-      video: r.one.videos({
-        from: r.videoTags.videoId,
-        to: r.videos.id,
-      }),
-      tag: r.one.tags({
-        from: r.videoTags.tagId,
-        to: r.tags.id,
-      }),
-    },
-  }),
-)
-
-export const videosRelatedVideosRelations = defineRelations(
-  { videos, relatedVideos },
-  (r) => ({
-    videos: {
-      relatedVideos: r.many.relatedVideos({
-        from: r.videos.id,
-        to: r.relatedVideos.videoId,
-      }),
-    },
-    relatedVideos: {
-      video: r.one.videos({
-        from: r.relatedVideos.videoId,
-        to: r.videos.id,
-      }),
-      relatedVideo: r.one.videos({
-        from: r.relatedVideos.relatedVideoId,
-        to: r.videos.id,
-      }),
-    },
-  }),
+export const viewSessions = pgTable(
+  'view_sessions',
+  {
+    videoId: uuid('video_id')
+      .notNull()
+      .references(() => videos.id, { onDelete: 'cascade' }),
+    sessionId: varchar('session_id', { length: 128 }).notNull(),
+    viewedAt: timestamp('viewed_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    primaryKey({ columns: [table.videoId, table.sessionId] }),
+    index('view_sessions_viewed_idx').on(table.viewedAt),
+  ],
 )

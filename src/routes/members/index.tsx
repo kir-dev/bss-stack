@@ -23,7 +23,9 @@ function RouteComponent() {
         Ez az oldal Neked keszult, ha kivsnics vagy a BSS tagjaira, reszletesebb
         adataikra.
       </p>
-      <div className={'font-bold text-(--members-title) mt-[8dvh]'}>VEZETOSEG</div>
+      <div className={'font-bold text-(--members-title) mt-[8dvh]'}>
+        VEZETOSEG
+      </div>
       <div className={'grid grid-cols-7 gap-x-[3dvw] gap-y-[3dvh] mt-5'}>
         <div className={'flex col-span-3 justify-end'}>
           <MemberCard />
@@ -36,13 +38,17 @@ function RouteComponent() {
           <MemberCard key={index} />
         ))}
       </div>
-      <div className={'font-bold text-(--members-title) mt-[8dvh]'}>STUDIOSOK</div>
+      <div className={'font-bold text-(--members-title) mt-[8dvh]'}>
+        STUDIOSOK
+      </div>
       <div className={'grid grid-cols-7 gap-x-[3dvw] gap-y-[3dvh] mt-5'}>
         {Array.from({ length: 14 }).map((_, index) => (
           <MemberCard key={index} />
         ))}
       </div>
-      <div className={'font-bold text-(--members-title) mt-[8dvh]'}>UJONCOK</div>
+      <div className={'font-bold text-(--members-title) mt-[8dvh]'}>
+        UJONCOK
+      </div>
       <div className={'grid grid-cols-7 gap-x-[3dvw] gap-y-[3dvh] mt-5'}>
         {Array.from({ length: 14 }).map((_, index) => (
           <MemberCard key={index} />
