@@ -68,6 +68,7 @@ describe('lokális Authentik bootstrap', () => {
     const secrets = {
       authentikSecretKey: 'secret-key-value',
       oidcClientSecret: 'client-secret-value',
+      syncApiToken: 'sync-token-value',
       passwords: {},
     }
     const validated = validateOobConfig(renderOobConfig(secrets))
@@ -82,6 +83,7 @@ describe('lokális Authentik bootstrap', () => {
     const secrets = {
       authentikSecretKey: 'secret-key-value',
       oidcClientSecret: 'client-secret-value',
+      syncApiToken: 'sync-token-value',
       passwords: { 'tag-dev': 'jelszo1' },
     }
     const yaml = renderBlueprint(secrets)

@@ -1,0 +1,2442 @@
+{
+  "version": "8",
+  "dialect": "postgres",
+  "id": "377136ef-6e59-4cd0-8717-f131f79a5f2b",
+  "prevIds": ["eb102e26-e589-497d-aab1-16017519f1ce"],
+  "ddl": [
+    {
+      "values": ["draft", "published", "archived", "trash"],
+      "name": "content_status",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": ["draft", "published", "archived"],
+      "name": "event_status",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": ["scheduled", "active", "ended"],
+      "name": "live_status",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": ["ok", "error"],
+      "name": "member_sync_status",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": [
+        "studio_member",
+        "studio_candidate",
+        "studio_applicant",
+        "senior_active",
+        "senior_archived",
+        "contributor"
+      ],
+      "name": "membership_status",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": ["spring", "autumn"],
+      "name": "semester",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": ["video", "event"],
+      "name": "slug_entity_type",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "values": ["public", "schonherz", "bss"],
+      "name": "visibility",
+      "entityType": "enums",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "about_page_videos",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "audit_log",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "auth_sessions",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "events",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "live_streams",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "member_cache",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "related_videos",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "site_settings",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "slug_history",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "staff_roles",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "tags",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "video_staff",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "video_tags",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "videos",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "isRlsEnabled": false,
+      "name": "view_sessions",
+      "entityType": "tables",
+      "schema": "public"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "position",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "about_page_videos"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "video_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "about_page_videos"
+    },
+    {
+      "type": "bigserial",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "audit_log"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "actor",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "audit_log"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "entity_type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "audit_log"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "entity_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "audit_log"
+    },
+    {
+      "type": "varchar(50)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "action",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "audit_log"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "before_value",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "audit_log"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "after_value",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "audit_log"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "occurred_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "audit_log"
+    },
+    {
+      "type": "varchar(64)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "auth_sessions"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "member_sub",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "auth_sessions"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "username",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "auth_sessions"
+    },
+    {
+      "type": "jsonb",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'[]'",
+      "generated": null,
+      "identity": null,
+      "name": "groups",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "auth_sessions"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "access_token",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "auth_sessions"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "auth_sessions"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "expires_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "auth_sessions"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "slug",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "title",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "varchar(10000)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "description",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "varchar(2048)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "thumbnail_url",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "start_date",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "end_date",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "event_status",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'draft'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "created_by",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "updated_by",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "1",
+      "generated": null,
+      "identity": null,
+      "name": "version",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "type": "varchar(64)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "youtube_video_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "starts_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "ends_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "type": "live_status",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'scheduled'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "activation_error",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "activated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "ended_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "created_by",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "sub",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "username",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "full_name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "nickname",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "varchar(2048)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "avatar_url",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "membership_status",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "membership_status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "boolean",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "false",
+      "generated": null,
+      "identity": null,
+      "name": "is_leadership",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "joined_year",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "semester",
+      "typeSchema": "public",
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "joined_semester",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "varchar(100)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "joined_semester_raw",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "varchar(10000)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "introduction",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "member_sync_status",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'ok'",
+      "generated": null,
+      "identity": null,
+      "name": "sync_status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "text",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "last_sync_error",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "last_seen_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "video_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "related_videos"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "related_video_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "related_videos"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "position",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "related_videos"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "site_settings"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "highlighted_video_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "site_settings"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "site_settings"
+    },
+    {
+      "type": "slug_entity_type",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "entity_type",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "slug_history"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "slug",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "slug_history"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "entity_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "slug_history"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "slug_history"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "staff_roles"
+    },
+    {
+      "type": "varchar(64)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "staff_roles"
+    },
+    {
+      "type": "varchar(64)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "normalized_name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "staff_roles"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "name": "display_order",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "staff_roles"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "staff_roles"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "tags"
+    },
+    {
+      "type": "varchar(64)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "tags"
+    },
+    {
+      "type": "varchar(64)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "normalized_name",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "tags"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "tags"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "video_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "video_staff"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "role_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "video_staff"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "member_sub",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "video_staff"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "video_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "video_tags"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "tag_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "video_tags"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "gen_random_uuid()",
+      "generated": null,
+      "identity": null,
+      "name": "id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "slug",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "varchar(200)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "title",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "varchar(10000)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "description",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "varchar(5000)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "guests",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "varchar(5000)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "songs",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "varchar(2048)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "video_url",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "varchar(2048)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "thumbnail_url",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "visibility",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'public'",
+      "generated": null,
+      "identity": null,
+      "name": "visibility",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "content_status",
+      "typeSchema": "public",
+      "notNull": true,
+      "dimensions": 0,
+      "default": "'draft'",
+      "generated": null,
+      "identity": null,
+      "name": "status",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "event_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "date",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "recorded_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "published_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "0",
+      "generated": null,
+      "identity": null,
+      "name": "view_count",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "created_by",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "updated_by",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "integer",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "1",
+      "generated": null,
+      "identity": null,
+      "name": "version",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "created_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "updated_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "trashed_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "varchar(255)",
+      "typeSchema": null,
+      "notNull": false,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "trashed_by",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "type": "uuid",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "video_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "view_sessions"
+    },
+    {
+      "type": "varchar(128)",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": null,
+      "generated": null,
+      "identity": null,
+      "name": "session_id",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "view_sessions"
+    },
+    {
+      "type": "timestamp with time zone",
+      "typeSchema": null,
+      "notNull": true,
+      "dimensions": 0,
+      "default": "now()",
+      "generated": null,
+      "identity": null,
+      "name": "viewed_at",
+      "entityType": "columns",
+      "schema": "public",
+      "table": "view_sessions"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "video_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "about_page_videos_video_key",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "about_page_videos"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "occurred_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "audit_log_occurred_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "audit_log"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "entity_type",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "entity_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "audit_log_entity_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "audit_log"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "actor",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "audit_log_actor_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "audit_log"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "action",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "audit_log_action_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "audit_log"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "expires_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "auth_sessions_expires_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "auth_sessions"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "slug",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "events_slug_key",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "start_date",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "events_status_start_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "starts_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "live_streams_status_starts_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "username",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "member_cache_username_key",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "membership_status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "member_cache_status_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "member_cache"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "entity_type",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "entity_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "slug_history_entity_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "slug_history"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "normalized_name",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "staff_roles_normalized_name_key",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "staff_roles"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "display_order",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "staff_roles_display_order_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "staff_roles"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "normalized_name",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "tags_normalized_name_key",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "tags"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "member_sub",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "video_staff_member_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "video_staff"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "role_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "video_staff_role_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "video_staff"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "tag_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "video_tags_tag_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "video_tags"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "slug",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": true,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "videos_slug_key",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "visibility",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "published_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "videos_visibility_status_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "event_id",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "videos_event_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "recorded_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "videos_recorded_at_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "status",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        },
+        {
+          "value": "trashed_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "videos_trash_purge_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "nameExplicit": true,
+      "columns": [
+        {
+          "value": "viewed_at",
+          "isExpression": false,
+          "asc": true,
+          "nullsFirst": false,
+          "opclass": null
+        }
+      ],
+      "isUnique": false,
+      "where": null,
+      "with": "",
+      "method": "btree",
+      "concurrently": false,
+      "name": "view_sessions_viewed_idx",
+      "entityType": "indexes",
+      "schema": "public",
+      "table": "view_sessions"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["video_id"],
+      "schemaTo": "public",
+      "tableTo": "videos",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "about_page_videos_video_id_videos_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "about_page_videos"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["created_by"],
+      "schemaTo": "public",
+      "tableTo": "member_cache",
+      "columnsTo": ["sub"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "events_created_by_member_cache_sub_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["updated_by"],
+      "schemaTo": "public",
+      "tableTo": "member_cache",
+      "columnsTo": ["sub"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "events_updated_by_member_cache_sub_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["created_by"],
+      "schemaTo": "public",
+      "tableTo": "member_cache",
+      "columnsTo": ["sub"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "live_streams_created_by_member_cache_sub_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["video_id"],
+      "schemaTo": "public",
+      "tableTo": "videos",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "related_videos_video_id_videos_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "related_videos"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["related_video_id"],
+      "schemaTo": "public",
+      "tableTo": "videos",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "related_videos_related_video_id_videos_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "related_videos"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["highlighted_video_id"],
+      "schemaTo": "public",
+      "tableTo": "videos",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "site_settings_highlighted_video_id_videos_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "site_settings"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["video_id"],
+      "schemaTo": "public",
+      "tableTo": "videos",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "video_staff_video_id_videos_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "video_staff"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["role_id"],
+      "schemaTo": "public",
+      "tableTo": "staff_roles",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "RESTRICT",
+      "name": "video_staff_role_id_staff_roles_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "video_staff"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["member_sub"],
+      "schemaTo": "public",
+      "tableTo": "member_cache",
+      "columnsTo": ["sub"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "video_staff_member_sub_member_cache_sub_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "video_staff"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["video_id"],
+      "schemaTo": "public",
+      "tableTo": "videos",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "video_tags_video_id_videos_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "video_tags"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["tag_id"],
+      "schemaTo": "public",
+      "tableTo": "tags",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "video_tags_tag_id_tags_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "video_tags"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["event_id"],
+      "schemaTo": "public",
+      "tableTo": "events",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "SET NULL",
+      "name": "videos_event_id_events_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["created_by"],
+      "schemaTo": "public",
+      "tableTo": "member_cache",
+      "columnsTo": ["sub"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "videos_created_by_member_cache_sub_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["updated_by"],
+      "schemaTo": "public",
+      "tableTo": "member_cache",
+      "columnsTo": ["sub"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "videos_updated_by_member_cache_sub_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["trashed_by"],
+      "schemaTo": "public",
+      "tableTo": "member_cache",
+      "columnsTo": ["sub"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "NO ACTION",
+      "name": "videos_trashed_by_member_cache_sub_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "nameExplicit": false,
+      "columns": ["video_id"],
+      "schemaTo": "public",
+      "tableTo": "videos",
+      "columnsTo": ["id"],
+      "onUpdate": "NO ACTION",
+      "onDelete": "CASCADE",
+      "name": "view_sessions_video_id_videos_id_fkey",
+      "entityType": "fks",
+      "schema": "public",
+      "table": "view_sessions"
+    },
+    {
+      "columns": ["position", "video_id"],
+      "nameExplicit": false,
+      "name": "about_page_videos_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "about_page_videos"
+    },
+    {
+      "columns": ["video_id", "related_video_id"],
+      "nameExplicit": false,
+      "name": "related_videos_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "related_videos"
+    },
+    {
+      "columns": ["entity_type", "slug"],
+      "nameExplicit": false,
+      "name": "slug_history_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "slug_history"
+    },
+    {
+      "columns": ["video_id", "role_id", "member_sub"],
+      "nameExplicit": false,
+      "name": "video_staff_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "video_staff"
+    },
+    {
+      "columns": ["video_id", "tag_id"],
+      "nameExplicit": false,
+      "name": "video_tags_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "video_tags"
+    },
+    {
+      "columns": ["video_id", "session_id"],
+      "nameExplicit": false,
+      "name": "view_sessions_pkey",
+      "entityType": "pks",
+      "schema": "public",
+      "table": "view_sessions"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "audit_log_pkey",
+      "schema": "public",
+      "table": "audit_log",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "auth_sessions_pkey",
+      "schema": "public",
+      "table": "auth_sessions",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "events_pkey",
+      "schema": "public",
+      "table": "events",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "live_streams_pkey",
+      "schema": "public",
+      "table": "live_streams",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["sub"],
+      "nameExplicit": false,
+      "name": "member_cache_pkey",
+      "schema": "public",
+      "table": "member_cache",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "site_settings_pkey",
+      "schema": "public",
+      "table": "site_settings",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "staff_roles_pkey",
+      "schema": "public",
+      "table": "staff_roles",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "tags_pkey",
+      "schema": "public",
+      "table": "tags",
+      "entityType": "pks"
+    },
+    {
+      "columns": ["id"],
+      "nameExplicit": false,
+      "name": "videos_pkey",
+      "schema": "public",
+      "table": "videos",
+      "entityType": "pks"
+    },
+    {
+      "value": "\"position\" >= 1 and \"position\" <= 6",
+      "name": "about_page_videos_position_range_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "about_page_videos"
+    },
+    {
+      "value": "\"end_date\" is null or \"end_date\" >= \"start_date\"",
+      "name": "events_end_after_start_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "events"
+    },
+    {
+      "value": "\"ends_at\" > \"starts_at\"",
+      "name": "live_streams_end_after_start_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "live_streams"
+    },
+    {
+      "value": "\"video_id\" <> \"related_video_id\"",
+      "name": "related_videos_no_self_reference_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "related_videos"
+    },
+    {
+      "value": "\"status\" <> 'published' or \"published_at\" is not null",
+      "name": "videos_published_requires_timestamp_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "videos"
+    },
+    {
+      "value": "\"status\" <> 'trash' or \"trashed_at\" is not null",
+      "name": "videos_trash_needs_timestamp_check",
+      "entityType": "checks",
+      "schema": "public",
+      "table": "videos"
+    }
+  ],
+  "renames": []
+}

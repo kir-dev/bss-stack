@@ -1,9 +1,12 @@
 import { afterAll, describe, expect, it } from 'vitest'
 import { Client } from 'pg'
-import { readdirSync, readFileSync } from 'node:fs'
-import { join } from 'node:path'
-import { createTestDatabase } from '../helpers/test-db.ts'
+import {
+  createTestDatabase,
+  applyDrizzleMigrations,
+} from '../helpers/test-db.ts'
 import type { TestDatabase } from '../helpers/test-db.ts'
+
+const hasTestDatabase = Boolean(process.env.TEST_DATABASE_URL)
 
 const databases: TestDatabase[] = []
 
@@ -12,25 +15,6 @@ afterAll(async () => {
     await databases.pop()!.drop()
   }
 })
-
-async function applyMigrations(client: Client): Promise<void> {
-  const drizzleDir = join(process.cwd(), 'drizzle')
-  const folders = readdirSync(drizzleDir)
-    .filter((name) => /^\d{14}_/.test(name))
-    .sort()
-
-  for (const folder of folders) {
-    const sql = readFileSync(join(drizzleDir, folder, 'migration.sql'), 'utf-8')
-    const statements = sql
-      .split('--> statement-breakpoint')
-      .map((statement) => statement.trim())
-      .filter((statement) => statement.length > 0)
-
-    for (const statement of statements) {
-      await client.query(statement)
-    }
-  }
-}
 
 async function createMigratedDatabase(): Promise<{
   database: TestDatabase
@@ -41,12 +25,12 @@ async function createMigratedDatabase(): Promise<{
 
   const client = new Client({ connectionString: database.connectionString })
   await client.connect()
-  await applyMigrations(client)
+  await applyDrizzleMigrations(client)
 
   return { database, client }
 }
 
-describe('új adatbázisséma és migrációs alap', () => {
+describe.skipIf(!hasTestDatabase)('új adatbázisséma és migrációs alap', () => {
   it('tiszta adatbázison a migráció lefut és minden tábla létezik', async () => {
     const { client } = await createMigratedDatabase()
     try {

@@ -1,4 +1,8 @@
-import { Client } from 'pg'
+import { readdirSync, readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { Client, Pool } from 'pg'
+import { drizzle } from 'drizzle-orm/node-postgres'
+import type { NodePgDatabase } from 'drizzle-orm/node-postgres'
 
 export interface TestDatabase {
   databaseName: string
@@ -6,7 +10,7 @@ export interface TestDatabase {
   drop: () => Promise<void>
 }
 
-function adminUrl(): string {
+export function adminUrl(): string {
   const url = process.env.TEST_DATABASE_URL
   if (!url) {
     throw new Error(
@@ -45,4 +49,43 @@ export async function createTestDatabase(
     await admin.end()
     throw error
   }
+}
+
+/** A drizzle/ könyvtár migrációit lefuttatja tiszta adatbázison. */
+export async function applyDrizzleMigrations(executor: {
+  query: Client['query']
+}): Promise<void> {
+  const drizzleDir = join(process.cwd(), 'drizzle')
+  const folders = readdirSync(drizzleDir)
+    .filter((name) => /^\d{14}_/.test(name))
+    .sort()
+
+  for (const folder of folders) {
+    const sql = readFileSync(join(drizzleDir, folder, 'migration.sql'), 'utf-8')
+    const statements = sql
+      .split('--> statement-breakpoint')
+      .map((statement) => statement.trim())
+      .filter((statement) => statement.length > 0)
+
+    for (const statement of statements) {
+      await executor.query(statement)
+    }
+  }
+}
+
+export interface MigratedTestDatabase {
+  database: TestDatabase
+  pool: Pool
+  db: NodePgDatabase<Record<string, never>>
+}
+
+/** Izolált, migrált adatbázist hoz létre integrációs tesztekhez. */
+export async function createMigratedTestDatabase(
+  prefix = 'bss_it',
+): Promise<MigratedTestDatabase> {
+  const database = await createTestDatabase(prefix)
+  const pool = new Pool({ connectionString: database.connectionString })
+  await applyDrizzleMigrations(pool)
+  const db = drizzle({ client: pool })
+  return { database, pool, db }
 }

@@ -42,3 +42,16 @@ export function loadOobConfig(explicitPath?: string): OobConfig {
 
   return validateOobConfig(parsed)
 }
+
+let cachedConfig: OobConfig | null = null
+
+export function getCachedOobConfig(): OobConfig {
+  if (cachedConfig === null) {
+    cachedConfig = loadOobConfig()
+  }
+  return cachedConfig
+}
+
+export function resetCachedOobConfig(): void {
+  cachedConfig = null
+}

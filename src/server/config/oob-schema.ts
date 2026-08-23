@@ -17,6 +17,11 @@ export interface OobConfig {
     clientId: string
     clientSecret: string
     scopes: string[]
+    /** Tagcache-szinkronhoz használt szolgáltatási fiók (OOB titok). */
+    sync: {
+      username: string
+      token: string
+    }
     claims: {
       sub: string
       username: string
@@ -116,6 +121,15 @@ export function validateOobConfig(raw: unknown): OobConfig {
   requireString(authentik, 'authentik.issuerUrl', problems)
   requireString(authentik, 'authentik.clientId', problems)
   requireString(authentik, 'authentik.clientSecret', problems)
+
+  if (!isRecord(authentik['sync'])) {
+    problems.push(
+      'authentik.sync: kötelező szekció hiányzik (tagcache-szinkron szolgáltatási fiókja).',
+    )
+  } else {
+    requireString(authentik.sync, 'authentik.sync.username', problems)
+    requireString(authentik.sync, 'authentik.sync.token', problems)
+  }
 
   const issuerUrlValue = authentik['issuerUrl']
   if (
@@ -315,6 +329,14 @@ export function validateOobConfig(raw: unknown): OobConfig {
       clientId: authentik['clientId'] as string,
       clientSecret: authentik['clientSecret'] as string,
       scopes: authentik['scopes'] as string[],
+      sync: {
+        username: (authentik['sync'] as Record<string, unknown>)[
+          'username'
+        ] as string,
+        token: (authentik['sync'] as Record<string, unknown>)[
+          'token'
+        ] as string,
+      },
       claims: claims as unknown as OobConfig['authentik']['claims'],
       groups: groups as unknown as OobConfig['authentik']['groups'],
       attributes: {

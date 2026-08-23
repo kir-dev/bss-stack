@@ -13,11 +13,14 @@ export const CONFIG_FILE = 'config.json'
 export interface LocalSecrets {
   authentikSecretKey: string
   oidcClientSecret: string
+  /** Tagcache-szinkron szolgáltatási fiók Authentik API tokene. */
+  syncApiToken: string
   passwords: Record<string, string>
 }
 
 const AUTHENTIK_BASE_URL = 'http://127.0.0.1:9000'
 const OIDC_CLIENT_ID = 'bss-stack-local'
+export const SYNC_SERVICE_USERNAME = 'svc-bss-sync'
 
 interface LocalUserSpec {
   username: string
@@ -116,6 +119,7 @@ export function generateLocalSecrets(): LocalSecrets {
   return {
     authentikSecretKey: generateToken(),
     oidcClientSecret: generateToken(),
+    syncApiToken: generateToken(),
     passwords,
   }
 }
@@ -256,6 +260,36 @@ export function renderBlueprint(secrets: LocalSecrets): string {
     '      name: bss-vezetoseg',
     '      is_superuser: false',
     userEntries,
+    '  - model: authentik_core.user',
+    '    id: id-svc-bss-sync',
+    '    identifiers:',
+    `      username: ${SYNC_SERVICE_USERNAME}`,
+    '    attrs:',
+    `      name: BSS tagcache szinkron szolgáltatás`,
+    `      username: ${SYNC_SERVICE_USERNAME}`,
+    '      type: internal',
+    '      # Csak a szinkronhoz szükséges olvasási jogok (a régi is_superuser RBAC alatt nem él)',
+    '      permissions:',
+    '        - authentik_core.view_user',
+    '        - authentik_core.view_group',
+    '  - model: authentik_core.token',
+    '    identifiers:',
+    `      identifier: bss-local-sync-token`,
+    '    attrs:',
+    `      key: "${secrets.syncApiToken}"`,
+    '      intent: app_password',
+    '      expiring: false',
+    '      user: !KeyOf id-svc-bss-sync',
+    '  - model: authentik_providers_oauth2.scopemapping',
+    '    id: id-map-api-scope',
+    '    identifiers:',
+    '      name: bss-local-scope-api',
+    '    attrs:',
+    '      name: bss-local-scope-api',
+    '      scope_name: goauthentik.io/api',
+    '      description: Authentik API hozzáférés a szinkronhoz',
+    '      expression: |',
+    '        return {}',
     '  - model: authentik_providers_oauth2.scopemapping',
     '    id: id-map-profile',
     '    identifiers:',
@@ -270,6 +304,7 @@ export function renderBlueprint(secrets: LocalSecrets): string {
     '          "name": request.user.name,',
     '          "nickname": request.user.attributes.get("nickname", request.user.username),',
     '          "picture": request.user.avatar,',
+    '          "groups": [group.name for group in request.user.groups.all()],',
     '        }',
     '  - model: authentik_providers_oauth2.scopemapping',
     '    id: id-map-email',
@@ -308,13 +343,19 @@ export function renderBlueprint(secrets: LocalSecrets): string {
     '          url: http://localhost:3000/api/auth/callback',
     '        - matching_mode: strict',
     '          url: http://127.0.0.1:3000/api/auth/callback',
+    '      grant_types:',
+    '        - authorization_code',
+    '        - refresh_token',
+    '        - client_credentials',
     '      authorization_flow: !KeyOf id-authz-flow',
     '      invalidation_flow: !Find [authentik_flows.Flow, [slug, default-provider-invalidation-flow]]',
     '      property_mappings:',
     '        - !KeyOf id-map-profile',
     '        - !KeyOf id-map-email',
     '        - !KeyOf id-map-bss',
-    '      sub_mode: hashed_user_id',
+    '        - !KeyOf id-map-api-scope',
+    '      # user_id sub: a tagcache szinkron az API pk-jával illeszthető',
+    '      sub_mode: user_id',
     '      access_token_validity: hours=1',
     '      signing_key: !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]',
     '  - model: authentik_core.application',
@@ -335,6 +376,10 @@ export function renderOobConfig(secrets: LocalSecrets): unknown {
       clientId: OIDC_CLIENT_ID,
       clientSecret: secrets.oidcClientSecret,
       scopes: ['openid', 'profile', 'email', 'bss'],
+      sync: {
+        username: SYNC_SERVICE_USERNAME,
+        token: secrets.syncApiToken,
+      },
       claims: {
         sub: 'sub',
         username: 'preferred_username',
@@ -394,6 +439,11 @@ export function writeLocalFiles(baseDir: string): {
 
   if (existsSync(secretsPath)) {
     secrets = JSON.parse(readFileSync(secretsPath, 'utf-8')) as LocalSecrets
+    // Újabb mezők utólagos kiegészítése régi titokfájlon (idempotens futás).
+    if (!secrets.syncApiToken) {
+      secrets.syncApiToken = generateToken()
+      writeFileSync(secretsPath, `${JSON.stringify(secrets, null, 2)}\n`)
+    }
   } else {
     secrets = generateLocalSecrets()
     writeFileSync(secretsPath, `${JSON.stringify(secrets, null, 2)}\n`)

@@ -52,6 +52,13 @@ export const memberSyncStatusEnum = pgEnum('member_sync_status', [
   'error',
 ])
 
+export const memberSyncTriggerEnum = pgEnum('member_sync_trigger', [
+  'startup',
+  'hourly',
+  'manual',
+  'test',
+])
+
 export const liveStatusEnum = pgEnum('live_status', [
   'scheduled',
   'active',
@@ -59,6 +66,22 @@ export const liveStatusEnum = pgEnum('live_status', [
 ])
 
 export const slugEntityTypeEnum = pgEnum('slug_entity_type', ['video', 'event'])
+
+export const authSessions = pgTable(
+  'auth_sessions',
+  {
+    id: varchar('id', { length: 64 }).primaryKey(),
+    memberSub: varchar('member_sub', { length: 255 }).notNull(),
+    username: varchar('username', { length: 200 }).notNull(),
+    groups: jsonb('groups').$type<string[]>().notNull().default([]),
+    accessToken: text('access_token'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  },
+  (table) => [index('auth_sessions_expires_idx').on(table.expiresAt)],
+)
 
 export const memberCache = pgTable(
   'member_cache',
@@ -87,6 +110,24 @@ export const memberCache = pgTable(
     uniqueIndex('member_cache_username_key').on(table.username),
     index('member_cache_status_idx').on(table.membershipStatus),
   ],
+)
+
+export const memberSyncRuns = pgTable(
+  'member_sync_runs',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    trigger: memberSyncTriggerEnum('trigger').notNull(),
+    status: memberSyncStatusEnum('status').notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+    totalCount: integer('total_count').notNull().default(0),
+    changedCount: integer('changed_count').notNull().default(0),
+    errorCount: integer('error_count').notNull().default(0),
+    message: text('message'),
+  },
+  (table) => [index('member_sync_runs_started_idx').on(table.startedAt)],
 )
 
 export const events = pgTable(

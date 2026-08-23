@@ -27,11 +27,21 @@
       "joinedSemester": {
         "attribute": "TÖLTSD-KI-csatlakozási-félév-attribútum-kulcsa",
         "rules": [
-          { "pattern": "^(\\d{4})\\s+(ősz|őszi)$", "semester": "autumn" },
-          { "pattern": "^(\\d{4})\\s+(tavasz|tavaszi)$", "semester": "spring" }
+          {
+            "pattern": "^(\\d{4})\\s+(ősz|őszi)$",
+            "semester": "autumn"
+          },
+          {
+            "pattern": "^(\\d{4})\\s+(tavasz|tavaszi)$",
+            "semester": "spring"
+          }
         ]
       },
       "introduction": "TÖLTSD-KI-bemutatkozás-attribútum-kulcsa"
+    },
+    "sync": {
+      "username": "svc-bss-sync",
+      "token": "<generált API token – lásd pnpm infra:bootstrap>"
     }
   },
   "media": {

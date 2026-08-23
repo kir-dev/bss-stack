@@ -9,6 +9,10 @@ export interface RawOobConfig {
     clientId: string
     clientSecret: string
     scopes: string[]
+    sync: {
+      username: string
+      token: string
+    }
     claims: Record<string, string>
     groups: Record<string, string>
     attributes: {
@@ -43,6 +47,10 @@ export function buildRawOobConfig(
       clientId: 'bss-stack-local',
       clientSecret: 'local-test-secret-not-for-production',
       scopes: ['openid', 'profile', 'email'],
+      sync: {
+        username: 'svc-bss-sync',
+        token: 'local-test-sync-token-not-for-production',
+      },
       claims: {
         sub: 'sub',
         username: 'preferred_username',
