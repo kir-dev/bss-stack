@@ -17,6 +17,7 @@
     "check": "prettier --check .",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx scripts/import-seed.ts",
     "check:oob": "tsx scripts/check-oob.ts",
     "infra:bootstrap": "tsx scripts/bootstrap-local.ts"
   },

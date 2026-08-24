@@ -144,6 +144,7 @@ function NewTagForm({ onCreated }: { onCreated: () => void }) {
       <div className="flex flex-wrap items-end gap-3">
         <AdminTextField
           label="Új címke neve"
+          maxLength={64}
           value={name}
           onChange={(value) => {
             setName(value)
@@ -250,6 +251,7 @@ function TagRowEditor({
             label="Új név"
             value={newName}
             onChange={setNewName}
+            maxLength={64}
           />
           <AdminPrimaryButton
             disabled={busy || newName.trim() === ''}

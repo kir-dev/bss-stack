@@ -63,15 +63,19 @@ export const Route = createFileRoute('/videos/$slug')({
 
 function VideoDetailPage() {
   const { detail, canonical } = Route.useLoaderData()
+  const description = detail.description?.slice(0, 300) ?? detail.title
   return (
     <main className="flex-1">
       <title>{detail.title} | BSS</title>
-      <meta name="description" content={detail.description ?? detail.title} />
+      <meta name="description" content={description} />
       <link rel="canonical" href={canonical} />
+      <meta property="og:title" content={detail.title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:url" content={canonical} />
+      <meta property="og:type" content="video.other" />
       {detail.thumbnailUrl !== null && (
         <meta property="og:image" content={detail.thumbnailUrl} />
       )}
-      <meta property="og:title" content={detail.title} />
 
       <div className="flex w-full justify-center bg-black">
         {detail.videoUrl !== null ? (

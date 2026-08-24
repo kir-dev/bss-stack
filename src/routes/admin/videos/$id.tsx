@@ -330,11 +330,13 @@ function VideoEditor({
             value={form.title}
             onChange={(value) => patch({ title: value })}
             required
+            maxLength={200}
           />
           <AdminTextField
             label="Slug"
             value={form.slug}
             onChange={(value) => patch({ slug: value })}
+            maxLength={200}
             hint="Módosításkor a régi slug átirányításként megmarad."
           />
         </div>

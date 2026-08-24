@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "events": [
+    {
+      "key": "gala-2025",
+      "title": "Tavaszi Gála 2025",
+      "description": "A stúdió tavaszi gálaműsora.",
+      "thumbnailUrl": null,
+      "startDate": "2025-05-10",
+      "endDate": null,
+      "status": "published"
+    }
+  ],
+  "tags": ["Gála", "Adás"],
+  "staffRoles": ["Operatőr", "Vágó"],
+  "videos": [
+    {
+      "key": "vid-001",
+      "title": "Gálanyitó 2025",
+      "description": "A gála felvétele.",
+      "guests": null,
+      "songs": "Előadó - Szám címe",
+      "videoUrl": "https://v.bsstudio.hu/seed/galanyito-2025.mp4",
+      "thumbnailUrl": "https://v.bsstudio.hu/seed/galanyito-2025.jpg",
+      "visibility": "public",
+      "status": "published",
+      "recordedAt": "2025-05-10",
+      "publishedAt": "2025-06-01T12:00:00Z",
+      "eventKey": "gala-2025",
+      "tags": ["Gála", "Adás"],
+      "staff": [
+        { "username": "tag-dev", "role": "Operatőr" },
+        { "username": "vezetoseg-dev", "role": "Vágó" }
+      ]
+    }
+  ]
+}

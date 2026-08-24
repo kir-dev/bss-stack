@@ -1,13 +1,14 @@
 # BSS V0 implementációs állapot
 
-Utolsó frissítés: 2026-08-24 (4. fázis vége, fáziskapu zöld)
+Utolsó frissítés: 2026-08-24 (5. fázis vége, fáziskapu zöld)
 
 ## Aktuális fázis
 
-**4. fázis – Adminfelület: KÉSZ, felhasználói jóváhagyásra vár.**
+**5. fázis – Seed, SEO, minőség és átadás: KÉSZ, felhasználói jóváhagyásra vár.**
 
-Mind a hét kártya (BSS-027 – BSS-033) elkészült, a fáziskapu gate-je zöld.
-Következő: **5. fázis – Seed, SEO, minőség és átadás** (BSS-034 –), munka csak külön jóváhagyással.
+Mind az öt kártya (BSS-034 – BSS-038) elkészült, a fáziskapu gate-je zöld.
+Ez volt az utolsó végrehajtási hullám; a következő a production előtti, külön
+backlog (implementation-plan 5. fejezet), munka csak külön jóváhagyással.
 
 ## Kártyák állapota
 
@@ -47,6 +48,12 @@ Következő: **5. fázis – Seed, SEO, minőség és átadás** (BSS-034 –), 
 | BSS-032 | Rejtett tagdiagnosztika                         | done    | Vezetőségi `/admin/members`: profilok csak olvashatóan (státusz, félév, szinkronállapot, utolsó látvány), tartós szinkronhiba-sáv, utolsó futások listája, kézi szinkron gomb (`POST /api/admin/members/sync` → `triggerManualMemberSync`, auditált, trigger=`manual`), Authentik admin link az OOB issuerből; eltűnt tagok felismerése (lastSeenAt az utolsó sikeres futásnál régebbi); helyi profil-/jogosultságszerkesztés nincs; nyers token nem szivárog a hibaüzenetekbe (tesztelve); 4 integrációs teszt                                                                                                                                                                                                                                                                                                                                                                   |
 | BSS-033 | Lomtár és audit admin                           | done    | `/admin/trash` minden tagnak: lomtári videók törlővel, időponttal, hátralévő napokkal és a purge állapotával; visszaállítás gomb csak vezetőségnek jelenik meg, szerveren is tiltva (tag → 403), restore után archivált állapot, kapcsolatok megmaradnak, elavult verzió 409; `/admin/audit` csak vezetőségnek: szereplő/művelet/entitás/dátum szűrők, lapozás, előtte-utána JSON részletnézet; audit-mutáció útvonal nem létezik (API 404), export/törlés nincs; rendszerfeladatok csak tényleges változásnál írnak auditot (a BSS-010/014 domainjeiből); 5 integrációs teszt                                                                                                                                                                                                                                                                                                    |
 
+| BSS-034 | Scraper eredmény betöltése: seed importer | done | Seed JSON v1 formátum típusos validációval (`src/server/seed/schema.ts`): max 50 videó, tiltott mezők (email/bemutatkozás) elutasítva, médiahost-engedélylista, publikálási előfeltételek, hivatkozási integritás (eventKey/tags/staffRoles) — magyar hibalista helymegjelöléssel; idempotens importer (`src/server/seed/importer.ts`): természetes kulcsok (slug, normalizált név), újrafuttatás nem duplikál és nem ír auditot változatlan entitásra, kapcsolatok determinisztikus szinkronja; stáb a tagcache-beli Authentik sub-hoz kötődik (hiányzó usernél magyar hiba a szinkronról); CLI `pnpm db:seed` (`scripts/import-seed.ts`, config `seed.path`, konkrét hiba hiányzó fájlnál); scraper futtatási szabályai dokumentálva (docs/oob-inputs.md — külön agent-feladat); példa: `docs/examples/seed.example.json`; 9 integrációs teszt |
+| BSS-035 | SEO, sitemap és biztonsági headerek | done | Minden publikus videó-, esemény- és tagoldal egyedi title + description + canonical + OG kép/típus leírással (videónál `og:type video.other`, tagnál `profile`); régi slug átirányítás után a canonical az új útvonalra mutat; `/robots.txt` az entryből (Disallow: /admin, /api, /search + Sitemap sor); `/sitemap.xml` (`src/server/pages/sitemap.ts`): statikus útvonalak + publikált ÉS publikus videók + publikált események + `sync_status='ok'` profilok — korlátozott videó metaadata sem kerül bele (integrációs teszt); CSP és alap biztonsági fejlécek (`src/server/http/security-headers.ts`) minden válaszra a `src/server.ts` entryben: media-src/img-src `v.bsstudio.hu`, frame-src youtube-nocookie (+i.ytimg.com thumbnail), nosniff, Referrer-Policy, X-Frame-Options DENY, Permissions-Policy; `/search` és admin noindex; 2 unit + 2 integrációs teszt |
+| BSS-036 | Reszponzív, billentyűzetes és állapotpolírozás | done | `AdminTextField` maxLength + karakterhátralék-jelzés (cím/slug/katalógusnevek — a korlátos mezők egységesen jelzik a hátralévő karaktereket, az `AdminTextArea` meglévő képességével együtt); felülvizsgálat: minden admin tábla (`videos`, `events`, `members`, `audit`) `ResponsiveTable`-t használ, a lomtár és a homepage-admin kártyaalapú — mobilon használható; publikus listák (videók, események, tagok, keresés) mind rendelkeznek magyar üres/betöltési/hibaállapotokkal (`PageStates`), a Rólunk oldal címe kiegészült; modáloknál natív `window.confirm` és inline címbeírásos megerősítés van (natív fókuszkezeléssel), nincs egyedi modal; SearchBox nyíl/Enter/Esc kezelése és az űrlapok szabványos elemekből épülnek (billentyűzettel kezelhetők); hibaüzenetek megmondják, mi történt és mi a következő lépés (LoginRequiredBanner belépési linkkel, ConflictBanner újratöltéssel, ValidationProblems listával) |
+| BSS-037 | Integrációs és végponttól végpontig tesztcsomag | done | A spec 20. fejezet 17 elfogadási forgatókönyve lefedve: meglévő domain/API/page tesztek + hiánypótló E2E lánc (`tests/integration/e2e-acceptance-chain.test.ts`): tag létrehoz → frissít → publikál a valódi `/api/admin/*` végpontokon session cookie-val, vezetőség kiemel (tag 403), homepage prioritás normal→highlight→(lomtár)normal, hero nem ismétlődő; schönherzes láthatóság anonim homepage-re nem szivárog; külső hívások determinisztikus mockok (`tests/helpers/http-mock.ts`, `reachableMediaFetch`), idő FakeClock; a 17.-hez (tiszta klón) a README dokumentált folyama a kézi ellenőrzés; hibás esetnél a tesztnevek megnevezik a sérült üzleti szabályt |
+| BSS-038 | Dokumentáció és lokális átadási próba | done | README átírva magyar átadási dokumentummá: telepítés/indítás a spec 17.2 sorrendjében (függőségek → bootstrap → compose → migráció → OOB ellenőrzés → seed → alkalmazás → minőségi kapu), tesztfelhasználók, szereplőnkénti demo forgatókönyvek (névtelen/schönherzes/tag/vezetőség), ismert V0-korlátok, production előtti backlog, tiszta klónból végzett átadási próba ellenőrzési pontokkal — adatbázis-kézi módosítás nélkül; seed CLI hibaútvonalai élőben ellenőrizve (hiányzó DATABASE_URL és seed fájl konkrét magyar üzenettel) |
+
 ## Fáziskapu eredménye (0. fázis, megtörtént)
 
 - [x] rögzített, kompatibilis függőségek (lockfile + nincs `latest`/nightly)
@@ -58,11 +65,11 @@ Következő: **5. fázis – Seed, SEO, minőség és átadás** (BSS-034 –), 
 
 ## OOB bemenetek állapota
 
-| Fájl                     | Hely                                                  | Állapot                                                          |
-| ------------------------ | ----------------------------------------------------- | ---------------------------------------------------------------- |
-| Authentik mapping config | `oob/config.json` (vagy `BSS_OOB_CONFIG`)             | lokális változat generált és valid; éles értékek továbbra is OOB |
-| Helyi titkok             | `.env`, `oob/local-secrets.json`, `oob/authentik.env` | generálva, gitignore-olt, nem kerülnek gitbe                     |
-| Seed JSON                | `oob/seed.json`                                       | helye a configban rögzített; tartalma az 5. fázisban (BSS-034)   |
+| Fájl                     | Hely                                                  | Állapot                                                                                                                                  |
+| ------------------------ | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Authentik mapping config | `oob/config.json` (vagy `BSS_OOB_CONFIG`)             | lokális változat generált és valid; éles értékek továbbra is OOB                                                                         |
+| Helyi titkok             | `.env`, `oob/local-secrets.json`, `oob/authentik.env` | generálva, gitignore-olt, nem kerülnek gitbe                                                                                             |
+| Seed JSON                | `oob/seed.json`                                       | helye a configban rögzített; formátuma dokumentált és betölthető (`pnpm db:seed`); tartalmát a scraper állítja elő (külön agent-feladat) |
 
 ## Elfogadott felhasználói döntések ebben a fázisban
 
@@ -80,6 +87,47 @@ Következő: **5. fázis – Seed, SEO, minőség és átadás** (BSS-034 –), 
 - Az OIDC tranzakció (state/PKCE/returnTo) rövid életű, HMAC-SHA256 aláírt cookie-ban utazik; az aláíró
   kulcs a config clientId+clientSecret titkából származik (új OOB titok bevezetése nélkül).
 - Az id_token signature-ét nem ellenőrizzük (backchannel token), de iss/aud/exp/nonce igen.
+
+## Fáziskapu eredménye (5. fázis)
+
+- [x] `pnpm check` zöld
+- [x] `pnpm lint` zöld
+- [x] `pnpm typecheck` zöld (0 hiba)
+- [x] `TEST_DATABASE_URL=... pnpm test` zöld — 44 fájl / 344 teszt (4. fázis vége: 40/328)
+- [x] `pnpm build` zöld (nitro .output)
+- [x] migráció nem változott (7 migráció maradt; az 5. fázis csak seed, meta, polírozás, teszt és doksi)
+- [x] git diff átnézve: titkok csak gitignore-olt `.env` és `oob/` fájlokban; idegen módosítás nincs
+
+## Elfogadott technikai döntések az 5. fázisban
+
+- A scraper maga NEM része a repónak (külön agent-feladat); a repóba a
+  gitignore-olt JSON eredményét betöltő, idempotens seed importer került.
+  A scraper futtatási szabályait (max 5 párhuzamos kérés, exponenciális
+  visszalépés 429/5xx-re, oldalanként max 3 próbálkozás, checkpoint) a
+  docs/oob-inputs.md rögzíti.
+- A seed JSON formátumverziója `1`; természetes kulcsok a slug (videó,
+  esemény) és a normalizált név (címke, stábszerep). Az importer tranzakcióban
+  dolgozik: változatlan entitásra nem ír (audit sem készül), így az
+  újrafuttatás valódi idempotencia, nem csak duplikáció-tilalom.
+- A seedelt stáblista a lokális Authentik bootstrap tesztprofilok
+  felhasználónevére hivatkozik; az importer a tagcache-ből oldja fel a sub-ot,
+  és hiányzó profilnál magyar hibaüzenettel kéri a szinkron lefuttatását —
+  ezzel a bootstrap sub-jaihoz kötődik, nem keménykódolt azonosítókhoz.
+- CSP: a TanStack Start streamelő szkriptjei miatt `script-src 'self' 'unsafe-inline'`
+  kell (nonce a streaming válaszban nem vezethető be megbízhatóan);
+  media-src/img-src a `v.bsstudio.hu`, frame-src a youtube-nocookie (+ i.ytimg.com
+  a live-előnézeti thumbnailök); minden válaszra a `src/server.ts` entryben
+  érvényesül, az SSR-válasz fejléceit kiegészítve.
+- A sitemap közvetlenül az entryből szolgálódik (`/sitemap.xml`), lekérdezése
+  tesztelhető szervermodulban él (`src/server/pages/sitemap.ts`); csak
+  publikált + publikus videó, publikált esemény és sikeresen szinkronizált
+  profil kerül bele; `/robots.txt` ugyanonnan, statikus tartalommal.
+- SEO-meta: a videórészlet BSS-021 mintáját követte az esemény- és tagoldal
+  (canonical az SSR request originjéből a loaderben), leírást az első 300
+  karakterből vagy magyar fallback szövegből kapnak.
+- Az elfogadási forgatókönyvek lefedettségét a meglévő 40 tesztfájl adja;
+  új teszt csak a hiányzó E2E lánc és a fázis saját funkciói (seed, sitemap,
+  headerek) körül készült — meglévő lefedettséget nem duplikáltunk.
 
 ## Fáziskapu eredménye (4. fázis)
 
@@ -239,5 +287,6 @@ Következő: **5. fázis – Seed, SEO, minőség és átadás** (BSS-034 –), 
 | `TEST_DATABASE_URL=... pnpm test`      | unit + integrációs tesztek           |
 | `pnpm build`                           | produkciós build                     |
 | `pnpm db:generate` / `pnpm db:migrate` | migráció generálása / futtatása      |
+| `pnpm db:seed`                         | idempotens seed import               |
 | `pnpm check:oob`                       | OOB config validáció                 |
 | `pnpm infra:bootstrap`                 | lokális titkok + Authentik blueprint |

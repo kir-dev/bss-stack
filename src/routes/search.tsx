@@ -85,6 +85,9 @@ function SearchPage() {
 
   return (
     <main className="mx-auto w-[90dvw] my-[4dvh]">
+      {/* Technikai oldal: a keresés nem indexelhető (spec 16). */}
+      <meta name="robots" content="noindex, nofollow" />
+      <title>Keresés | BSS</title>
       <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">
         Keresés{query !== '' ? `: „${query}”` : ''}
       </h1>

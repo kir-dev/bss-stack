@@ -28,6 +28,8 @@ function AdminLayout() {
 
   return (
     <div className="mx-auto flex w-[95dvw] max-w-[1400px] my-[3dvh] flex-col gap-4 md:flex-row">
+      {/* Az adminfelület nem indexelhető (spec 16). */}
+      <meta name="robots" content="noindex, nofollow" />
       <AdminSidebar level={access.viewer.level} />
       <div className="min-w-0 flex-1">
         <Outlet />

@@ -250,6 +250,7 @@ function RoleRowEditor({
             label="Új név"
             value={newName}
             onChange={setNewName}
+            maxLength={64}
           />
           <AdminPrimaryButton
             disabled={busy || newName.trim() === ''}
@@ -346,6 +347,7 @@ function NewRoleForm({ onCreated }: { onCreated: () => void }) {
           value={name}
           onChange={setName}
           required
+          maxLength={64}
         />
         <AdminPrimaryButton onClick={() => void submit()} disabled={busy}>
           Létrehozás

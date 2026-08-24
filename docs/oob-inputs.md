@@ -34,8 +34,85 @@ Lokális fejlesztésben a titkokat a bootstrap script generálja (`pnpm infra:bo
 ## 3. Előre kinyert seed JSON
 
 - Helye: a config `seed.path` mezője által megadott fájl (alapból `oob/seed.json`, gitignore-olt).
-- Formáját a seed importer (BSS-034 kártya) definiálja és dokumentálja.
 - A scraper kimenete; személyes adatot és médiát nem tartalmaz, álneveket használ.
+- Formátumverzió: `1`. Példa: [`docs/examples/seed.example.json`](./examples/seed.example.json).
+
+### Scraper futtatási szabályai (spec 17.1)
+
+A scraper külön agent-feladat, nem része a repónak. Az eredménye a fenti JSON.
+Futtatási követelményei:
+
+- legfeljebb öt párhuzamos kérés;
+- `429` és `5xx` esetén exponenciális visszalépés;
+- oldalanként legfeljebb három próbálkozás;
+- megszakítás után folytatható checkpoint (nem indul elölről);
+- médiafájl nem töltődik le; email és profilbemutatkozás nem kerül a JSON-ba;
+- a személyek konzisztens álnevesítése a lokális Authentik bootstrap
+  tesztprofiljainak felhasználónevére mutat (`oob/local-secrets.json`,
+  `scripts/lib/local-bootstrap.ts`: `tag-dev`, `vezetoseg-dev`, stb.).
+
+### Seed JSON formátuma
+
+```jsonc
+{
+  "version": 1,
+  "events": [
+    {
+      "key": "gala-2025", // belső hivatkozási kulcs
+      "title": "Tavaszi Gála 2025", // kötelező
+      "slug": null, // opcionális; alapból a keyből slugifyolva
+      "description": null,
+      "thumbnailUrl": null, // csak engedélyezett médiahost
+      "startDate": "2025-05-10",
+      "endDate": null,
+      "status": "published", // published|draft|archived, alap: published
+    },
+  ],
+  "tags": ["Gála", "Adás"], // a videók csak ezeket hivatkozhatják
+  "staffRoles": ["Operatőr", "Vágó"],
+  "videos": [
+    {
+      "key": "vid-001",
+      "title": "Gálanyitó 2025", // kötelező
+      "slug": null, // alapból a címből slugifyolva
+      "description": null,
+      "guests": null,
+      "songs": null, // soronként „Előadó - Szám címe”
+      "videoUrl": "https://v.bsstudio.hu/...mp4",
+      "thumbnailUrl": "https://v.bsstudio.hu/....jpg",
+      "visibility": "public", // public|schonherz|bss, alap: public
+      "status": "published",
+      "recordedAt": "2025-05-10",
+      "publishedAt": "2025-06-01T12:00:00Z",
+      "eventKey": "gala-2025",
+      "tags": ["Gála"],
+      "staff": [{ "username": "tag-dev", "role": "Operatőr" }],
+    },
+  ],
+}
+```
+
+Szabályok:
+
+- legfeljebb 50 videó (spec 17.1);
+- `email`, `introduction`/`bemutatkozas` mező bármhol tiltott;
+- média URL csak `https://` és az OOB config `media.allowedHosts` hostjairól;
+- publikált videónál kötelező `videoUrl` és `thumbnailUrl`;
+- publikált eseménynél kötelező `startDate`; `endDate >= startDate`;
+- a `staff[].username` a tagcache-beli felhasználónévre mutat — a betöltés előtt
+  futnia kell a tagszinkronnak (alkalmazásindítás vagy kézi szinkron).
+
+### Betöltés
+
+```bash
+pnpm db:migrate   # tiszta séma
+pnpm db:seed      # a OOB config seed.path fájljának idempotens importja
+```
+
+Az importer természetes kulcsok (slug, normalizált név) alapján dolgozik:
+újrafuttatás nem duplikál, változatlan entitásra nem ír (audit sem készül),
+a módosult mezőket és kapcsolatokat szinkronizálja. Megszakadt betöltés után
+biztonságosan újrafuttatható.
 
 ## Ellenőrzés
 

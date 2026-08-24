@@ -5,7 +5,7 @@ import {
   useNavigate,
 } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { getRequest } from '@tanstack/react-start/server'
+import { getRequest, getRequestUrl } from '@tanstack/react-start/server'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { getMemberActivity, getMemberProfile } from '#/server/pages/members.ts'
@@ -21,6 +21,23 @@ const loadMemberProfile = createServerFn({ method: 'GET' })
   .handler(async ({ data: username }) => {
     const db = await getDefaultDb()
     return getMemberProfile(db, username)
+  })
+
+const loadMemberMeta = createServerFn({ method: 'GET' })
+  .validator((slug: string) => slug)
+  .handler(async ({ data: username }) => {
+    const db = await getDefaultDb()
+    const profile = await getMemberProfile(db, username)
+    if (profile === null) {
+      return null
+    }
+    const description =
+      profile.introduction?.slice(0, 300) ??
+      `${profile.fullName} profilja a Budavári Schönherz Stúdióban (${profile.statusLabel}).`
+    return {
+      canonical: `${getRequestUrl().origin}/members/${profile.username}`,
+      description,
+    }
   })
 
 const loadMemberActivity = createServerFn({ method: 'GET' })
@@ -63,17 +80,20 @@ export const Route = createFileRoute('/members/$slug')({
     return result
   },
   loader: async ({ params }) => {
-    const profile = await loadMemberProfile({ data: params.slug })
-    if (profile === null) {
+    const [profile, meta] = await Promise.all([
+      loadMemberProfile({ data: params.slug }),
+      loadMemberMeta({ data: params.slug }),
+    ])
+    if (profile === null || meta === null) {
       throw notFound()
     }
-    return profile
+    return { profile, meta }
   },
   component: MemberProfilePage,
 })
 
 function MemberProfilePage() {
-  const profile = Route.useLoaderData()
+  const { profile, meta } = Route.useLoaderData()
   const navigate = useNavigate()
   const search = Route.useSearch()
   const view = search.view ?? 'year'
@@ -135,6 +155,12 @@ function MemberProfilePage() {
   return (
     <main className="mx-auto w-[90dvw] my-[4dvh]">
       <title>{profile.fullName} | BSS</title>
+      <meta name="description" content={meta.description} />
+      <link rel="canonical" href={meta.canonical} />
+      <meta property="og:title" content={profile.fullName} />
+      <meta property="og:description" content={meta.description} />
+      <meta property="og:url" content={meta.canonical} />
+      <meta property="og:type" content="profile" />
       {profile.avatarUrl !== null && (
         <meta property="og:image" content={profile.avatarUrl} />
       )}

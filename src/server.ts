@@ -9,6 +9,9 @@ import {
   COURSE_REDIRECT_TARGET,
   isCoursesPath,
 } from '#/server/pages/courses-redirect.ts'
+import { securityHeaders, robotsTxt } from '#/server/http/security-headers.ts'
+import { getSitemapEntries, sitemapXml } from '#/server/pages/sitemap.ts'
+import { getDefaultDb } from '#/server/auth/session-store.ts'
 
 const ssrHandler = createStartHandler(defaultStreamHandler)
 
@@ -30,9 +33,26 @@ function isApiPath(pathname: string): boolean {
   return API_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix))
 }
 
+/** SSR-válasz (és minden más) biztonsági fejlécekkel való kiegészítése. */
+async function runWithSecurityHeaders(request: Request): Promise<Response> {
+  const response = await ssrHandler(request)
+  const headers = new Headers(response.headers)
+  for (const [name, value] of Object.entries(securityHeaders())) {
+    if (!headers.has(name)) {
+      headers.set(name, value)
+    }
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  })
+}
+
 export default {
   async fetch(request: Request): Promise<Response> {
-    const { pathname } = new URL(request.url)
+    const url = new URL(request.url)
+    const { pathname } = url
     if (isApiPath(pathname)) {
       ensureBackgroundRunner()
       return handleApiRequest(request)
@@ -43,6 +63,21 @@ export default {
         headers: { location: COURSE_REDIRECT_TARGET },
       })
     }
-    return ssrHandler(request)
+    if (pathname === '/robots.txt') {
+      return new Response(robotsTxt(url.origin), {
+        headers: { 'content-type': 'text/plain; charset=utf-8' },
+      })
+    }
+    if (pathname === '/sitemap.xml') {
+      const db = await getDefaultDb()
+      const entries = await getSitemapEntries(db)
+      return new Response(sitemapXml(entries, url.origin), {
+        headers: {
+          'content-type': 'application/xml; charset=utf-8',
+          'cache-control': 'public, max-age=600',
+        },
+      })
+    }
+    return runWithSecurityHeaders(request)
   },
 }

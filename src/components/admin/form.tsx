@@ -8,6 +8,7 @@ export function AdminTextField({
   onChange,
   type = 'text',
   required = false,
+  maxLength,
   hint,
 }: {
   label: string
@@ -15,15 +16,25 @@ export function AdminTextField({
   onChange: (value: string) => void
   type?: string
   required?: boolean
+  /** Megadva esetén a mező korlátos, és karakterhátralék-jelzést kap (spec 18). */
+  maxLength?: number
   hint?: ReactNode
 }) {
   return (
     <label className="flex flex-col gap-1 text-sm">
-      <span className="font-bold text-(--bss-text)">{label}</span>
+      <span className="font-bold text-(--bss-text)">
+        {label}
+        {maxLength !== undefined && (
+          <span className="ml-2 text-xs font-normal text-(--bss-text-secondary)">
+            ({maxLength - value.length} karakter hátra)
+          </span>
+        )}
+      </span>
       <input
         type={type}
         value={value}
         required={required}
+        maxLength={maxLength}
         onChange={(event) => onChange(event.target.value)}
         className="h-10 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 outline-none focus:border-(--orange)"
       />

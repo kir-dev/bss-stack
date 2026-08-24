@@ -5,7 +5,7 @@ import {
   redirect,
 } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
-import { getRequest } from '@tanstack/react-start/server'
+import { getRequest, getRequestUrl } from '@tanstack/react-start/server'
 import { resolveViewerStateFromRequest } from '#/server/pages/viewer.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import { getEventDetail } from '#/server/pages/event-list.ts'
@@ -24,7 +24,11 @@ const loadEventDetail = createServerFn({ method: 'GET' })
       page: data.page,
     })
     if (detail !== null) {
-      return { detail, redirectSlug: null as string | null }
+      return {
+        detail,
+        redirectSlug: null as string | null,
+        canonical: `${getRequestUrl().origin}/events/${detail.slug}`,
+      }
     }
     const resolution = await resolvePublicSlug(db, {
       entityType: 'event',
@@ -37,6 +41,7 @@ const loadEventDetail = createServerFn({ method: 'GET' })
         resolution !== null && resolution.kind === 'redirect'
           ? resolution.canonicalSlug
           : null,
+      canonical: '',
     }
   })
 
@@ -68,18 +73,24 @@ export const Route = createFileRoute('/events/$slug')({
     if (result.detail === null) {
       throw notFound()
     }
-    return result.detail
+    return { detail: result.detail, canonical: result.canonical }
   },
   component: EventDetailPageComponent,
 })
 
 function EventDetailPageComponent() {
-  const detail = Route.useLoaderData()
+  const { detail, canonical } = Route.useLoaderData()
+  const description = detail.description?.slice(0, 300) ?? detail.title
 
   return (
     <main className="mx-auto w-[90dvw] my-[4dvh]">
       <title>{detail.title} | BSS</title>
-      <meta name="description" content={detail.description ?? detail.title} />
+      <meta name="description" content={description} />
+      <link rel="canonical" href={canonical} />
+      <meta property="og:title" content={detail.title} />
+      <meta property="og:description" content={description} />
+      <meta property="og:url" content={canonical} />
+      <meta property="og:type" content="website" />
       {detail.thumbnailUrl !== null && (
         <meta property="og:image" content={detail.thumbnailUrl} />
       )}
