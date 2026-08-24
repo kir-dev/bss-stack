@@ -89,7 +89,7 @@ export function buildRawOobConfig(
       allowedHosts: ['v.bsstudio.hu'],
     },
     youtube: {
-      oEmbedEndpoint: 'https://www.youtube.com/oEmbed',
+      oEmbedEndpoint: 'https://www.youtube.com/oembed',
     },
     seed: {
       path: 'oob/seed.json',

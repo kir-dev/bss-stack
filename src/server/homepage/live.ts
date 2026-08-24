@@ -88,7 +88,7 @@ export async function createLiveSchedule(
   const check = await validateYoutubeVideo(
     input.youtubeUrl,
     {
-      oEmbedEndpoint: 'https://www.youtube.com/oEmbed',
+      oEmbedEndpoint: 'https://www.youtube.com/oembed',
     },
     { fetchImpl: deps.fetchImpl },
   )
@@ -208,7 +208,7 @@ export async function startLiveNow(
 
   const check = await validateYoutubeVideo(
     `https://www.youtube.com/watch?v=${current.youtubeVideoId}`,
-    deps.youtubeConfig ?? { oEmbedEndpoint: 'https://www.youtube.com/oEmbed' },
+    deps.youtubeConfig ?? { oEmbedEndpoint: 'https://www.youtube.com/oembed' },
     { fetchImpl: deps.fetchImpl },
   )
   const now = (deps.clock ?? systemClock).now()

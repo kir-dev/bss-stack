@@ -236,6 +236,7 @@ describe('BSS-011: YouTube URL normalizálás', () => {
       'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
       'https://youtube.com/watch?v=dQw4w9WgXcQ&t=30s',
       'https://www.youtube.com/live/dQw4w9WgXcQ?feature=share',
+      'https://www.youtube.com/live/dQw4w9WgXcQ?si=laFbGfgIoz7AbL2-',
       'https://youtu.be/dQw4w9WgXcQ',
       'https://www.youtube.com/embed/dQw4w9WgXcQ',
       'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
@@ -264,7 +265,7 @@ describe('BSS-011: YouTube oEmbed ellenőrzés', () => {
   it('200-as oEmbed válasz elfogadott', async () => {
     const mock = installFetchMock([
       {
-        urlPattern: /oEmbed/,
+        urlPattern: /oembed/,
         respond: (request) => {
           expect(request.url.toString().includes('dQw4w9WgXcQ')).toBe(true)
           return {
@@ -289,7 +290,7 @@ describe('BSS-011: YouTube oEmbed ellenőrzés', () => {
       [404, 'oEmbed ellenőrzésen'],
     ] as const) {
       const mock = installFetchMock([
-        { urlPattern: /oEmbed/, respond: () => ({ status }) },
+        { urlPattern: /oembed/, respond: () => ({ status }) },
       ])
       const result = await validateYoutubeVideo(
         'https://youtu.be/dQw4w9WgXcQ',

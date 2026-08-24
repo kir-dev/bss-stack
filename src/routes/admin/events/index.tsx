@@ -7,6 +7,10 @@ import {
   parseAdminEventFilters,
 } from '#/server/admin/event-list.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
+import {
+  parsePaginationNumber,
+  parseSearchPage,
+} from '#/server/shared/pagination.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import { ResponsiveTable } from '#/components/admin/ResponsiveTable.tsx'
 import type { AdminColumn } from '#/components/admin/ResponsiveTable.tsx'
@@ -22,14 +26,20 @@ const loadAdminEventList = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const db = await getDefaultDb()
     return getAdminEventList(db, {
-      page: typeof data['page'] === 'number' ? data['page'] : 1,
-      perPage: typeof data['perPage'] === 'number' ? data['perPage'] : 25,
+      page: parsePaginationNumber(data['page'], 1),
+      perPage: parsePaginationNumber(data['perPage'], 25),
       filters: parseAdminEventFilters(data),
     })
   })
 
-interface AdminEventSearch extends Record<string, string | undefined> {
-  page?: string
+// Típus-alias (nem interface), hogy a szerverfüggvény `Record` paraméterébe
+// implicit indexszignatúrával átadható legyen.
+type AdminEventSearch = {
+  q?: string
+  status?: string
+  from?: string
+  to?: string
+  page?: number
 }
 
 export const Route = createFileRoute('/admin/events/')({
@@ -38,7 +48,7 @@ export const Route = createFileRoute('/admin/events/')({
     status: pickString(search, 'status'),
     from: pickString(search, 'from'),
     to: pickString(search, 'to'),
-    page: pickString(search, 'page'),
+    page: parseSearchPage(search['page']),
   }),
   loaderDeps: ({ search }) => ({ search }),
   loader: ({ deps, context }) =>
@@ -121,7 +131,7 @@ function AdminEventListPage() {
                       page:
                         listQuery.data.page - 1 <= 1
                           ? undefined
-                          : String(listQuery.data.page - 1),
+                          : listQuery.data.page - 1,
                     }),
                   })
                 }
@@ -140,7 +150,7 @@ function AdminEventListPage() {
                   navigate({
                     search: (prev) => ({
                       ...prev,
-                      page: String(listQuery.data.page + 1),
+                      page: listQuery.data.page + 1,
                     }),
                   })
                 }

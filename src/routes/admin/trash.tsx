@@ -3,6 +3,10 @@ import { createServerFn } from '@tanstack/react-start'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
+import {
+  parsePaginationNumber,
+  parseSearchPage,
+} from '#/server/shared/pagination.ts'
 import { getTrashPage } from '#/server/admin/trash-admin.ts'
 import type { TrashPage } from '#/server/admin/trash-admin.ts'
 import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
@@ -19,17 +23,14 @@ const loadTrashPage = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const db = await getDefaultDb()
     return getTrashPage(db, {
-      page: typeof data['page'] === 'number' ? data['page'] : 1,
-      perPage: typeof data['perPage'] === 'number' ? data['perPage'] : 25,
+      page: parsePaginationNumber(data['page'], 1),
+      perPage: parsePaginationNumber(data['perPage'], 25),
     })
   })
 
 export const Route = createFileRoute('/admin/trash')({
   validateSearch: (search: Record<string, unknown>) => ({
-    page:
-      typeof search['page'] === 'string' && search['page'] !== ''
-        ? Number(search['page'])
-        : undefined,
+    page: parseSearchPage(search['page']),
   }),
   loaderDeps: ({ search }) => ({ page: search.page ?? 1 }),
   loader: ({ deps, context }) =>

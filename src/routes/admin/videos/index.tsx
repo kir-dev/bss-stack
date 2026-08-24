@@ -10,6 +10,10 @@ import {
 } from '#/server/admin/video-list.ts'
 import type { AdminVideoListItem } from '#/server/admin/video-list.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
+import {
+  parsePaginationNumber,
+  parseSearchPage,
+} from '#/server/shared/pagination.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import { ResponsiveTable } from '#/components/admin/ResponsiveTable.tsx'
 import type { AdminColumn } from '#/components/admin/ResponsiveTable.tsx'
@@ -27,11 +31,8 @@ const loadAdminVideoList = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const db = await getDefaultDb()
     return getAdminVideoList(db, {
-      page: typeof data['page'] === 'number' ? data['page'] : 1,
-      perPage:
-        typeof data['perPage'] === 'number'
-          ? data['perPage']
-          : ADMIN_DEFAULT_PAGE_SIZE,
+      page: parsePaginationNumber(data['page'], 1),
+      perPage: parsePaginationNumber(data['perPage'], ADMIN_DEFAULT_PAGE_SIZE),
       filters: parseAdminVideoFilters(data),
     })
   })
@@ -43,8 +44,15 @@ const loadFilterOptions = createServerFn({ method: 'GET' }).handler(
   },
 )
 
-interface AdminVideoSearch extends Record<string, string | undefined> {
-  page?: string
+// Típus-alias (nem interface), hogy a szerverfüggvény `Record` paraméterébe
+// implicit indexszignatúrával átadható legyen.
+type AdminVideoSearch = {
+  q?: string
+  status?: string
+  visibility?: string
+  event?: string
+  tag?: string
+  page?: number
 }
 
 export const Route = createFileRoute('/admin/videos/')({
@@ -54,7 +62,7 @@ export const Route = createFileRoute('/admin/videos/')({
     visibility: pickString(search, 'visibility'),
     event: pickString(search, 'event'),
     tag: pickString(search, 'tag'),
-    page: pickString(search, 'page'),
+    page: parseSearchPage(search['page']),
   }),
   loaderDeps: ({ search }) => ({ search }),
   loader: ({ deps, context }) =>
@@ -134,7 +142,7 @@ function AdminVideoListPage() {
                 navigate({
                   search: (prev) => ({
                     ...prev,
-                    page: page === 1 ? undefined : String(page),
+                    page: page === 1 ? undefined : page,
                   }),
                 })
               }

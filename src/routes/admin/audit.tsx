@@ -3,6 +3,10 @@ import { createServerFn } from '@tanstack/react-start'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import {
+  parsePaginationNumber,
+  parseSearchPage,
+} from '#/server/shared/pagination.ts'
+import {
   getAuditFilterValues,
   getAuditPage,
   parseAuditFilters,
@@ -22,8 +26,8 @@ const loadAuditPage = createServerFn({ method: 'GET' })
   .handler(async ({ data }) => {
     const db = await getDefaultDb()
     return getAuditPage(db, {
-      page: typeof data['page'] === 'number' ? data['page'] : 1,
-      perPage: typeof data['perPage'] === 'number' ? data['perPage'] : 25,
+      page: parsePaginationNumber(data['page'], 1),
+      perPage: parsePaginationNumber(data['perPage'], 25),
       filters: parseAuditFilters(data),
     })
   })
@@ -36,7 +40,7 @@ const loadAuditFilterValues = createServerFn({ method: 'GET' }).handler(
 )
 
 interface AuditSearch extends Record<string, string | number | undefined> {
-  page?: string
+  page?: number
 }
 
 export const Route = createFileRoute('/admin/audit')({
@@ -51,10 +55,7 @@ export const Route = createFileRoute('/admin/audit')({
       typeof search['entityId'] === 'string' ? search['entityId'] : undefined,
     from: typeof search['from'] === 'string' ? search['from'] : undefined,
     to: typeof search['to'] === 'string' ? search['to'] : undefined,
-    page:
-      typeof search['page'] === 'number' && search['page'] > 0
-        ? String(search['page'])
-        : undefined,
+    page: parseSearchPage(search['page']),
   }),
   beforeLoad: async () => {
     const access = await fetchLeadershipAreaAccess()
@@ -218,7 +219,7 @@ function AuditAdminPage() {
                       page:
                         auditQuery.data.page - 1 <= 1
                           ? undefined
-                          : String(auditQuery.data.page - 1),
+                          : auditQuery.data.page - 1,
                     }),
                   })
                 }
@@ -238,7 +239,7 @@ function AuditAdminPage() {
                   navigate({
                     search: (prev) => ({
                       ...prev,
-                      page: String(auditQuery.data.page + 1),
+                      page: auditQuery.data.page + 1,
                     }),
                   })
                 }

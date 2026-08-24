@@ -51,7 +51,7 @@ describe('installFetchMock', () => {
   it('JSON választ ad oEmbed híváshoz', async () => {
     const mock = installFetchMock([
       {
-        urlPattern: 'www.youtube.com/oEmbed',
+        urlPattern: 'www.youtube.com/oembed',
         respond: () => ({
           status: 200,
           body: { title: 'Teszt live', author_name: 'BSS' },
@@ -61,7 +61,7 @@ describe('installFetchMock', () => {
     cleanup.push(mock.restore)
 
     const response = await fetch(
-      'https://www.youtube.com/oEmbed?url=https://www.youtube.com/watch?v=abc123&format=json',
+      'https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=abc123&format=json',
     )
     const payload = (await response.json()) as { title: string }
     expect(payload.title).toBe('Teszt live')

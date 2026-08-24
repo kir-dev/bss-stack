@@ -133,7 +133,7 @@ export async function handleAdminLiveRoutes(
         {
           oEmbedEndpoint:
             deps.config?.youtube.oEmbedEndpoint ??
-            'https://www.youtube.com/oEmbed',
+            'https://www.youtube.com/oembed',
         },
         { fetchImpl: deps.fetchImpl },
       )
