@@ -100,7 +100,7 @@ function EventListPageComponent() {
                   key={item.id}
                   to="/events/$slug"
                   params={{ slug: item.slug }}
-                  className="group relative block shadow-[0_2px_6px_rgba(0,0,0,0.25)]"
+                  className="group hover-lift relative block shadow-[0_2px_6px_rgba(0,0,0,0.25)]"
                 >
                   <img
                     src={item.thumbnailUrl ?? '/video-thumbnail.png'}
@@ -154,7 +154,7 @@ function EventPagination({
                   : String(perPage),
             }}
             aria-current={value === page ? 'page' : undefined}
-            className={`h-10 w-10 text-center leading-10 ${
+            className={`ctrl-btn h-10 w-10 rounded text-center leading-10 ${
               value === page
                 ? 'font-bold text-(--orange)'
                 : 'text-(--bss-text-secondary)'

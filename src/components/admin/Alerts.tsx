@@ -47,7 +47,7 @@ export function ConflictBanner({
       <button
         type="button"
         onClick={onReload}
-        className="mt-2 rounded bg-(--orange) px-3 py-1 font-bold text-white"
+        className="solid-btn mt-2 rounded bg-(--orange) px-3 py-1 font-bold text-white"
       >
         Legfrissebb állapot betöltése
       </button>

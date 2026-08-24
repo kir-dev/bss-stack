@@ -127,7 +127,7 @@ function VideoListPage() {
                 <a
                   key={item.id}
                   href={`/videos/${item.slug}`}
-                  className="group block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)]"
+                  className="group hover-lift block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)]"
                 >
                   <img
                     src={item.thumbnailUrl ?? '/video-thumbnail.png'}
@@ -281,7 +281,7 @@ function VideoFilterBar({
       </SelectField>
       <button
         type="submit"
-        className="h-10 bg-(--orange) px-4 font-bold text-white"
+        className="solid-btn h-10 bg-(--orange) px-4 font-bold text-white"
       >
         Szűrés
       </button>
@@ -289,7 +289,7 @@ function VideoFilterBar({
         <button
           type="button"
           onClick={onReset}
-          className="h-10 px-3 font-bold text-(--orange)"
+          className="ctrl-btn h-10 px-3 font-bold text-(--orange)"
         >
           Szűrők törlése
         </button>
@@ -346,7 +346,7 @@ function TagPicker({
         type="button"
         onClick={() => setOpen((value) => !value)}
         aria-expanded={open}
-        className="h-10 bg-(--nav-search-bg) px-2 text-left"
+        className="ctrl-btn h-10 bg-(--nav-search-bg) px-2 text-left"
       >
         Címkék {selected.length > 0 && `(ÉS: ${selected.length})`}
       </button>
@@ -354,7 +354,10 @@ function TagPicker({
         <div className="absolute top-full z-20 max-h-64 w-64 overflow-y-auto border border-(--nav-border-b) bg-(--bg) p-2 shadow-lg">
           {allTags.length === 0 && <p>Nincsenek címkék.</p>}
           {allTags.map((tag) => (
-            <label key={tag} className="flex items-center gap-2 py-1">
+            <label
+              key={tag}
+              className="flex items-center gap-2 rounded px-1 py-1 hover:bg-(--nav-search-bg)"
+            >
               <input
                 type="checkbox"
                 checked={selected.includes(tag)}
@@ -390,7 +393,7 @@ function Pagination({
         disabled={page === 1}
         onClick={() => onPage(page - 1)}
         aria-label="Előző oldal"
-        className="h-10 px-3 disabled:opacity-30"
+        className="ctrl-btn h-10 rounded px-3"
       >
         ‹
       </button>
@@ -400,7 +403,7 @@ function Pagination({
           type="button"
           onClick={() => onPage(value)}
           aria-current={value === page ? 'page' : undefined}
-          className={`h-10 w-10 ${value === page ? 'font-bold text-(--orange)' : 'text-(--bss-text-secondary)'}`}
+          className={`ctrl-btn h-10 w-10 rounded ${value === page ? 'font-bold text-(--orange)' : 'text-(--bss-text-secondary)'}`}
         >
           {value}
         </button>
@@ -410,7 +413,7 @@ function Pagination({
         disabled={page === totalPages}
         onClick={() => onPage(page + 1)}
         aria-label="Következő oldal"
-        className="h-10 px-3 disabled:opacity-30"
+        className="ctrl-btn h-10 rounded px-3"
       >
         ›
       </button>

@@ -147,7 +147,7 @@ export default function SearchBox() {
     <div ref={boxRef} className="relative" role="search">
       <div
         className={
-          'inline-flex items-center gap-2 border-b border-b-(--nav-border-b) bg-(--nav-search-bg) px-[1dvw] py-[1dvh]'
+          'inline-flex items-center gap-2 border-b border-b-(--nav-border-b) bg-(--nav-search-bg) px-[1dvw] py-[1dvh] transition-colors focus-within:border-b-(--orange)'
         }
       >
         <input
@@ -194,7 +194,7 @@ export default function SearchBox() {
                     aria-selected={index === activeIndex}
                     onClick={() => openHit(hit)}
                     onMouseEnter={() => setActiveIndex(index)}
-                    className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm ${
+                    className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-(--nav-search-bg) hover:text-(--orange) ${
                       index === activeIndex
                         ? 'bg-(--nav-search-bg) text-(--orange)'
                         : 'text-(--bss-text-secondary)'
@@ -218,7 +218,7 @@ export default function SearchBox() {
                 search: { q: query.trim(), tab: 'all' },
               })
             }}
-            className="w-full border-t border-t-(--nav-border-b) px-3 py-2 text-left text-sm font-bold text-(--orange)"
+            className="ctrl-btn w-full border-t border-t-(--nav-border-b) px-3 py-2 text-left text-sm font-bold text-(--orange)"
           >
             Teljes keresőoldal megnyitása
           </button>

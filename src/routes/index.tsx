@@ -137,7 +137,7 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
           <h2 className="mb-[2dvh] text-3xl font-bold text-(--orange)">
             Legutóbbi eseményeink
           </h2>
-          <Link to="/events" className="font-bold text-(--orange)">
+          <Link to="/events" className="nav-link font-bold text-(--orange)">
             Összes esemény
           </Link>
         </div>
@@ -155,7 +155,7 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
                 key={event.id}
                 to="/events/$slug"
                 params={{ slug: event.slug }}
-                className="block w-[250px] shadow-[0_2px_6px_rgba(255,145,0,0.35)]"
+                className="hover-lift block w-[250px] shadow-[0_2px_6px_rgba(255,145,0,0.35)]"
               >
                 <img
                   src={'/test_event.png'}
@@ -198,7 +198,7 @@ function HeroCard({ video }: { video: HomepageStateDto['hero'] }) {
     <Link
       to="/videos/$slug"
       params={{ slug: video.slug }}
-      className="group block"
+      className="group hover-lift block"
     >
       <img
         src={video.thumbnailUrl ?? '/video-thumbnail.png'}
@@ -217,7 +217,7 @@ function VideoCard({ video }: { video: HomepageVideoCard }) {
     <Link
       to="/videos/$slug"
       params={{ slug: video.slug }}
-      className="group block"
+      className="group hover-lift block"
     >
       <img
         src={video.thumbnailUrl ?? '/video-thumbnail.png'}

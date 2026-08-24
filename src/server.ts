@@ -33,6 +33,21 @@ function isApiPath(pathname: string): boolean {
   return API_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix))
 }
 
+// Fejlesztői módban a Vite modul- és eszközkérései is ezen a handleren
+// futnak keresztül. Ezeket át kell engednünk a Vite middleware-nek: a
+// TanStack Router ugyanis a `$`-kal kezdődő útvonalszegmenseket paraméternek
+// nézi, ezért a `/src/routes/videos/$slug.tsx`-re 307-tel válaszolna a
+// `/src/routes/videos/undefined` címre. Emiatt a route-fa modulgráfja nem
+// töltődik be, a kliens sosem hidratál, és egyetlen gomb sem működik.
+const DEV_ASSET_PREFIXES = ['/@', '/src/', '/node_modules/'] as const
+
+function isDevAssetPath(pathname: string): boolean {
+  return (
+    import.meta.env.DEV &&
+    DEV_ASSET_PREFIXES.some((prefix) => pathname.startsWith(prefix))
+  )
+}
+
 /** SSR-válasz (és minden más) biztonsági fejlécekkel való kiegészítése. */
 async function runWithSecurityHeaders(request: Request): Promise<Response> {
   const response = await ssrHandler(request)
@@ -53,6 +68,10 @@ export default {
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url)
     const { pathname } = url
+    if (isDevAssetPath(pathname)) {
+      // 404 → a kérés továbbmegy a Vite dev middleware-hez.
+      return new Response(null, { status: 404 })
+    }
     if (isApiPath(pathname)) {
       ensureBackgroundRunner()
       return handleApiRequest(request)

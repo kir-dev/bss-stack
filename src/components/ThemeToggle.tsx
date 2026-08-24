@@ -4,6 +4,20 @@ type ThemeMode = 'light' | 'dark' | 'auto'
 
 type ResolvedTheme = 'light' | 'dark'
 
+function isThemeMode(value: unknown): value is ThemeMode {
+  return value === 'light' || value === 'dark' || value === 'auto'
+}
+
+/** A `__root.tsx` inline szkriptje által már alkalmazott mentett beállítás. */
+function readStoredMode(): ThemeMode {
+  try {
+    const stored = window.localStorage.getItem('theme')
+    return isThemeMode(stored) ? stored : 'auto'
+  } catch {
+    return 'auto'
+  }
+}
+
 function resolveThemeMode(mode: ThemeMode): ResolvedTheme {
   if (typeof window === 'undefined') {
     return 'light'
@@ -77,14 +91,15 @@ function MoonIcon() {
 }
 
 export default function ThemeToggle() {
+  // Az SSR mindig világosat renderel; a valódi módot hidratálás után vesszük
+  // át, hogy a szerver- és kliensoldali kimenet egyezzen.
   const [mode, setMode] = useState<ThemeMode>('auto')
-  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>(() =>
-    resolveThemeMode('auto'),
-  )
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('light')
 
   useEffect(() => {
-    setMode('auto')
-    setResolvedTheme(applyThemeMode('auto'))
+    const stored = readStoredMode()
+    setMode(stored)
+    setResolvedTheme(applyThemeMode(stored))
   }, [])
 
   useEffect(() => {
@@ -102,12 +117,9 @@ export default function ThemeToggle() {
   }, [mode])
 
   function toggleMode() {
-    let nextMode: ThemeMode
-    if (mode === 'light') {
-      nextMode = 'dark'
-    } else {
-      nextMode = 'light'
-    }
+    // Auto módból a jelenleg látható téma ellentettjére váltunk, hogy a
+    // kattintás mindig érzékelhető változást hozzon.
+    const nextMode: ThemeMode = resolvedTheme === 'dark' ? 'light' : 'dark'
 
     setMode(nextMode)
     setResolvedTheme(applyThemeMode(nextMode))
@@ -115,9 +127,9 @@ export default function ThemeToggle() {
   }
 
   const label =
-    mode === 'auto'
-      ? 'Theme mode: auto (system). Click to switch to light mode.'
-      : `Theme mode: ${mode}. Click to switch mode.`
+    resolvedTheme === 'dark'
+      ? 'Sötét téma aktív. Kattints a világos témára váltáshoz.'
+      : 'Világos téma aktív. Kattints a sötét témára váltáshoz.'
 
   return (
     <button
@@ -125,7 +137,7 @@ export default function ThemeToggle() {
       onClick={toggleMode}
       aria-label={label}
       title={label}
-      className="inline-flex items-center gap-2 rounded-full  px-3 py-1.5 text-sm font-semibold shadow-[0_8px_22px_rgba(30,90,72,0.08)]"
+      className="icon-btn gap-2 px-3 py-1.5 text-sm font-semibold shadow-[0_8px_22px_rgba(30,90,72,0.08)]"
     >
       {resolvedTheme === 'dark' ? <MoonIcon /> : <SunIcon />}
     </button>

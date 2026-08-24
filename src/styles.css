@@ -691,3 +691,217 @@ body {
     @apply font-montserrat;
   }
 }
+
+/* ===========================================================================
+ * Interakciós réteg
+ *
+ * A Tailwind v4 preflightja nem ad `cursor: pointer`-t a `<button>` elemeknek,
+ * és a projektben eddig sehol nem volt hover/aktív visszajelzés, ezért a
+ * kattintható felületek halottnak tűntek. Itt állítjuk vissza a kurzort, és
+ * innen jön a közös hover/click animáció is.
+ *
+ * A szabályok a `base`, illetve `components` rétegben élnek, hogy bármelyik
+ * Tailwind utility felül tudja őket írni az adott elemen.
+ * ======================================================================== */
+
+:root {
+  --ease-interactive: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-interactive: 160ms;
+}
+
+@layer base {
+  button:not(:disabled),
+  summary,
+  select:not(:disabled),
+  a[href],
+  [role='button']:not([aria-disabled='true']),
+  [role='option'],
+  [role='tab'],
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled),
+  input[type='file']:not(:disabled),
+  input[type='range']:not(:disabled),
+  label:has(> input[type='checkbox']),
+  label:has(> input[type='radio']) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  a,
+  button,
+  summary,
+  input,
+  select,
+  textarea,
+  [role='button'],
+  [role='option'],
+  [role='tab'] {
+    transition-property:
+      color, background-color, border-color, outline-color, fill, stroke,
+      opacity, box-shadow, transform, filter;
+    transition-duration: var(--duration-interactive);
+    transition-timing-function: var(--ease-interactive);
+  }
+
+  /* Egységes, jól látható fókuszgyűrű billentyűzetes navigációhoz. */
+  :focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 2px;
+  }
+
+  /* Alap „benyomódás” minden gombszerű elemen. */
+  button:not(:disabled):active,
+  summary:active,
+  [role='button']:not([aria-disabled='true']):active,
+  [role='option']:active {
+    transform: scale(0.96);
+  }
+}
+
+/* A saját osztályok Tailwind-utilityként jönnek létre (`@utility`), hogy a
+ * `utilities` rétegben éljenek. Így a hover-színük felülírja a hívási helyen
+ * megadott `text-*` / `bg-*` / `shadow-*` utilityket — `@layer components`-ből
+ * ez nem sikerülne, mert a utilities réteg mindig erősebb nála. */
+
+/* --- Navigációs link: csúszó aláhúzás + színváltás --------------------- */
+@utility nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: -4px;
+    height: 2px;
+    background: var(--orange);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 200ms var(--ease-interactive);
+  }
+
+  &:hover {
+    color: var(--orange);
+  }
+
+  &:hover::after,
+  &:focus-visible::after,
+  &[aria-current='page']::after,
+  &[aria-selected='true']::after {
+    transform: scaleX(1);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+/* --- Kattintható kártya: hoverre megemelkedik, kattintásra visszaül ----- */
+@utility hover-lift {
+  /* A borítókép ráközelítése miatt le kell vágni a túllógó tartalmat. */
+  overflow: hidden;
+  transition:
+    transform 220ms var(--ease-interactive),
+    box-shadow 220ms var(--ease-interactive);
+
+  /* A kártyán belüli borítókép finoman ráközelít. */
+  & img {
+    transition: transform 320ms var(--ease-interactive);
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+  }
+
+  &:hover img {
+    transform: scale(1.04);
+  }
+
+  &:active {
+    transform: translateY(-1px) scale(0.99);
+  }
+}
+
+/* --- Ikongomb: háttérfolt hoverre, az ikon megpördül ------------------- */
+@utility icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+
+  & svg {
+    transition: transform 260ms var(--ease-overshoot);
+  }
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--orange) 16%, transparent);
+  }
+
+  &:hover svg {
+    transform: scale(1.15) rotate(-10deg);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
+/* --- Vezérlőgomb (szűrők, lapozó, admin) ------------------------------- */
+@utility ctrl-btn {
+  &:hover:not(:disabled):not([aria-disabled='true']) {
+    background-color: color-mix(in srgb, var(--orange) 14%, transparent);
+    color: var(--orange);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+  }
+}
+
+/* --- Kitöltött (narancs) gomb ------------------------------------------ */
+@utility solid-btn {
+  &:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--orange) 85%, black);
+    box-shadow: 0 6px 16px rgba(255, 145, 0, 0.35);
+  }
+
+  &:not(:disabled):active {
+    transform: scale(0.96) translateY(1px);
+    box-shadow: none;
+  }
+}
+
+/* Mozgásérzékeny felhasználók: minden elmozdulás kikapcsolva. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  .hover-lift:hover,
+  .hover-lift:active,
+  .hover-lift:hover img,
+  .icon-btn:hover svg,
+  .icon-btn:active,
+  .nav-link:active,
+  button:not(:disabled):active,
+  summary:active,
+  [role='button']:not([aria-disabled='true']):active,
+  [role='option']:active {
+    transform: none !important;
+  }
+}

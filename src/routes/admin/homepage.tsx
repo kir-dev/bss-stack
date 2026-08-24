@@ -450,7 +450,7 @@ function AboutSection({
                   ]
                   setSelected(next)
                 }}
-                className="px-1 disabled:opacity-30"
+                className="ctrl-btn rounded px-1"
               >
                 ↑
               </button>
@@ -466,7 +466,7 @@ function AboutSection({
                   ]
                   setSelected(next)
                 }}
-                className="px-1 disabled:opacity-30"
+                className="ctrl-btn rounded px-1"
               >
                 ↓
               </button>
@@ -476,7 +476,7 @@ function AboutSection({
                 onClick={() =>
                   setSelected(selected.filter((id) => id !== videoId))
                 }
-                className="px-1 text-red-500"
+                className="rounded px-1 text-red-500 hover:bg-red-500/15"
               >
                 ✕
               </button>

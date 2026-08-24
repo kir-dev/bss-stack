@@ -222,7 +222,7 @@ function AuditAdminPage() {
                     }),
                   })
                 }
-                className="rounded border border-(--nav-border-b) px-3 py-1 disabled:opacity-30"
+                className="ctrl-btn rounded border border-(--nav-border-b) px-3 py-1"
               >
                 ‹ Előző
               </button>
@@ -242,7 +242,7 @@ function AuditAdminPage() {
                     }),
                   })
                 }
-                className="rounded border border-(--nav-border-b) px-3 py-1 disabled:opacity-30"
+                className="ctrl-btn rounded border border-(--nav-border-b) px-3 py-1"
               >
                 Következő ›
               </button>

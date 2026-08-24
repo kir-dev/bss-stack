@@ -232,7 +232,7 @@ function MemberProfilePage() {
               role="tab"
               aria-selected={view === 'year'}
               onClick={() => setView('year')}
-              className={`font-semibold ${view === 'year' ? 'text-(--orange) underline' : 'text-(--bss-text-secondary)'}`}
+              className={`nav-link font-semibold ${view === 'year' ? 'text-(--orange)' : 'text-(--bss-text-secondary)'}`}
             >
               Év nézet
             </button>
@@ -241,7 +241,7 @@ function MemberProfilePage() {
               role="tab"
               aria-selected={view === 'role'}
               onClick={() => setView('role')}
-              className={`font-semibold ${view === 'role' ? 'text-(--orange) underline' : 'text-(--bss-text-secondary)'}`}
+              className={`nav-link font-semibold ${view === 'role' ? 'text-(--orange)' : 'text-(--bss-text-secondary)'}`}
             >
               Szerep nézet
             </button>
@@ -295,7 +295,7 @@ function MemberProfilePage() {
           <button
             type="button"
             onClick={() => void loadMore()}
-            className="mx-auto mt-6 block bg-(--orange) px-6 py-2 font-bold text-white"
+            className="solid-btn mx-auto mt-6 block bg-(--orange) px-6 py-2 font-bold text-white"
           >
             Továbbiak betöltése
           </button>

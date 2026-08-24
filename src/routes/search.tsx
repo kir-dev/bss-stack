@@ -101,9 +101,10 @@ function SearchPage() {
               q: query,
               tab: tabEntry.key === 'all' ? undefined : tabEntry.key,
             }}
-            className={`font-bold ${
+            aria-current={activeTab === tabEntry.key ? 'page' : undefined}
+            className={`nav-link font-bold ${
               activeTab === tabEntry.key
-                ? 'text-(--orange) underline'
+                ? 'text-(--orange)'
                 : 'text-(--bss-text-secondary)'
             }`}
           >
@@ -201,7 +202,7 @@ function SearchPage() {
                       key={video.id}
                       to="/videos/$slug"
                       params={{ slug: video.slug }}
-                      className="group block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)]"
+                      className="group hover-lift block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)]"
                     >
                       <img
                         src={video.thumbnailUrl ?? '/video-thumbnail.png'}

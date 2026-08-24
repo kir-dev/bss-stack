@@ -128,7 +128,7 @@ export function AdminPrimaryButton({
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="rounded bg-(--orange) px-4 py-2 text-sm font-bold text-white disabled:opacity-40"
+      className="solid-btn rounded bg-(--orange) px-4 py-2 text-sm font-bold text-white disabled:opacity-40"
     >
       {children}
     </button>
@@ -156,7 +156,7 @@ export function AdminSecondaryButton({
           onClick()
         }
       }}
-      className="rounded border border-(--nav-border-b) px-4 py-2 text-sm font-bold text-(--bss-text) hover:text-(--orange) disabled:opacity-40"
+      className="ctrl-btn rounded border border-(--nav-border-b) px-4 py-2 text-sm font-bold text-(--bss-text) hover:border-(--orange) disabled:opacity-40"
     >
       {children}
     </button>

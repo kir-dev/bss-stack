@@ -47,7 +47,7 @@ export function AdminSidebar({ level }: { level: string }) {
             className={`shrink-0 rounded px-3 py-2 text-sm font-bold whitespace-nowrap ${
               active
                 ? 'bg-(--orange) text-white'
-                : 'text-(--bss-text-secondary) hover:text-(--orange)'
+                : 'ctrl-btn text-(--bss-text-secondary)'
             }`}
           >
             {item.label}

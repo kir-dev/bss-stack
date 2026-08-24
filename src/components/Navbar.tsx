@@ -33,11 +33,27 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-(--nav-bg) text-(--bss-text) shadow-[0_2px_2px_rgba(0,0,0,0.2)]">
       <nav
-        className="mx-auto flex w-[90dvw] items-center gap-4 py-[1dvh]"
+        className="mx-auto flex w-[90dvw] items-center gap-2 py-[1dvh] sm:gap-4"
         aria-label="Fő navigáció"
       >
-        <Link to="/" className="font-bold" aria-label="Főoldal">
-          <img alt={'BSS logó'} />
+        <Link
+          to="/"
+          className="shrink-0 transition-transform hover:scale-105 active:scale-95"
+          aria-label="Főoldal"
+        >
+          <picture>
+            <source
+              media="(max-width: 639px)"
+              srcSet="/bss-navbar-logo-mobile.svg"
+            />
+            <img
+              src="/bss-navbar-logo.svg"
+              alt="Budavári Schönherz Stúdió"
+              width={123}
+              height={37}
+              className="h-8 w-auto sm:h-[37px]"
+            />
+          </picture>
         </Link>
 
         {/* desktop links */}
@@ -46,6 +62,9 @@ export default function Navbar() {
             {NAV_LINKS.map((item) => (
               <Link
                 key={item.to}
+                aria-current={
+                  location.pathname.startsWith(item.to) ? 'page' : undefined
+                }
                 className={`nav-link ${location.pathname.startsWith(item.to) ? 'text-(--orange)' : ''}`}
                 to={item.to}
               >
@@ -56,15 +75,17 @@ export default function Navbar() {
         </nav>
 
         {/* right: utilities */}
-        <div className="ml-auto inline-flex items-center gap-4">
+        <div className="ml-auto inline-flex items-center gap-2 sm:gap-4">
           <div>
             <ThemeToggle />
           </div>
-          <SearchBox />
+          <div className="hidden sm:block">
+            <SearchBox />
+          </div>
           <LoginLogoutButton loggedIn={loggedIn} />
           <button
             type="button"
-            className="lg:hidden"
+            className="icon-btn p-1.5 lg:hidden"
             aria-expanded={menuOpen}
             aria-label={menuOpen ? 'Menü bezárása' : 'Menü megnyitása'}
             onClick={() => setMenuOpen((open) => !open)}
@@ -94,6 +115,9 @@ export default function Navbar() {
             {NAV_LINKS.map((item) => (
               <Link
                 key={item.to}
+                aria-current={
+                  location.pathname.startsWith(item.to) ? 'page' : undefined
+                }
                 className={`nav-link py-2 font-bold ${location.pathname.startsWith(item.to) ? 'text-(--orange)' : ''}`}
                 to={item.to}
               >
@@ -121,7 +145,7 @@ function LoginLogoutButton({ loggedIn }: { loggedIn: boolean }) {
     return (
       <a
         href={`/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`}
-        className="font-bold text-(--orange)"
+        className="nav-link font-bold text-(--orange)"
       >
         Belépés
       </a>
@@ -129,7 +153,7 @@ function LoginLogoutButton({ loggedIn }: { loggedIn: boolean }) {
   }
   return (
     <form method="post" action="/api/auth/logout">
-      <button type="submit" className="font-bold">
+      <button type="submit" className="font-bold hover:text-(--orange)">
         Kilépés
       </button>
     </form>
