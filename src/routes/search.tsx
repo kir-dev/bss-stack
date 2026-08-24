@@ -85,7 +85,7 @@ function SearchPage() {
   const activeTab: SearchTab = searchParams.tab ?? 'all'
 
   return (
-    <main className="mx-auto w-[90dvw] my-[4dvh]">
+    <main className="site-width my-[4dvh]">
       {/* Technical page: search must not be indexed (spec 16). */}
       <meta name="robots" content="noindex, nofollow" />
       <title>Keresés | BSS</title>

@@ -29,7 +29,7 @@ function MembersPage() {
   })
 
   return (
-    <main className="mx-auto w-[90dvw] my-[4dvh]">
+    <main className="site-width my-[4dvh]">
       <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">Tagok</h1>
 
       {blocksQuery.isPending && (

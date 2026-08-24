@@ -85,7 +85,7 @@ function EventListPageComponent() {
   const perPage = Number(search.perPage ?? String(DEFAULT_EVENT_PAGE_SIZE))
 
   return (
-    <main className="mx-auto w-[90dvw] my-[4dvh]">
+    <main className="mx-auto my-[4dvh] w-[90dvw]">
       <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">Események</h1>
 
       {listQuery.isPending && (

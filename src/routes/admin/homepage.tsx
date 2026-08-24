@@ -62,7 +62,7 @@ function HomepageAdminPage() {
   }
 
   return (
-    <main className="max-w-3xl">
+    <main className="w-full">
       <h1 className="mb-4 text-2xl font-bold text-(--bss-text)">
         Live és kiemelés
       </h1>

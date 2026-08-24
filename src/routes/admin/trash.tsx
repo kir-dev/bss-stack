@@ -62,7 +62,7 @@ function TrashPageComponent() {
   }
 
   return (
-    <main className="max-w-4xl">
+    <main className="w-full">
       <h1 className="mb-2 text-2xl font-bold text-(--bss-text)">Lomtár</h1>
       <p className="mb-4 text-sm text-(--bss-text-secondary)">
         A lomtárban lévő videók kapcsolatai megmaradnak; a napi feladat a

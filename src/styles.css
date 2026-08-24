@@ -932,6 +932,23 @@ body {
   border: 1px solid var(--card-border);
 }
 
+/* --- Shared page width ---------------------------------------------------
+ * Keep a compact gutter instead of scaling the empty margins with the
+ * viewport. On 16:9 desktop displays this lets grids, tables and media use
+ * virtually all of the available width while retaining safe mobile edges. */
+@utility site-width {
+  width: calc(100% - 2rem);
+  margin-inline: auto;
+
+  @media (min-width: 40rem) {
+    width: calc(100% - 3rem);
+  }
+
+  @media (min-width: 64rem) {
+    width: calc(100% - 4rem);
+  }
+}
+
 /* --- Cover image frame: always 16:9, even before the image loads ----------
  * The thumbnails are 16:9 without exception, so we reserve their space up
  * front. This keeps the page layout from jumping and the grid from having

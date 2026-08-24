@@ -46,7 +46,7 @@ function HomePage() {
   }
   if (homeQuery.isError) {
     return (
-      <main className="mx-auto w-[90dvw] py-[6dvh]">
+      <main className="site-width py-[6dvh]">
         <p role="alert" className="text-center text-(--bss-text-secondary)">
           Hiba történt a főoldal betöltése közben. Próbáld újra később.
         </p>
@@ -74,7 +74,7 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
   }, [])
 
   return (
-    <main className="mx-auto w-[90dvw]">
+    <main className="site-width">
       <div className="my-[5dvh] font-bank-gothic text-[clamp(1rem,10dvw,66px)] font-bold leading-none text-(--bss-text)">
         Budavári Schönherz Studió
       </div>
@@ -188,7 +188,7 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
 function HomepageSkeleton() {
   return (
     <main
-      className="mx-auto w-[90dvw]"
+      className="site-width"
       role="status"
       aria-busy="true"
       aria-label="Főoldal betöltése…"

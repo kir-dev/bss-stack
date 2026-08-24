@@ -39,7 +39,7 @@ function AboutPage() {
   const videos = Route.useLoaderData()
 
   return (
-    <main className="mx-auto w-[90dvw] max-w-4xl my-[4dvh]">
+    <main className="site-width my-[4dvh]">
       <title>Rólunk | BSS</title>
       <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">
         Mivel foglalkozunk?

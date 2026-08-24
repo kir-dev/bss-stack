@@ -24,7 +24,8 @@ export const SEARCH_SELECT_THRESHOLD = 8
  * fix). For short, fixed lists (status, visibility) the search bar is omitted
  * to avoid a needless field, while keeping the appearance consistent.
  */
-export function AdminSearchSelect({
+export function 
+AdminSearchSelect({
   label,
   value,
   options,

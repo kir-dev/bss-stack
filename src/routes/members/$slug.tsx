@@ -117,7 +117,7 @@ function MemberProfilePage() {
 
   if (firstPageQuery.isPending) {
     return (
-      <main className="mx-auto w-[90dvw] py-[6dvh]">
+      <main className="site-width py-[6dvh]">
         <p role="status" className="text-center text-(--bss-text-secondary)">
           Betöltés…
         </p>
@@ -153,7 +153,7 @@ function MemberProfilePage() {
   }
 
   return (
-    <main className="mx-auto w-[90dvw] my-[4dvh]">
+    <main className="site-width my-[4dvh]">
       <title>{profile.fullName} | BSS</title>
       <meta name="description" content={meta.description} />
       <link rel="canonical" href={meta.canonical} />

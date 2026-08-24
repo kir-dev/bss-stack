@@ -27,7 +27,7 @@ function AdminLayout() {
   }
 
   return (
-    <div className="mx-auto flex w-[95dvw] max-w-[1400px] my-[3dvh] flex-col gap-4 md:flex-row">
+    <div className="site-width my-[3dvh] flex flex-col gap-4 md:flex-row">
       {/* The admin area must not be indexed (spec 16). */}
       <meta name="robots" content="noindex, nofollow" />
       <AdminSidebar level={access.viewer.level} />

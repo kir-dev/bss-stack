@@ -47,7 +47,7 @@ export function ErrorState({
 
 export function NotFoundContent() {
   return (
-    <main className="mx-auto w-[90dvw] max-w-prose py-[10dvh] text-center">
+    <main className="site-width py-[10dvh] text-center">
       <h1 className="text-5xl font-bold text-(--bss-text)">404</h1>
       <p className="mt-4 text-xl font-bold text-(--bss-text)">
         Az oldal nem található
@@ -65,7 +65,7 @@ export function NotFoundContent() {
 
 export function ForbiddenContent() {
   return (
-    <main className="mx-auto w-[90dvw] max-w-prose py-[10dvh] text-center">
+    <main className="site-width py-[10dvh] text-center">
       <h1 className="text-5xl font-bold text-(--bss-text)">403</h1>
       <p className="mt-4 text-xl font-bold text-(--bss-text)">
         Hozzáférés megtagadva

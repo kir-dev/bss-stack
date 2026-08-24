@@ -48,7 +48,7 @@ function NewEventPage() {
   }
 
   return (
-    <main className="max-w-prose">
+    <main className="w-full">
       <h1 className="mb-4 text-2xl font-bold text-(--bss-text)">Új esemény</h1>
       {loginUrl !== null && <LoginRequiredBanner loginUrl={loginUrl} />}
       <form

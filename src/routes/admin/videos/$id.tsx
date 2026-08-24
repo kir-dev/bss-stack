@@ -347,7 +347,7 @@ function VideoEditor({
   const statusLabel = videoStatusLabel(detail.status)
 
   return (
-    <main className="flex max-w-3xl flex-col gap-6">
+    <main className="flex w-full flex-col gap-6">
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold text-(--bss-text)">{detail.title}</h1>
         <span className="rounded bg-(--nav-search-bg) px-2 py-1 text-xs font-bold text-(--bss-text-secondary)">

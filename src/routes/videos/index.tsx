@@ -15,6 +15,10 @@ import { resolveViewerStateFromRequest } from '#/server/pages/viewer.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import { EmptyState, ThumbnailGridSkeleton } from '#/components/PageStates.tsx'
 import Thumbnail from '#/components/Thumbnail.tsx'
+import {
+  AdminSearchSelect,
+  FILTER_LABEL_CLASS,
+} from '#/components/admin/SearchSelect.tsx'
 import type { VideoListRawSearch } from '#/server/pages/video-list.ts'
 
 const loadVideoList = createServerFn({ method: 'GET' })
@@ -33,6 +37,14 @@ const loadFilterOptions = createServerFn({ method: 'GET' }).handler(
 )
 
 const VIDEO_GRID_CLASS = 'grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5'
+const VIDEO_SORT_OPTIONS = VIDEO_SORTS.map((sort) => ({
+  value: sort,
+  label: videoSortLabel(sort),
+}))
+const VIDEO_PAGE_SIZE_OPTIONS = VIDEO_PAGE_SIZES.map((size) => ({
+  value: String(size),
+  label: String(size),
+}))
 
 export const Route = createFileRoute('/videos/')({
   validateSearch: (search: Record<string, unknown>): VideoListRawSearch => {
@@ -105,7 +117,7 @@ function VideoListPage() {
   }
 
   return (
-    <main className="mx-auto w-[90dvw] my-[4dvh]">
+    <main className="mx-auto my-[4dvh] w-[90dvw]">
       <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">Videók</h1>
 
       <VideoFilterBar
@@ -195,6 +207,21 @@ function VideoFilterBar({
   const hasActiveFilters =
     Object.keys(raw).filter((key) => key !== 'page' && key !== 'sort').length >
     0
+  const eventOptions =
+    options?.events.map((item) => ({
+      value: item.slug,
+      label: item.title,
+    })) ?? []
+  const staffMemberOptions =
+    options?.staffMembers.map((item) => ({
+      value: item.sub,
+      label: item.fullName,
+    })) ?? []
+  const staffRoleOptions =
+    options?.staffRoles.map((item) => ({
+      value: item.id,
+      label: item.name,
+    })) ?? []
 
   return (
     <form onSubmit={submit} className="mb-6 flex flex-wrap items-end gap-3">
@@ -207,42 +234,44 @@ function VideoFilterBar({
           className="h-10 w-56 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 outline-none"
         />
       </label>
-      <SelectField
-        label="Esemény"
-        value={parsed.eventSlug}
-        onChange={(event) => onUpdate({ event: event || undefined })}
-      >
-        <option value="">Mind</option>
-        {options?.events.map((item) => (
-          <option key={item.slug} value={item.slug}>
-            {item.title}
-          </option>
-        ))}
-      </SelectField>
-      <SelectField
-        label="Stábtag"
-        value={parsed.staffMemberSub}
-        onChange={(event) => onUpdate({ staffMember: event || undefined })}
-      >
-        <option value="">Mind</option>
-        {options?.staffMembers.map((item) => (
-          <option key={item.sub} value={item.sub}>
-            {item.fullName}
-          </option>
-        ))}
-      </SelectField>
-      <SelectField
-        label="Stábszerep"
-        value={parsed.staffRoleId}
-        onChange={(event) => onUpdate({ staffRole: event || undefined })}
-      >
-        <option value="">Mind</option>
-        {options?.staffRoles.map((item) => (
-          <option key={item.id} value={item.id}>
-            {item.name}
-          </option>
-        ))}
-      </SelectField>
+      <div className="w-56">
+        <AdminSearchSelect
+          label="Esemény"
+          value={parsed.eventSlug}
+          options={eventOptions}
+          onChange={(value) => onUpdate({ event: value || undefined })}
+          placeholder="Mind"
+          emptyOptionLabel="Mind"
+          searchPlaceholder="Esemény keresése…"
+          searchThreshold={0}
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
+      <div className="w-56">
+        <AdminSearchSelect
+          label="Stábtag"
+          value={parsed.staffMemberSub}
+          options={staffMemberOptions}
+          onChange={(value) => onUpdate({ staffMember: value || undefined })}
+          placeholder="Mind"
+          emptyOptionLabel="Mind"
+          searchPlaceholder="Stábtag keresése…"
+          searchThreshold={0}
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
+      <div className="w-48">
+        <AdminSearchSelect
+          label="Stábszerep"
+          value={parsed.staffRoleId}
+          options={staffRoleOptions}
+          onChange={(value) => onUpdate({ staffRole: value || undefined })}
+          placeholder="Mind"
+          emptyOptionLabel="Mind"
+          searchPlaceholder="Stábszerep keresése…"
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
       <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
         Készült ettől
         <input
@@ -270,28 +299,24 @@ function VideoFilterBar({
         allTags={options?.tags.map((tag) => tag.name) ?? []}
         onChange={(tags) => onUpdate({ tags })}
       />
-      <SelectField
-        label="Rendezés"
-        value={parsed.sort}
-        onChange={(event) => onUpdate({ sort: event })}
-      >
-        {VIDEO_SORTS.map((sort) => (
-          <option key={sort} value={sort}>
-            {videoSortLabel(sort)}
-          </option>
-        ))}
-      </SelectField>
-      <SelectField
-        label="Oldalméret"
-        value={String(parsed.perPage)}
-        onChange={(event) => onUpdate({ perPage: event })}
-      >
-        {VIDEO_PAGE_SIZES.map((size) => (
-          <option key={size} value={size}>
-            {size}
-          </option>
-        ))}
-      </SelectField>
+      <div className="w-48">
+        <AdminSearchSelect
+          label="Rendezés"
+          value={parsed.sort}
+          options={VIDEO_SORT_OPTIONS}
+          onChange={(value) => onUpdate({ sort: value })}
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
+      <div className="w-28">
+        <AdminSearchSelect
+          label="Oldalméret"
+          value={String(parsed.perPage)}
+          options={VIDEO_PAGE_SIZE_OPTIONS}
+          onChange={(value) => onUpdate({ perPage: value })}
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
       <button
         type="submit"
         className="solid-btn h-10 bg-(--orange) px-4 font-bold text-white"
@@ -307,32 +332,31 @@ function VideoFilterBar({
           Szűrők törlése
         </button>
       )}
+      {parsed.tagNames.length > 0 && (
+        <div
+          className="flex basis-full flex-wrap gap-1"
+          aria-label="Kiválasztott címkék"
+        >
+          {parsed.tagNames.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() =>
+                onUpdate({
+                  tags: parsed.tagNames.filter(
+                    (selectedTag) => selectedTag !== tag,
+                  ),
+                })
+              }
+              aria-label={`${tag} címke eltávolítása`}
+              className="ctrl-btn max-w-full truncate px-2 py-0.5 text-xs text-(--bss-text-secondary) hover:text-(--orange)"
+            >
+              {tag} ×
+            </button>
+          ))}
+        </div>
+      )}
     </form>
-  )
-}
-
-function SelectField({
-  label,
-  value,
-  onChange,
-  children,
-}: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-  children: React.ReactNode
-}) {
-  return (
-    <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
-      {label}
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-10 bg-(--nav-search-bg) px-2 outline-none"
-      >
-        {children}
-      </select>
-    </label>
   )
 }
 
@@ -345,43 +369,27 @@ function TagPicker({
   allTags: string[]
   onChange: (tags: string[]) => void
 }) {
-  const [open, setOpen] = useState(false)
-  const toggle = (tag: string) => {
-    onChange(
-      selected.includes(tag)
-        ? selected.filter((item) => item !== tag)
-        : [...selected, tag],
-    )
-  }
+  const availableTags = allTags
+    .filter((tag) => !selected.includes(tag))
+    .map((tag) => ({ value: tag, label: tag }))
+
   return (
-    <div className="relative flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
-      <button
-        type="button"
-        onClick={() => setOpen((value) => !value)}
-        aria-expanded={open}
-        className="ctrl-btn h-10 bg-(--nav-search-bg) px-2 text-left"
-      >
-        Címkék {selected.length > 0 && `(ÉS: ${selected.length})`}
-      </button>
-      {open && (
-        <div className="absolute top-full z-20 max-h-64 w-64 overflow-y-auto border border-(--nav-border-b) bg-(--bg) p-2 shadow-lg">
-          {allTags.length === 0 && <p>Nincsenek címkék.</p>}
-          {allTags.map((tag) => (
-            <label
-              key={tag}
-              className="flex items-center gap-2 rounded px-1 py-1 hover:bg-(--nav-search-bg)"
-            >
-              <input
-                type="checkbox"
-                checked={selected.includes(tag)}
-                onChange={() => toggle(tag)}
-              />
-              <span>{tag}</span>
-            </label>
-          ))}
-          <p className="mt-2 text-[11px]">Több címke ÉS kapcsolatban szűr.</p>
-        </div>
-      )}
+    <div className="w-56">
+      <AdminSearchSelect
+        label="Címkék"
+        value=""
+        options={availableTags}
+        onChange={(tag) => {
+          if (tag !== '') {
+            onChange([...selected, tag])
+          }
+        }}
+        placeholder={
+          selected.length > 0 ? `${selected.length} kiválasztva (ÉS)` : 'Mind'
+        }
+        searchPlaceholder="Címke keresése…"
+        labelClassName={FILTER_LABEL_CLASS}
+      />
     </div>
   )
 }

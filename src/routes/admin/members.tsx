@@ -84,7 +84,7 @@ function MemberDiagnosticsPage() {
   }
 
   return (
-    <main className="max-w-5xl">
+    <main className="w-full">
       <h1 className="mb-4 text-2xl font-bold text-(--bss-text)">Tagok</h1>
 
       {dataQuery.isPending && <LoadingState />}

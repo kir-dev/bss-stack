@@ -34,7 +34,7 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 bg-(--nav-bg) text-(--bss-text) shadow-[0_2px_2px_rgba(0,0,0,0.2)]">
       <nav
-        className="mx-auto flex w-[90dvw] items-center gap-2 py-[1dvh] sm:gap-4"
+        className="site-width flex items-center gap-2 py-[1dvh] sm:gap-4"
         aria-label="Fő navigáció"
       >
         <Link
@@ -117,7 +117,7 @@ export default function Navbar() {
       {/* mobile menu */}
       {menuOpen && (
         <nav className="border-t border-(--nav-border-b) bg-(--nav-bg) lg:hidden">
-          <div className="mx-auto flex w-[90dvw] flex-col gap-1 py-3">
+          <div className="site-width flex flex-col gap-1 py-3">
             {NAV_LINKS.map((item) => (
               <Link
                 key={item.to}

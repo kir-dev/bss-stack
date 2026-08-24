@@ -33,7 +33,7 @@ function ArchivedMembersPage() {
   })
 
   return (
-    <main className="mx-auto w-[90dvw] my-[4dvh]">
+    <main className="site-width my-[4dvh]">
       {listQuery.isPending && (
         <p
           role="status"
