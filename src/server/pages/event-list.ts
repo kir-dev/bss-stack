@@ -126,7 +126,12 @@ async function countVisibleVideosByEvent(
   )
 }
 
-async function latestVisibleThumbnailByEvent(
+/**
+ * Az eseményhez tartozó legfrissebb látható videó borítóképe. A publikus
+ * eseménylista és a főoldali eseménysáv is ezt használja fallbacknek, hogy a
+ * két helyen ugyanaz a kép jelenjen meg.
+ */
+export async function latestVisibleThumbnailByEvent(
   executor: Executor,
   viewer: Viewer,
   eventIds: string[],

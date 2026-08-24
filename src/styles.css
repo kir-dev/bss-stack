@@ -118,6 +118,13 @@
   --courses-input-placeholder: var(--darker-blue);
   --events-card-bg: #ffffff;
   --about-title: var(--darker-blue);
+  /* Kártyaperem: a kártyaháttér és az oldalháttér világos témában egyaránt
+   * fehér, ezért a lapok éle csak explicit peremmel válik el. */
+  --card-border: #e0e0e0;
+  /* Betöltési helyőrző (skeleton) alap- és csillanó színe. */
+  --skeleton-bg: #e8e8e8;
+  --skeleton-shine: #f7f7f7;
+  --popover-bg: #ffffff;
 }
 
 :root[data-theme='dark'] {
@@ -144,10 +151,12 @@
   --nav-bg: #161616;
   --bss-text: #ffffff;
   --bss-text-secondary: #ffffff;
-  --nav-search-bg: #262626;
+  /* A kitöltés nem eshet egybe az oldalháttérrel (--bg: #262626),
+   * különben a beviteli mezők beleolvadnak a lapba. */
+  --nav-search-bg: #333333;
   --nav-search-placeholder: #a8a8a8;
   --nav-icon: var(--orange);
-  --nav-border-b: #262626;
+  --nav-border-b: #545454;
   --mini-video-triangle: #ffffff;
   --mini-video-bg: #161616;
   --card-title: var(--orange);
@@ -160,6 +169,10 @@
   --courses-title: var(--orange);
   --events-card-bg: #161616;
   --about-title: var(--orange);
+  --card-border: #3d3d3d;
+  --skeleton-bg: #2e2e2e;
+  --skeleton-shine: #3d3d3d;
+  --popover-bg: #1c1c1c;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -188,10 +201,12 @@
     --nav-bg: #161616;
     --bss-text: #ffffff;
     --bss-text-secondary: #ffffff;
-    --nav-search-bg: #262626;
+    /* A kitöltés nem eshet egybe az oldalháttérrel (--bg: #262626),
+     * különben a beviteli mezők beleolvadnak a lapba. */
+    --nav-search-bg: #333333;
     --nav-search-placeholder: #a8a8a8;
     --nav-icon: var(--orange);
-    --nav-border-b: #262626;
+    --nav-border-b: #545454;
     --mini-video-triangle: #ffffff;
     --mini-video-bg: #161616;
     --card-title: var(--orange);
@@ -204,6 +219,10 @@
     --courses-title: var(--orange);
     --events-card-bg: #161616;
     --about-title: var(--orange);
+    --card-border: #3d3d3d;
+    --skeleton-bg: #2e2e2e;
+    --skeleton-shine: #3d3d3d;
+    --popover-bg: #1c1c1c;
   }
 }
 
@@ -881,6 +900,53 @@ body {
   }
 }
 
+/* --- Kártyafelület: háttér + látható perem ------------------------------
+ * A kártyaháttér világos témában ugyanaz a fehér, mint az oldalháttér, ezért
+ * árnyék önmagában nem húzza meg a lap szélét. A perem mindkét témában
+ * garantálja a látható élt. */
+@utility card-surface {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+}
+
+/* --- Borítókép-keret: mindig 16:9, a kép betöltése előtt is --------------
+ * A thumbnailek kivétel nélkül 16:9-esek, így a helyüket előre lefoglaljuk.
+ * Így nem ugrik a lap tördelése, és betöltés előtt sem lyukas a rács. */
+@utility thumb-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--skeleton-bg);
+}
+
+/* --- Betöltési helyőrző: alapszín + végigcsúszó csillanás --------------- */
+@utility skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--skeleton-bg);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--skeleton-shine) 50%,
+      transparent 100%
+    );
+    animation: skeleton-shine 1.4s infinite;
+  }
+}
+
+@keyframes skeleton-shine {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* Mozgásérzékeny felhasználók: minden elmozdulás kikapcsolva. */
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -890,6 +956,10 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
+  }
+
+  .skeleton::after {
+    display: none;
   }
 
   .hover-lift:hover,

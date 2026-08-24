@@ -118,7 +118,7 @@ export function MemberBlock({
             key={member.sub}
             to="/members/$slug"
             params={{ slug: member.username }}
-            className="hover-lift flex w-[178px] flex-col items-center bg-(--members-card-bg) p-3 text-center shadow-[0_2px_2px_rgba(0,0,0,0.2)]"
+            className="hover-lift flex w-[178px] flex-col items-center border border-(--card-border) bg-(--members-card-bg) p-3 text-center shadow-[0_2px_2px_rgba(0,0,0,0.2)]"
           >
             <img
               src={member.avatarUrl ?? '/test_member.png'}

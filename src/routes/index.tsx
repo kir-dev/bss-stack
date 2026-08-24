@@ -9,6 +9,11 @@ import type {
 } from '#/server/pages/homepage.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import { formatEventIntervalHu } from '#/lib/format-date.ts'
+import Thumbnail from '#/components/Thumbnail.tsx'
+import {
+  SkeletonLine,
+  ThumbnailCardSkeleton,
+} from '#/components/PageStates.tsx'
 
 const loadHomepage = createServerFn({ method: 'GET' }).handler(async () => {
   const db = await getDefaultDb()
@@ -22,6 +27,8 @@ export const Route = createFileRoute('/')({
       queryFn: loadHomepage,
     }),
   component: HomePage,
+  // A loader várakozása alatt is a helyőrző látszik, nem egy sima szövegsor.
+  pendingComponent: HomepageSkeleton,
 })
 
 function HomePage() {
@@ -33,13 +40,7 @@ function HomePage() {
   })
 
   if (homeQuery.isPending) {
-    return (
-      <main className="mx-auto w-[90dvw] py-[6dvh]">
-        <p role="status" className="text-center text-(--bss-text-secondary)">
-          Betöltés…
-        </p>
-      </main>
-    )
+    return <HomepageSkeleton />
   }
   if (homeQuery.isError) {
     return (
@@ -155,13 +156,9 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
                 key={event.id}
                 to="/events/$slug"
                 params={{ slug: event.slug }}
-                className="hover-lift block w-[250px] shadow-[0_2px_6px_rgba(255,145,0,0.35)]"
+                className="card-surface hover-lift block w-[250px] shadow-[0_2px_6px_rgba(255,145,0,0.35)]"
               >
-                <img
-                  src={'/test_event.png'}
-                  alt={event.title}
-                  className="h-[180px] w-full object-cover"
-                />
+                <Thumbnail src={event.thumbnailUrl} alt={event.title} />
                 <span className="block p-2 text-center font-bold text-(--bss-text-secondary)">
                   {event.title}
                   {event.startDate !== null && (
@@ -174,6 +171,55 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
             ))}
           </div>
         )}
+      </section>
+    </main>
+  )
+}
+
+/**
+ * A főoldal betöltési helyőrzője. A hero, az oldalsó lista és az eseménysáv
+ * ugyanazt a rácsot és 16:9 arányt kapja, mint a valódi tartalom, így a
+ * megjelenéskor nem ugrik el a tördelés.
+ */
+function HomepageSkeleton() {
+  return (
+    <main
+      className="mx-auto w-[90dvw]"
+      role="status"
+      aria-busy="true"
+      aria-label="Főoldal betöltése…"
+    >
+      <span className="sr-only">Főoldal betöltése…</span>
+      <div className="my-[5dvh] font-bank-gothic text-[clamp(1rem,10dvw,66px)] font-bold leading-none text-(--bss-text)">
+        Budavári Schönherz Studió
+      </div>
+
+      <section className="mb-[6dvh] grid grid-cols-1 gap-x-[3dvw] gap-y-[3dvh] md:grid-cols-[1.5fr_1fr]">
+        <div>
+          <SkeletonLine className="mb-[2dvh] h-8 w-56" />
+          <ThumbnailCardSkeleton />
+        </div>
+        <div>
+          <SkeletonLine className="mb-[2dvh] h-8 w-64" />
+          <div className="grid w-full grid-cols-1 gap-x-[3dvw] gap-y-[3dvh] md:grid-cols-2">
+            {Array.from({ length: 4 }, (_, index) => (
+              <ThumbnailCardSkeleton key={index} />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mb-[10dvh]">
+        <SkeletonLine className="mb-[2dvh] h-8 w-72" />
+        <div className="flex flex-nowrap gap-[1dvw] overflow-hidden *:shrink-0">
+          {Array.from({ length: 6 }, (_, index) => (
+            <ThumbnailCardSkeleton
+              key={index}
+              lines={2}
+              className="w-[250px]"
+            />
+          ))}
+        </div>
       </section>
     </main>
   )
@@ -198,13 +244,10 @@ function HeroCard({ video }: { video: HomepageStateDto['hero'] }) {
     <Link
       to="/videos/$slug"
       params={{ slug: video.slug }}
-      className="group hover-lift block"
+      className="group card-surface hover-lift block"
     >
-      <img
-        src={video.thumbnailUrl ?? '/video-thumbnail.png'}
-        alt={video.title}
-        className="block max-h-[530px] w-full object-cover"
-      />
+      {/* A hero a legfontosabb kép az oldalon: azonnal töltjük. */}
+      <Thumbnail src={video.thumbnailUrl} alt={video.title} loading="eager" />
       <span className="block truncate px-2 py-2 text-xl font-bold text-(--bss-text-secondary) group-hover:text-(--orange)">
         {video.title}
       </span>
@@ -217,13 +260,9 @@ function VideoCard({ video }: { video: HomepageVideoCard }) {
     <Link
       to="/videos/$slug"
       params={{ slug: video.slug }}
-      className="group hover-lift block"
+      className="group card-surface hover-lift block"
     >
-      <img
-        src={video.thumbnailUrl ?? '/video-thumbnail.png'}
-        alt={video.title}
-        className="block h-auto w-full object-cover"
-      />
+      <Thumbnail src={video.thumbnailUrl} alt={video.title} />
       <span className="block truncate px-2 py-1 text-(--bss-text-secondary) group-hover:text-(--orange)">
         {video.title}
       </span>

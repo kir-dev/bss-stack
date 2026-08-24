@@ -14,6 +14,7 @@ import {
   formatCalendarDateHu,
   formatEventIntervalHu,
 } from '#/lib/format-date.ts'
+import Thumbnail from '#/components/Thumbnail.tsx'
 
 const loadEventDetail = createServerFn({ method: 'GET' })
   .validator((input: { slug: string; page?: number }) => input)
@@ -96,11 +97,13 @@ function EventDetailPageComponent() {
       )}
 
       <div className="flex flex-col gap-6 md:flex-row">
-        <img
-          src={detail.thumbnailUrl ?? '/video-thumbnail.png'}
-          alt={detail.title}
-          className="max-h-[320px] w-full object-cover md:w-[420px]"
-        />
+        <div className="w-full md:w-[420px] md:shrink-0">
+          <Thumbnail
+            src={detail.thumbnailUrl}
+            alt={detail.title}
+            loading="eager"
+          />
+        </div>
         <div>
           <h1 className="text-4xl font-bold text-(--bss-text)">
             {detail.title}
@@ -153,13 +156,9 @@ function EventDetailPageComponent() {
                   key={video.id}
                   to="/videos/$slug"
                   params={{ slug: video.slug }}
-                  className="group block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)]"
+                  className="group card-surface hover-lift block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)]"
                 >
-                  <img
-                    src={video.thumbnailUrl ?? '/video-thumbnail.png'}
-                    alt={video.title}
-                    className="block h-auto w-full object-cover"
-                  />
+                  <Thumbnail src={video.thumbnailUrl} alt={video.title} />
                   <span className="block truncate px-2 py-1 text-(--bss-text-secondary) group-hover:text-(--orange)">
                     {video.title}
                   </span>

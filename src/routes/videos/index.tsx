@@ -13,7 +13,8 @@ import {
 } from '#/server/pages/video-list.ts'
 import { resolveViewerStateFromRequest } from '#/server/pages/viewer.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
-import { EmptyState } from '#/components/PageStates.tsx'
+import { EmptyState, ThumbnailGridSkeleton } from '#/components/PageStates.tsx'
+import Thumbnail from '#/components/Thumbnail.tsx'
 import type { VideoListRawSearch } from '#/server/pages/video-list.ts'
 
 const loadVideoList = createServerFn({ method: 'GET' })
@@ -30,6 +31,8 @@ const loadFilterOptions = createServerFn({ method: 'GET' }).handler(
     return getVideoFilterOptions(db)
   },
 )
+
+const VIDEO_GRID_CLASS = 'grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5'
 
 export const Route = createFileRoute('/videos/')({
   validateSearch: (search: Record<string, unknown>): VideoListRawSearch => {
@@ -63,7 +66,22 @@ export const Route = createFileRoute('/videos/')({
       queryFn: () => loadVideoList({ data: deps.search }),
     }),
   component: VideoListPage,
+  pendingComponent: VideoListSkeleton,
 })
+
+/** A videólista helyőrzője: fejléc plusz 16:9-es kártyarács. */
+function VideoListSkeleton() {
+  return (
+    <main className="mx-auto my-[4dvh] w-[90dvw]">
+      <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">Videók</h1>
+      <ThumbnailGridSkeleton
+        count={10}
+        className={VIDEO_GRID_CLASS}
+        label="Videók betöltése…"
+      />
+    </main>
+  )
+}
 
 function VideoListPage() {
   const navigate = useNavigate()
@@ -99,12 +117,11 @@ function VideoListPage() {
       />
 
       {pageData.isPending && (
-        <p
-          role="status"
-          className="py-[6dvh] text-center text-(--bss-text-secondary)"
-        >
-          Betöltés…
-        </p>
+        <ThumbnailGridSkeleton
+          count={10}
+          className={VIDEO_GRID_CLASS}
+          label="Videók betöltése…"
+        />
       )}
       {pageData.isError && (
         <p
@@ -122,18 +139,14 @@ function VideoListPage() {
           />
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+            <div className={VIDEO_GRID_CLASS}>
               {pageData.data.items.map((item) => (
                 <a
                   key={item.id}
                   href={`/videos/${item.slug}`}
-                  className="group hover-lift block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)]"
+                  className="group card-surface hover-lift block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)]"
                 >
-                  <img
-                    src={item.thumbnailUrl ?? '/video-thumbnail.png'}
-                    alt={item.title}
-                    className="block h-auto w-full object-cover"
-                  />
+                  <Thumbnail src={item.thumbnailUrl} alt={item.title} />
                   <span className="block truncate px-2 py-1 text-(--bss-text-secondary) group-hover:text-(--orange)">
                     {item.title}
                   </span>

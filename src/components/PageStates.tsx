@@ -79,3 +79,67 @@ export function ForbiddenContent() {
     </main>
   )
 }
+
+/* --- Betöltési helyőrzők ------------------------------------------------- */
+
+/** Egy szövegsor helyőrzője; a magasságot a hívó adja meg. */
+export function SkeletonLine({ className = '' }: { className?: string }) {
+  return <span className={`skeleton block rounded ${className}`} />
+}
+
+/**
+ * Videó- vagy eseménykártya helyőrzője: 16:9 borítókép plusz címsor. A méretei
+ * megegyeznek a valódi kártyáéval, így a tartalom megjelenésekor nem ugrik a
+ * tördelés.
+ */
+export function ThumbnailCardSkeleton({
+  lines = 1,
+  className = '',
+}: {
+  lines?: number
+  className?: string
+}) {
+  return (
+    <div
+      aria-hidden="true"
+      className={`card-surface block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)] ${className}`}
+    >
+      <div className="thumb-frame skeleton" />
+      <div className="flex flex-col gap-1 px-2 py-2">
+        {Array.from({ length: lines }, (_, index) => (
+          <SkeletonLine
+            key={index}
+            className={index === 0 ? 'h-4 w-11/12' : 'h-3 w-2/3'}
+          />
+        ))}
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Kártyarács helyőrzője. A `className`-ben a valódi rács oszlopbeállítását kell
+ * átadni, hogy a helyőrzők ugyanannyi hasábban jelenjenek meg.
+ */
+export function ThumbnailGridSkeleton({
+  count,
+  className = '',
+  lines = 1,
+  label = 'Betöltés…',
+}: {
+  count: number
+  className?: string
+  lines?: number
+  label?: string
+}) {
+  return (
+    <div role="status" aria-label={label} aria-busy="true">
+      <span className="sr-only">{label}</span>
+      <div className={className}>
+        {Array.from({ length: count }, (_, index) => (
+          <ThumbnailCardSkeleton key={index} lines={lines} />
+        ))}
+      </div>
+    </div>
+  )
+}

@@ -8,7 +8,8 @@ import {
 } from '#/server/pages/event-list.ts'
 import { resolveViewerStateFromRequest } from '#/server/pages/viewer.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
-import { EmptyState } from '#/components/PageStates.tsx'
+import { EmptyState, ThumbnailGridSkeleton } from '#/components/PageStates.tsx'
+import Thumbnail from '#/components/Thumbnail.tsx'
 
 const loadEventList = createServerFn({ method: 'GET' })
   .validator((input: { page?: number; perPage?: number }) => input)
@@ -17,6 +18,8 @@ const loadEventList = createServerFn({ method: 'GET' })
     const db = await getDefaultDb()
     return getEventListPage(db, viewer, data)
   })
+
+const EVENT_GRID_CLASS = 'grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6'
 
 type EventListSearch = { page?: string; perPage?: string }
 
@@ -47,7 +50,22 @@ export const Route = createFileRoute('/events/')({
         }),
     }),
   component: EventListPageComponent,
+  pendingComponent: EventListSkeleton,
 })
+
+/** Az eseménylista helyőrzője: fejléc plusz 16:9-es kártyarács. */
+function EventListSkeleton() {
+  return (
+    <main className="mx-auto my-[4dvh] w-[90dvw]">
+      <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">Események</h1>
+      <ThumbnailGridSkeleton
+        count={12}
+        className={EVENT_GRID_CLASS}
+        label="Események betöltése…"
+      />
+    </main>
+  )
+}
 
 function EventListPageComponent() {
   const search = Route.useSearch()
@@ -71,12 +89,11 @@ function EventListPageComponent() {
       <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">Események</h1>
 
       {listQuery.isPending && (
-        <p
-          role="status"
-          className="py-[6dvh] text-center text-(--bss-text-secondary)"
-        >
-          Betöltés…
-        </p>
+        <ThumbnailGridSkeleton
+          count={12}
+          className={EVENT_GRID_CLASS}
+          label="Események betöltése…"
+        />
       )}
       {listQuery.isError && (
         <p
@@ -94,22 +111,21 @@ function EventListPageComponent() {
           />
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+            <div className={EVENT_GRID_CLASS}>
               {listQuery.data.items.map((item) => (
                 <Link
                   key={item.id}
                   to="/events/$slug"
                   params={{ slug: item.slug }}
-                  className="group hover-lift relative block shadow-[0_2px_6px_rgba(0,0,0,0.25)]"
+                  className="group card-surface hover-lift block shadow-[0_2px_6px_rgba(0,0,0,0.25)]"
                 >
-                  <img
-                    src={item.thumbnailUrl ?? '/video-thumbnail.png'}
-                    alt={item.title}
-                    className="block h-auto w-full object-cover"
-                  />
-                  <span className="absolute right-2 bottom-2 rounded-full bg-black/70 px-2 py-1 text-xs font-bold text-white">
-                    {item.visibleVideoCount} videó
-                  </span>
+                  {/* A videószám-jelvény a borítóképhez tapad, nem a címhez. */}
+                  <div className="relative">
+                    <Thumbnail src={item.thumbnailUrl} alt={item.title} />
+                    <span className="absolute right-2 bottom-2 rounded-full bg-black/70 px-2 py-1 text-xs font-bold text-white">
+                      {item.visibleVideoCount} videó
+                    </span>
+                  </div>
                   <span className="block px-2 py-1 font-bold text-(--bss-text-secondary) group-hover:text-(--orange)">
                     {item.title}
                   </span>

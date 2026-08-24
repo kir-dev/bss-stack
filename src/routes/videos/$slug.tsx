@@ -12,6 +12,7 @@ import { getVideoDetail } from '#/server/pages/video-detail.ts'
 import { resolvePublicSlug } from '#/server/pages/slug-route.ts'
 import VideoDetailPlayer from '#/components/VideoDetailPlayer.tsx'
 import { formatCalendarDateHu, formatDateHu } from '#/lib/format-date.ts'
+import Thumbnail from '#/components/Thumbnail.tsx'
 
 const loadVideoDetail = createServerFn({ method: 'GET' })
   .validator((slug: string) => slug)
@@ -204,13 +205,9 @@ function VideoDetailPage() {
                   key={related.id}
                   to="/videos/$slug"
                   params={{ slug: related.slug }}
-                  className="group block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)]"
+                  className="group card-surface hover-lift block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)]"
                 >
-                  <img
-                    src={related.thumbnailUrl ?? '/video-thumbnail.png'}
-                    alt={related.title}
-                    className="block h-auto w-full object-cover"
-                  />
+                  <Thumbnail src={related.thumbnailUrl} alt={related.title} />
                   <span className="block truncate px-2 py-1 text-(--bss-text-secondary) group-hover:text-(--orange)">
                     {related.title}
                   </span>

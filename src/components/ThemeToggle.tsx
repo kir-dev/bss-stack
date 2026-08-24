@@ -137,7 +137,7 @@ export default function ThemeToggle() {
       onClick={toggleMode}
       aria-label={label}
       title={label}
-      className="icon-btn gap-2 px-3 py-1.5 text-sm font-semibold shadow-[0_8px_22px_rgba(30,90,72,0.08)]"
+      className="icon-btn gap-2 px-3 py-1.5 text-sm font-semibold"
     >
       {resolvedTheme === 'dark' ? <MoonIcon /> : <SunIcon />}
     </button>

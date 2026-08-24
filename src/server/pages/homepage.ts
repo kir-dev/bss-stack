@@ -1,5 +1,7 @@
 import type { Executor } from '#/server/shared/db-executor.ts'
 import { getHomepageState, getUpcomingLive } from '#/server/homepage/state.ts'
+import { latestVisibleThumbnailByEvent } from '#/server/pages/event-list.ts'
+import { anonymousViewer } from '#/server/auth/viewer.ts'
 import { systemClock } from '#/lib/clock.ts'
 
 export interface HomepageVideoCard {
@@ -13,6 +15,8 @@ export interface HomepageEventCard {
   id: string
   slug: string
   title: string
+  /** Az esemény saját borítóképe, hiányában a legfrissebb publikus videójáé. */
+  thumbnailUrl: string | null
   startDate: string | null
 }
 
@@ -47,6 +51,17 @@ export async function getHomepagePage(
     thumbnailUrl: video.thumbnailUrl,
   })
 
+  // A főoldal névtelen nézőként fut, ezért a fallback borítókép csak publikus
+  // videóból jöhet – ugyanaz a szabály, mint a publikus eseménylistán.
+  const eventThumbs =
+    state.events.length === 0
+      ? new Map<string, string>()
+      : await latestVisibleThumbnailByEvent(
+          executor,
+          anonymousViewer(),
+          state.events.map((event) => event.id),
+        )
+
   const upcoming =
     state.upcomingLive ??
     (await (async () => {
@@ -69,6 +84,7 @@ export async function getHomepagePage(
       id: event.id,
       slug: event.slug,
       title: event.title,
+      thumbnailUrl: event.thumbnailUrl ?? eventThumbs.get(event.id) ?? null,
       startDate: event.startDate,
     })),
     upcomingLive:

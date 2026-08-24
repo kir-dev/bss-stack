@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import ThemeToggle from '#/components/ThemeToggle.tsx'
 import SearchBox from '#/components/SearchBox.tsx'
+import UserMenu from '#/components/UserMenu.tsx'
 import { Link, useLocation } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
@@ -23,7 +24,7 @@ export default function Navbar() {
     queryFn: fetchViewerState,
     staleTime: 60_000,
   })
-  const loggedIn = viewerQuery.data?.loggedIn ?? false
+  const viewer = viewerQuery.data
 
   // Útvonalváltásra zárjuk be a mobilmenüt.
   useEffect(() => {
@@ -67,6 +68,7 @@ export default function Navbar() {
                 }
                 className={`nav-link ${location.pathname.startsWith(item.to) ? 'text-(--orange)' : ''}`}
                 to={item.to}
+                preload={item.to === '/courses' ? false : undefined}
               >
                 {item.label}
               </Link>
@@ -82,7 +84,11 @@ export default function Navbar() {
           <div className="hidden sm:block">
             <SearchBox />
           </div>
-          <LoginLogoutButton loggedIn={loggedIn} />
+          {viewer !== undefined && viewer.loggedIn ? (
+            <UserMenu viewer={viewer} />
+          ) : (
+            <LoginButton />
+          )}
           <button
             type="button"
             className="icon-btn p-1.5 lg:hidden"
@@ -120,6 +126,7 @@ export default function Navbar() {
                 }
                 className={`nav-link py-2 font-bold ${location.pathname.startsWith(item.to) ? 'text-(--orange)' : ''}`}
                 to={item.to}
+                preload={item.to === '/courses' ? false : undefined}
               >
                 {item.label}
               </Link>
@@ -138,24 +145,16 @@ export default function Navbar() {
   )
 }
 
-function LoginLogoutButton({ loggedIn }: { loggedIn: boolean }) {
+/** Belépés a jelenlegi oldalra visszatérve; a kilépés a profilmenüben van. */
+function LoginButton() {
   const location = useLocation()
-  if (!loggedIn) {
-    const returnTo = `${location.pathname}${location.searchStr}`
-    return (
-      <a
-        href={`/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`}
-        className="nav-link font-bold text-(--orange)"
-      >
-        Belépés
-      </a>
-    )
-  }
+  const returnTo = `${location.pathname}${location.searchStr}`
   return (
-    <form method="post" action="/api/auth/logout">
-      <button type="submit" className="font-bold hover:text-(--orange)">
-        Kilépés
-      </button>
-    </form>
+    <a
+      href={`/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`}
+      className="nav-link font-bold text-(--orange)"
+    >
+      Belépés
+    </a>
   )
 }
