@@ -1,0 +1,37 @@
+import { Outlet, createFileRoute, redirect } from '@tanstack/react-router'
+import { ForbiddenContent } from '#/components/PageStates.tsx'
+import { AdminSidebar } from '#/components/admin/AdminSidebar.tsx'
+import { fetchAdminAreaAccess } from '#/server/pages/admin/access-fn.ts'
+
+/**
+ * Admin váz (BSS-027): minden /admin alatti oldalt szerveroldali guard véd.
+ * Névtelen felhasználó a returnTo megtartásával belépésre kerül,
+ * bejelentkezett jogosulatlan magyar 403 tartalmat kap.
+ */
+export const Route = createFileRoute('/admin')({
+  loader: async () => {
+    const access = await fetchAdminAreaAccess()
+    if (access.kind === 'login') {
+      throw redirect({ href: access.loginUrl })
+    }
+    return { access }
+  },
+  component: AdminLayout,
+})
+
+function AdminLayout() {
+  const { access } = Route.useLoaderData()
+
+  if (access.kind === 'forbidden' || access.viewer === undefined) {
+    return <ForbiddenContent />
+  }
+
+  return (
+    <div className="mx-auto flex w-[95dvw] max-w-[1400px] my-[3dvh] flex-col gap-4 md:flex-row">
+      <AdminSidebar level={access.viewer.level} />
+      <div className="min-w-0 flex-1">
+        <Outlet />
+      </div>
+    </div>
+  )
+}

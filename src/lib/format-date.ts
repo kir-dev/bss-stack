@@ -11,6 +11,22 @@ export function formatDateHu(date: Date): string {
   return `${value('year')}. ${value('month')} ${Number(value('day'))}.`
 }
 
+/** Admin és audit formátum (spec 4.4): `2026. június 6. 14:32` — Europe/Budapest. */
+export function formatAdminDateTimeHu(date: Date): string {
+  const parts = new Intl.DateTimeFormat('hu-HU', {
+    timeZone: 'Europe/Budapest',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).formatToParts(date)
+  const value = (type: string) =>
+    parts.find((part) => part.type === type)?.value ?? ''
+  return `${value('year')}. ${value('month')} ${Number(value('day'))}. ${value('hour')}:${value('minute')}`
+}
+
 const MONTHS = [
   'január',
   'február',

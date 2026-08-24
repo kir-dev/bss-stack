@@ -85,6 +85,9 @@ export async function createMigratedTestDatabase(
 ): Promise<MigratedTestDatabase> {
   const database = await createTestDatabase(prefix)
   const pool = new Pool({ connectionString: database.connectionString })
+  // A `DROP DATABASE ... WITH (FORCE)` lecsatolhatja a még élő backendet;
+  // az ilyenkor érkező connection-hibát elnyeljük (a teszt ekkor már kész volt).
+  pool.on('error', () => {})
   await applyDrizzleMigrations(pool)
   const db = drizzle({ client: pool })
   return { database, pool, db }
