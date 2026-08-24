@@ -65,7 +65,7 @@ async function seedVideo(
 }
 
 describe.skipIf(!hasTestDatabase)('BSS-024: homepage állapot DTO', () => {
-  it('normál állapot hat videóval; kiemelt esetén a hero nem ismétlődik', async () => {
+  it('normál és kiemelt állapot hat videóval; kiemelt esetén a hero nem ismétlődik', async () => {
     installFetchMock([])
     const db = await setupDb()
     for (let index = 0; index < 7; index += 1) {
@@ -96,7 +96,7 @@ describe.skipIf(!hasTestDatabase)('BSS-024: homepage állapot DTO', () => {
     expect(highlight.sideVideos.map((video) => video.id)).not.toContain(
       firstVideo.id,
     )
-    expect(highlight.sideVideos).toHaveLength(5)
+    expect(highlight.sideVideos).toHaveLength(6)
   })
 
   it('Adás hamarosan sáv csak ütemezett live esetén van', async () => {
@@ -104,7 +104,7 @@ describe.skipIf(!hasTestDatabase)('BSS-024: homepage állapot DTO', () => {
     installFetchMock([
       {
         method: 'GET',
-        urlPattern: /youtube\.com\/oEmbed/,
+        urlPattern: /youtube\.com\/oembed/,
         respond: () => ({ status: 200, body: { title: 'Teszt' } }),
       },
     ])

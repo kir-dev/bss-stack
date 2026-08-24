@@ -76,7 +76,7 @@ async function setupDb(): Promise<NodePgDatabase<Record<string, never>>> {
 const okOembedRoutes = [
   {
     method: 'GET',
-    urlPattern: /youtube\.com\/oEmbed/,
+    urlPattern: /youtube\.com\/oembed/,
     respond: () => ({ status: 200, body: { title: 'Teszt live' } }),
   },
 ]
@@ -85,7 +85,7 @@ function oembedFailureRoutes() {
   return [
     {
       method: 'GET',
-      urlPattern: /youtube\.com\/oEmbed/,
+      urlPattern: /youtube\.com\/oembed/,
       respond: () => ({ status: 404 }),
     },
   ]
@@ -370,7 +370,7 @@ describe.skipIf(!hasTestDatabase)(
       expect(state.priority).toBe('highlight')
       expect(state.heroVideo?.id).toBe(highlight.id)
       expect(state.sideVideos.map((v) => v.id)).not.toContain(highlight.id)
-      expect(state.sideVideos.length).toBeLessThanOrEqual(5)
+      expect(state.sideVideos.length).toBeLessThanOrEqual(6)
 
       // Aktív live:
       await db.insert(liveStreams).values({

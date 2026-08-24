@@ -125,6 +125,8 @@
   --skeleton-bg: #e8e8e8;
   --skeleton-shine: #f7f7f7;
   --popover-bg: #ffffff;
+  /* Page pattern: one layer of `background.svg` (its dots are 10% opaque). */
+  --bg-pattern: url('/background.svg');
 }
 
 :root[data-theme='dark'] {
@@ -173,6 +175,9 @@
   --skeleton-bg: #2e2e2e;
   --skeleton-shine: #3d3d3d;
   --popover-bg: #1c1c1c;
+  /* On the dark page a single 10% layer disappears, so the same tile is
+   * painted twice (~19% effective opacity). */
+  --bg-pattern: url('/background.svg'), url('/background.svg');
 }
 
 @media (prefers-color-scheme: dark) {
@@ -223,6 +228,9 @@
     --skeleton-bg: #2e2e2e;
     --skeleton-shine: #3d3d3d;
     --popover-bg: #1c1c1c;
+    /* On the dark page a single 10% layer disappears, so the same tile is
+     * painted twice (~19% effective opacity). */
+    --bg-pattern: url('/background.svg'), url('/background.svg');
   }
 }
 
@@ -236,7 +244,21 @@
 /*  min-height: 100%;*/
 /*}*/
 
+/* --- Page background: the brand dot grid on every page --------------------
+ * The pattern lives on the root element, not on `body`: the root background
+ * is painted as the canvas, so it covers the viewport even on short pages
+ * and no page-level `bg-*` utility can hide it. `background.svg` has a
+ * 760x760 tile, exactly 20 x 38px dot pitches, so `repeat` leaves no seam
+ * on viewports wider or taller than one tile. */
+html {
+  background-color: var(--bg);
+  background-image: var(--bg-pattern);
+  background-repeat: repeat;
+  background-position: center top;
+}
+
 body {
+  background-color: transparent;
   /*  margin: 0;*/
   /*  color: var(--sea-ink);*/
   /*  font-family: var(--font-bank-gothic);*/

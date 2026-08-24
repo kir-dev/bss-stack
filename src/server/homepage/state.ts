@@ -80,7 +80,7 @@ export interface HomepageState {
   liveStream?: typeof liveStreams.$inferSelect
   /** The hero video in highlighted state. */
   heroVideo?: typeof videos.$inferSelect
-  /** Five latest public videos in live/highlight state, six in normal state. */
+  /** Five latest public videos in live state, six in highlight and normal state. */
   sideVideos: Array<typeof videos.$inferSelect>
   events: Array<typeof events.$inferSelect>
   /** `Coming up soon` bar data, if there is a schedule starting within 24 hours. */
@@ -125,7 +125,9 @@ export async function getHomepageState(
         return {
           priority: 'highlight',
           heroVideo,
-          sideVideos: await latestPublicVideos(executor, 5, heroVideo.id),
+          // The highlighted hero shows an inline player, so the list next to
+          // it fills three rows of two instead of stopping at five.
+          sideVideos: await latestPublicVideos(executor, 6, heroVideo.id),
           events: await latestPublicEvents(executor, 6),
           ...(await upcomingField(executor, now)),
         }

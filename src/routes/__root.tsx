@@ -62,7 +62,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
-      <body className="min-h-screen flex flex-col bg-(--bg)">
+      {/* The page background (color + dot pattern) sits on the root element
+           in styles.css, so `body` stays transparent. */}
+      <body className="min-h-screen flex flex-col">
         <Navbar />
         <div className="flex-1">{children}</div>
         <Footer />

@@ -431,7 +431,7 @@ The homepage state is a computed priority:
 2. featured video;
 3. normal state.
 
-In live and featured states, five recent public videos are shown next to the hero. The hero video must not repeat in the list. In normal state, six recent public videos are shown.
+In live state, five recent public videos are shown next to the hero. In featured state the featured video plays inline in the hero and six recent public videos are shown next to it; its title links to the video page. The hero video must not repeat in the list. In normal state, six recent public videos are shown.
 
 In all three states, six events are shown, sorted descending by start date. A future published event may also appear.
 

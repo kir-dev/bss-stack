@@ -11,6 +11,14 @@ export interface HomepageVideoCard {
   thumbnailUrl: string | null
 }
 
+/**
+ * The hero also carries the MP4 URL: in highlighted state the homepage plays
+ * the video inline instead of only linking to its page (spec 9.1).
+ */
+export interface HomepageHeroVideo extends HomepageVideoCard {
+  videoUrl: string | null
+}
+
 export interface HomepageEventCard {
   id: string
   slug: string
@@ -25,7 +33,7 @@ export interface HomepageStateDto {
   /** The YouTube nocookie embed URL in live mode. */
   liveEmbedUrl: string | null
   liveTitle: string | null
-  hero: HomepageVideoCard | null
+  hero: HomepageHeroVideo | null
   sideVideos: Array<HomepageVideoCard>
   events: Array<HomepageEventCard>
   /** `On air soon` strip: schedule starting within 24 hours at most. */
@@ -78,7 +86,10 @@ export async function getHomepagePage(
       state.liveStream !== undefined
         ? `Élő adás – ${state.liveStream.startsAt.toISOString().slice(0, 16).replace('T', ' ')}`
         : null,
-    hero: state.heroVideo !== undefined ? toCard(state.heroVideo) : null,
+    hero:
+      state.heroVideo !== undefined
+        ? { ...toCard(state.heroVideo), videoUrl: state.heroVideo.videoUrl }
+        : null,
     sideVideos: state.sideVideos.map(toCard),
     events: state.events.map((event) => ({
       id: event.id,
