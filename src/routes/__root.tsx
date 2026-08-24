@@ -13,6 +13,8 @@ import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
 import Navbar from '#/components/Navbar.tsx'
+import { ErrorState, NotFoundContent } from '#/components/PageStates.tsx'
+import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -31,7 +33,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Budavári Schönherz Studió',
       },
     ],
     links: [
@@ -41,12 +43,21 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
     ],
   }),
+  // A navbar belépési állapota minden oldalhoz kell: egyszer töltjük.
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData({
+      queryKey: ['viewer'],
+      queryFn: fetchViewerState,
+      staleTime: 60_000,
+    }),
+  notFoundComponent: NotFoundContent,
+  errorComponent: () => <ErrorState />,
   shellComponent: RootDocument,
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="hu" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />

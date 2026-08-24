@@ -188,16 +188,19 @@ describe.skipIf(!hasTestDatabase)('BSS-018: globális keresés', () => {
     await seedVideo(db, {
       slug: 'publikus-talalat',
       title: 'Különleges koncert',
+      publishedAt: new Date('2026-07-01T10:00:00Z'),
     })
     await seedVideo(db, {
       slug: 'bss-talalat',
       title: 'Különleges koncert BSS',
       visibility: 'bss',
+      publishedAt: new Date('2026-07-03T10:00:00Z'),
     })
     await seedVideo(db, {
       slug: 'schonherz-talalat',
       title: 'Különleges koncert SCH',
       visibility: 'schonherz',
+      publishedAt: new Date('2026-07-02T10:00:00Z'),
     })
 
     const anonResult = await search(db, anonViewer, 'különleges')

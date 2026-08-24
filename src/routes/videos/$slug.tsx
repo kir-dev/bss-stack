@@ -1,0 +1,221 @@
+import {
+  createFileRoute,
+  Link,
+  notFound,
+  redirect,
+} from '@tanstack/react-router'
+import { createServerFn } from '@tanstack/react-start'
+import { getRequest, getRequestUrl } from '@tanstack/react-start/server'
+import { resolveViewerStateFromRequest } from '#/server/pages/viewer.ts'
+import { getDefaultDb } from '#/server/auth/session-store.ts'
+import { getVideoDetail } from '#/server/pages/video-detail.ts'
+import { resolvePublicSlug } from '#/server/pages/slug-route.ts'
+import VideoDetailPlayer from '#/components/VideoDetailPlayer.tsx'
+import { formatCalendarDateHu, formatDateHu } from '#/lib/format-date.ts'
+
+const loadVideoDetail = createServerFn({ method: 'GET' })
+  .validator((slug: string) => slug)
+  .handler(async ({ data: slug }) => {
+    const { viewer } = await resolveViewerStateFromRequest(getRequest())
+    const db = await getDefaultDb()
+    const detail = await getVideoDetail(db, viewer, slug)
+    if (detail !== null) {
+      const origin = getRequestUrl().origin
+      return {
+        detail,
+        redirectSlug: null as string | null,
+        canonical: `${origin}/videos/${detail.slug}`,
+      }
+    }
+    // Aktuális slugon nincs publikus videó: régi slug átirányítás kipróbálása.
+    const resolution = await resolvePublicSlug(db, {
+      entityType: 'video',
+      slug,
+      viewer,
+    })
+    const redirectSlug =
+      resolution !== null && resolution.kind === 'redirect'
+        ? resolution.canonicalSlug
+        : null
+    return { detail: null, redirectSlug, canonical: '' }
+  })
+
+export const Route = createFileRoute('/videos/$slug')({
+  loader: async ({ params }) => {
+    const result = await loadVideoDetail({ data: params.slug })
+    if (result.redirectSlug !== null) {
+      throw redirect({
+        to: '/videos/$slug',
+        params: { slug: result.redirectSlug },
+        replace: true,
+      })
+    }
+    if (result.detail === null) {
+      throw notFound()
+    }
+    return {
+      detail: result.detail,
+      canonical: result.canonical,
+    }
+  },
+  component: VideoDetailPage,
+})
+
+function VideoDetailPage() {
+  const { detail, canonical } = Route.useLoaderData()
+  return (
+    <main className="flex-1">
+      <title>{detail.title} | BSS</title>
+      <meta name="description" content={detail.description ?? detail.title} />
+      <link rel="canonical" href={canonical} />
+      {detail.thumbnailUrl !== null && (
+        <meta property="og:image" content={detail.thumbnailUrl} />
+      )}
+      <meta property="og:title" content={detail.title} />
+
+      <div className="flex w-full justify-center bg-black">
+        {detail.videoUrl !== null ? (
+          <div className="w-full max-w-[55dvw]">
+            <VideoDetailPlayer
+              videoId={detail.id}
+              videoUrl={detail.videoUrl}
+              posterUrl={detail.thumbnailUrl}
+              title={detail.title}
+            />
+          </div>
+        ) : (
+          <p className="p-10 text-white">A videó most nem érhető el.</p>
+        )}
+      </div>
+
+      <div className="mx-auto my-5 w-[55dvw] max-w-full">
+        <h1 className="text-5xl font-bold text-(--videos-video-title)">
+          {detail.title}
+        </h1>
+
+        <dl className="my-5 flex flex-wrap gap-x-8 gap-y-1 text-(--bss-text-secondary)">
+          {detail.recordedAt !== null && (
+            <>
+              <dt className="font-semibold text-(--videos-video-title)">
+                Készült:
+              </dt>
+              <dd>{formatCalendarDateHu(detail.recordedAt)}</dd>
+            </>
+          )}
+          {detail.publishedAt !== null && (
+            <>
+              <dt className="font-semibold text-(--videos-video-title)">
+                Feltöltve:
+              </dt>
+              <dd>{formatDateHu(detail.publishedAt)}</dd>
+            </>
+          )}
+        </dl>
+
+        {detail.event !== null && (
+          <p className="my-3">
+            <span className="font-semibold text-(--videos-video-title)">
+              Esemény:{' '}
+            </span>
+            <Link
+              to="/events/$slug"
+              params={{ slug: detail.event.slug }}
+              className="underline hover:text-(--orange)"
+            >
+              {detail.event.title}
+            </Link>
+          </p>
+        )}
+
+        {detail.description !== null && (
+          <p className="whitespace-pre-line">{detail.description}</p>
+        )}
+
+        {detail.guests !== null && (
+          <section className="mt-5">
+            <h2 className="font-semibold text-(--videos-video-title)">
+              Vendégek
+            </h2>
+            <p className="whitespace-pre-line">{detail.guests}</p>
+          </section>
+        )}
+
+        {detail.songs !== null && (
+          <section className="mt-5">
+            <h2 className="font-semibold text-(--videos-video-title)">
+              Felhasznált zenék
+            </h2>
+            <p className="whitespace-pre-line">{detail.songs}</p>
+          </section>
+        )}
+
+        {detail.tags.length > 0 && (
+          <ul className="mt-5 flex flex-wrap gap-2">
+            {detail.tags.map((tag) => (
+              <li key={tag.name}>
+                <Link
+                  to="/videos"
+                  search={{ tags: [tag.name] }}
+                  className="rounded-4xl bg-(--videos-tag) p-2 text-xs font-bold text-(--videos-tag-text)"
+                >
+                  {tag.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {detail.staff.length > 0 && (
+          <section className="mt-6 space-y-2">
+            {detail.staff.map((role) => (
+              <div key={role.roleId}>
+                <span className="font-semibold text-(--videos-video-title)">
+                  {role.roleName}:{' '}
+                </span>
+                {role.members.map((member, index) => (
+                  <span key={member.sub}>
+                    {index > 0 && ', '}
+                    <Link
+                      to="/members/$slug"
+                      params={{ slug: member.username }}
+                      className="underline hover:text-(--orange)"
+                    >
+                      {member.fullName}
+                    </Link>
+                  </span>
+                ))}
+              </div>
+            ))}
+          </section>
+        )}
+
+        {detail.relatedVideos.length > 0 && (
+          <section className="mt-10">
+            <h2 className="text-4xl font-bold text-(--videos-video-title)">
+              További videók
+            </h2>
+            <div className="mt-5 grid grid-cols-2 gap-y-[2dvh] sm:grid-cols-3">
+              {detail.relatedVideos.map((related) => (
+                <Link
+                  key={related.id}
+                  to="/videos/$slug"
+                  params={{ slug: related.slug }}
+                  className="group block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)]"
+                >
+                  <img
+                    src={related.thumbnailUrl ?? '/video-thumbnail.png'}
+                    alt={related.title}
+                    className="block h-auto w-full object-cover"
+                  />
+                  <span className="block truncate px-2 py-1 text-(--bss-text-secondary) group-hover:text-(--orange)">
+                    {related.title}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
+      </div>
+    </main>
+  )
+}

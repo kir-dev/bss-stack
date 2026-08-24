@@ -5,6 +5,10 @@ import {
 import { handleApiRequest, API_PATH_PREFIXES } from '#/server/api/router.ts'
 import { startBackgroundRunner } from '#/server/jobs/runner.ts'
 import type { BackgroundRunnerHandle } from '#/server/jobs/runner.ts'
+import {
+  COURSE_REDIRECT_TARGET,
+  isCoursesPath,
+} from '#/server/pages/courses-redirect.ts'
 
 const ssrHandler = createStartHandler(defaultStreamHandler)
 
@@ -32,6 +36,12 @@ export default {
     if (isApiPath(pathname)) {
       ensureBackgroundRunner()
       return handleApiRequest(request)
+    }
+    if (isCoursesPath(pathname)) {
+      return new Response(null, {
+        status: 302,
+        headers: { location: COURSE_REDIRECT_TARGET },
+      })
     }
     return ssrHandler(request)
   },

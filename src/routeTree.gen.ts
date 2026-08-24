@@ -12,11 +12,15 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as CoursesRouteImport } from './routes/courses'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as EventsIndexRouteImport } from './routes/events/index'
+import { Route as EventsSlugRouteImport } from './routes/events/$slug'
 import { Route as MembersIndexRouteImport } from './routes/members/index'
-import { Route as MembersMemberIdRouteImport } from './routes/members/$memberId'
+import { Route as MembersSlugRouteImport } from './routes/members/$slug'
+import { Route as MembersArchivedRouteImport } from './routes/members/archived'
+import { Route as MembersContributorsRouteImport } from './routes/members/contributors'
 import { Route as VideosIndexRouteImport } from './routes/videos/index'
-import { Route as VideosVideoIdRouteImport } from './routes/videos/$videoId'
+import { Route as VideosSlugRouteImport } from './routes/videos/$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -33,9 +37,19 @@ const CoursesRoute = CoursesRouteImport.update({
   path: '/courses',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EventsIndexRoute = EventsIndexRouteImport.update({
   id: '/events/',
   path: '/events/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsSlugRoute = EventsSlugRouteImport.update({
+  id: '/events/$slug',
+  path: '/events/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MembersIndexRoute = MembersIndexRouteImport.update({
@@ -43,9 +57,19 @@ const MembersIndexRoute = MembersIndexRouteImport.update({
   path: '/members/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MembersMemberIdRoute = MembersMemberIdRouteImport.update({
-  id: '/members/$memberId',
-  path: '/members/$memberId',
+const MembersSlugRoute = MembersSlugRouteImport.update({
+  id: '/members/$slug',
+  path: '/members/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembersArchivedRoute = MembersArchivedRouteImport.update({
+  id: '/members/archived',
+  path: '/members/archived',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembersContributorsRoute = MembersContributorsRouteImport.update({
+  id: '/members/contributors',
+  path: '/members/contributors',
   getParentRoute: () => rootRouteImport,
 } as any)
 const VideosIndexRoute = VideosIndexRouteImport.update({
@@ -53,9 +77,9 @@ const VideosIndexRoute = VideosIndexRouteImport.update({
   path: '/videos/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VideosVideoIdRoute = VideosVideoIdRouteImport.update({
-  id: '/videos/$videoId',
-  path: '/videos/$videoId',
+const VideosSlugRoute = VideosSlugRouteImport.update({
+  id: '/videos/$slug',
+  path: '/videos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -63,8 +87,12 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/courses': typeof CoursesRoute
-  '/members/$memberId': typeof MembersMemberIdRoute
-  '/videos/$videoId': typeof VideosVideoIdRoute
+  '/search': typeof SearchRoute
+  '/events/$slug': typeof EventsSlugRoute
+  '/members/$slug': typeof MembersSlugRoute
+  '/members/archived': typeof MembersArchivedRoute
+  '/members/contributors': typeof MembersContributorsRoute
+  '/videos/$slug': typeof VideosSlugRoute
   '/events/': typeof EventsIndexRoute
   '/members/': typeof MembersIndexRoute
   '/videos/': typeof VideosIndexRoute
@@ -73,8 +101,12 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/courses': typeof CoursesRoute
-  '/members/$memberId': typeof MembersMemberIdRoute
-  '/videos/$videoId': typeof VideosVideoIdRoute
+  '/search': typeof SearchRoute
+  '/events/$slug': typeof EventsSlugRoute
+  '/members/$slug': typeof MembersSlugRoute
+  '/members/archived': typeof MembersArchivedRoute
+  '/members/contributors': typeof MembersContributorsRoute
+  '/videos/$slug': typeof VideosSlugRoute
   '/events': typeof EventsIndexRoute
   '/members': typeof MembersIndexRoute
   '/videos': typeof VideosIndexRoute
@@ -84,8 +116,12 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/courses': typeof CoursesRoute
-  '/members/$memberId': typeof MembersMemberIdRoute
-  '/videos/$videoId': typeof VideosVideoIdRoute
+  '/search': typeof SearchRoute
+  '/events/$slug': typeof EventsSlugRoute
+  '/members/$slug': typeof MembersSlugRoute
+  '/members/archived': typeof MembersArchivedRoute
+  '/members/contributors': typeof MembersContributorsRoute
+  '/videos/$slug': typeof VideosSlugRoute
   '/events/': typeof EventsIndexRoute
   '/members/': typeof MembersIndexRoute
   '/videos/': typeof VideosIndexRoute
@@ -96,8 +132,12 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/courses'
-    | '/members/$memberId'
-    | '/videos/$videoId'
+    | '/search'
+    | '/events/$slug'
+    | '/members/$slug'
+    | '/members/archived'
+    | '/members/contributors'
+    | '/videos/$slug'
     | '/events/'
     | '/members/'
     | '/videos/'
@@ -106,8 +146,12 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/courses'
-    | '/members/$memberId'
-    | '/videos/$videoId'
+    | '/search'
+    | '/events/$slug'
+    | '/members/$slug'
+    | '/members/archived'
+    | '/members/contributors'
+    | '/videos/$slug'
     | '/events'
     | '/members'
     | '/videos'
@@ -116,8 +160,12 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/courses'
-    | '/members/$memberId'
-    | '/videos/$videoId'
+    | '/search'
+    | '/events/$slug'
+    | '/members/$slug'
+    | '/members/archived'
+    | '/members/contributors'
+    | '/videos/$slug'
     | '/events/'
     | '/members/'
     | '/videos/'
@@ -127,8 +175,12 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   CoursesRoute: typeof CoursesRoute
-  MembersMemberIdRoute: typeof MembersMemberIdRoute
-  VideosVideoIdRoute: typeof VideosVideoIdRoute
+  SearchRoute: typeof SearchRoute
+  EventsSlugRoute: typeof EventsSlugRoute
+  MembersSlugRoute: typeof MembersSlugRoute
+  MembersArchivedRoute: typeof MembersArchivedRoute
+  MembersContributorsRoute: typeof MembersContributorsRoute
+  VideosSlugRoute: typeof VideosSlugRoute
   EventsIndexRoute: typeof EventsIndexRoute
   MembersIndexRoute: typeof MembersIndexRoute
   VideosIndexRoute: typeof VideosIndexRoute
@@ -157,11 +209,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CoursesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/events/': {
       id: '/events/'
       path: '/events'
       fullPath: '/events/'
       preLoaderRoute: typeof EventsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/$slug': {
+      id: '/events/$slug'
+      path: '/events/$slug'
+      fullPath: '/events/$slug'
+      preLoaderRoute: typeof EventsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/members/': {
@@ -171,11 +237,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MembersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/members/$memberId': {
-      id: '/members/$memberId'
-      path: '/members/$memberId'
-      fullPath: '/members/$memberId'
-      preLoaderRoute: typeof MembersMemberIdRouteImport
+    '/members/$slug': {
+      id: '/members/$slug'
+      path: '/members/$slug'
+      fullPath: '/members/$slug'
+      preLoaderRoute: typeof MembersSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/members/archived': {
+      id: '/members/archived'
+      path: '/members/archived'
+      fullPath: '/members/archived'
+      preLoaderRoute: typeof MembersArchivedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/members/contributors': {
+      id: '/members/contributors'
+      path: '/members/contributors'
+      fullPath: '/members/contributors'
+      preLoaderRoute: typeof MembersContributorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/videos/': {
@@ -185,11 +265,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VideosIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/videos/$videoId': {
-      id: '/videos/$videoId'
-      path: '/videos/$videoId'
-      fullPath: '/videos/$videoId'
-      preLoaderRoute: typeof VideosVideoIdRouteImport
+    '/videos/$slug': {
+      id: '/videos/$slug'
+      path: '/videos/$slug'
+      fullPath: '/videos/$slug'
+      preLoaderRoute: typeof VideosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -199,8 +279,12 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   CoursesRoute: CoursesRoute,
-  MembersMemberIdRoute: MembersMemberIdRoute,
-  VideosVideoIdRoute: VideosVideoIdRoute,
+  SearchRoute: SearchRoute,
+  EventsSlugRoute: EventsSlugRoute,
+  MembersSlugRoute: MembersSlugRoute,
+  MembersArchivedRoute: MembersArchivedRoute,
+  MembersContributorsRoute: MembersContributorsRoute,
+  VideosSlugRoute: VideosSlugRoute,
   EventsIndexRoute: EventsIndexRoute,
   MembersIndexRoute: MembersIndexRoute,
   VideosIndexRoute: VideosIndexRoute,
@@ -208,12 +292,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
