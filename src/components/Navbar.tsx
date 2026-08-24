@@ -1,106 +1,160 @@
-"use client"
+'use client'
 
 import { useEffect, useState } from 'react'
-import ThemeToggle from "#/components/ThemeToggle.tsx";
-import { Link } from '@tanstack/react-router'
+import ThemeToggle from '#/components/ThemeToggle.tsx'
+import SearchBox from '#/components/SearchBox.tsx'
+import UserMenu from '#/components/UserMenu.tsx'
+import { Link, useLocation } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
+
+const NAV_LINKS = [
+  { to: '/videos', label: 'Videók' },
+  { to: '/events', label: 'Események' },
+  { to: '/members', label: 'Tagok' },
+  { to: '/courses', label: 'Tanfolyamok' },
+  { to: '/about', label: 'Mivel foglalkozunk?' },
+] as const
 
 export default function Navbar() {
-  const [pathname, setPathname] = useState(() =>
-    typeof window !== 'undefined' ? window.location.pathname : '/'
-  )
+  const [menuOpen, setMenuOpen] = useState(false)
+  const location = useLocation()
+  const viewerQuery = useQuery({
+    queryKey: ['viewer'],
+    queryFn: fetchViewerState,
+    staleTime: 60_000,
+  })
+  const viewer = viewerQuery.data
 
+  // Close the mobile menu on route change.
   useEffect(() => {
-    const handleLocationChange = () => setPathname(window.location.pathname)
-
-    // catch back/forward
-    window.addEventListener('popstate', handleLocationChange)
-
-    // also patch pushState to detect client-side navigations that don't trigger popstate
-    const _pushState = history.pushState
-    ;(history as any).pushState = function (...args: any[]) {
-      _pushState.call(this, args[0], args[1], args[2])
-      handleLocationChange()
-    }
-
-    return () => {
-      window.removeEventListener('popstate', handleLocationChange)
-      // restore
-      ;(history as any).pushState = _pushState
-    }
-  }, [])
+    setMenuOpen(false)
+  }, [location.href])
 
   return (
     <header className="sticky top-0 z-50 bg-(--nav-bg) text-(--bss-text) shadow-[0_2px_2px_rgba(0,0,0,0.2)]">
       <nav
-        className="mx-auto flex w-[90dvw] items-center gap-4"
-        aria-label="Top navigation"
+        className="site-width flex items-center gap-2 py-[1dvh] sm:gap-4"
+        aria-label="Fő navigáció"
       >
-        {/* center: main links */}
-        <nav style={{ flex: 1 }} className={'py-[1dvh]'}>
+        <Link
+          to="/"
+          className="shrink-0 transition-transform hover:scale-105 active:scale-95"
+          aria-label="Főoldal"
+        >
+          <picture>
+            <source
+              media="(max-width: 639px)"
+              srcSet="/bss-navbar-logo-mobile.svg"
+            />
+            <img
+              src="/bss-navbar-logo.svg"
+              alt="Budavári Schönherz Stúdió"
+              width={123}
+              height={37}
+              className="h-8 w-auto sm:h-[37px]"
+            />
+          </picture>
+        </Link>
+
+        {/* desktop links */}
+        <nav style={{ flex: 1 }} className="hidden lg:block">
           <div className="inline-flex items-center gap-6 *:font-bold">
-            <Link className="nav-link" to="/">
-              <img alt={'Bss logo'} />
-            </Link>
-            <Link
-              className={`nav-link ${pathname.startsWith('/videos') ? 'text-(--orange)' : ''}`}
-              to="/videos"
-              search={{ page: 1, sort: 'newest' }}
-            >
-              Videók
-            </Link>
-            <Link
-              to="/events"
-              className={`nav-link ${pathname.startsWith('/events') ? 'text-(--orange)' : ''}`}
-            >
-              Események
-            </Link>
-            <Link
-              to="/members"
-              className={`nav-link ${pathname.startsWith('/members') ? 'text-(--orange)' : ''}`}
-            >
-              Tagok
-            </Link>
-            <Link
-              to="/courses"
-              className={`nav-link ${pathname.startsWith('/courses') ? 'text-(--orange)' : ''}`}
-            >
-              Tanfolyamok
-            </Link>
-            <Link
-              to="/about"
-              className={`nav-link ${pathname.startsWith('/about') ? 'text-(--orange)' : ''}`}
-            >
-              Mivel foglalkozunk?
-            </Link>
+            {NAV_LINKS.map((item) => (
+              <Link
+                key={item.to}
+                aria-current={
+                  location.pathname.startsWith(item.to) ? 'page' : undefined
+                }
+                className={`nav-link ${location.pathname.startsWith(item.to) ? 'text-(--orange)' : ''}`}
+                to={item.to}
+                preload={item.to === '/courses' ? false : undefined}
+              >
+                {item.label}
+              </Link>
+            ))}
           </div>
         </nav>
 
         {/* right: utilities */}
-        <div className="ml-auto inline-flex items-center gap-4">
+        <div className="ml-auto inline-flex items-center gap-2 sm:gap-4">
           <div>
             <ThemeToggle />
           </div>
-          <div
-            className={
-              'inline-flex items-center gap-2 bg-(--nav-search-bg) py-[1dvh] px-[1dvw] border-b-(--nav-border-b) border-b'
-            }
+          <div className="hidden sm:block">
+            <SearchBox />
+          </div>
+          {viewer !== undefined && viewer.loggedIn ? (
+            <UserMenu viewer={viewer} />
+          ) : (
+            <LoginButton />
+          )}
+          <button
+            type="button"
+            className="icon-btn p-1.5 lg:hidden"
+            aria-expanded={menuOpen}
+            aria-label={menuOpen ? 'Menü bezárása' : 'Menü megnyitása'}
+            onClick={() => setMenuOpen((open) => !open)}
           >
-            <input
-              placeholder="Keresés..."
-              className="border-0 text-(--nav-search-placeholder) outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
-            />
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="var(--nav-icon)"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              aria-hidden="true"
             >
-              <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z" />
+              {menuOpen ? (
+                <path d="M18.3 5.7 12 12l6.3 6.3-1.4 1.4L10.6 13.4 5.7 18.3 4.3 16.9 9.2 12 4.3 7.1 5.7 5.7l4.9 4.9 6.3-6.3z" />
+              ) : (
+                <path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z" />
+              )}
             </svg>
-          </div>
+          </button>
         </div>
       </nav>
+
+      {/* mobile menu */}
+      {menuOpen && (
+        <nav className="border-t border-(--nav-border-b) bg-(--nav-bg) lg:hidden">
+          <div className="site-width flex flex-col gap-1 py-3">
+            {NAV_LINKS.map((item) => (
+              <Link
+                key={item.to}
+                aria-current={
+                  location.pathname.startsWith(item.to) ? 'page' : undefined
+                }
+                className={`nav-link py-2 font-bold ${location.pathname.startsWith(item.to) ? 'text-(--orange)' : ''}`}
+                to={item.to}
+                preload={item.to === '/courses' ? false : undefined}
+              >
+                {item.label}
+              </Link>
+            ))}
+            <Link
+              to="/search"
+              search={{ q: '', tab: 'all' }}
+              className="nav-link py-2 font-bold"
+            >
+              Keresés
+            </Link>
+          </div>
+        </nav>
+      )}
     </header>
+  )
+}
+
+/** Logs in, returning to the current page; logout lives in the profile menu. */
+function LoginButton() {
+  const location = useLocation()
+  const returnTo = `${location.pathname}${location.searchStr}`
+  return (
+    <a
+      href={`/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`}
+      className="nav-link font-bold text-(--orange)"
+    >
+      Belépés
+    </a>
   )
 }

@@ -4,14 +4,21 @@ services:
     image: postgres:18.4
     restart: always
     ports:
-      - "5582:5432"
+      - '5582:5432'
     environment:
       POSTGRES_USER: bss
       POSTGRES_PASSWORD: bss
       POSTGRES_DB: bss
     volumes:
       - bss-dev_db:/var/lib/postgresql
-#      - ./assets/initdb.sql:/docker-entrypoint-initdb.d/initdb.sql
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U bss -d bss
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     networks:
       - bss-dev
 
@@ -21,7 +28,7 @@ services:
     image: dpage/pgadmin4:9.16
     restart: always
     ports:
-      - "8081:80"
+      - '8081:80'
     environment:
       PGADMIN_DEFAULT_EMAIL: bss@bss.dev
       PGADMIN_DEFAULT_USERNAME: bss
@@ -31,7 +38,6 @@ services:
       - bss-dev_pgadmin:/var/lib/pgadmin
     networks:
       - bss-dev
-      - bss-dev-authentik
 
   bss-dev-authentik-postgresql:
     container_name: bss-dev-authentik-postgresql
@@ -61,21 +67,21 @@ services:
     depends_on:
       bss-dev-authentik-postgresql:
         condition: service_healthy
+    env_file:
+      - path: ./oob/authentik.env
+        required: false
     environment:
       AUTHENTIK_POSTGRESQL__HOST: bss-dev-authentik-postgresql
       AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_POSTGRESQL__PASSWORD: authentik
       AUTHENTIK_POSTGRESQL__USER: authentik
-      AUTHENTIK_SECRET_KEY: secret
     image: authentik/server:2026.5.4
     ports:
-      - "9000:9000"
-      - "9443:9443"
+      - '9000:9000'
     restart: unless-stopped
     shm_size: 512mb
     volumes:
-      - ./assets/data:/data
-      - ./assets/custom-templates:/templates
+      - ./oob/authentik/blueprints:/blueprints
     networks:
       - bss-dev-authentik
 
@@ -85,30 +91,29 @@ services:
     depends_on:
       bss-dev-authentik-postgresql:
         condition: service_healthy
+    env_file:
+      - path: ./oob/authentik.env
+        required: false
     environment:
       AUTHENTIK_POSTGRESQL__HOST: bss-dev-authentik-postgresql
       AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_POSTGRESQL__PASSWORD: authentik
       AUTHENTIK_POSTGRESQL__USER: authentik
-      AUTHENTIK_SECRET_KEY: secret
     image: authentik/server:2026.5.4
     restart: unless-stopped
     shm_size: 512mb
     user: root
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./assets/data:/data
-      - ./assets/certs:/certs
-      - ./assets/custom-templates:/templates
+      - ./oob/authentik/blueprints:/blueprints
     networks:
       - bss-dev-authentik
 
 networks:
-    bss-dev:
-    bss-dev-authentik:
+  bss-dev:
+  bss-dev-authentik:
 
 volumes:
   bss-dev_db:
   bss-dev_pgadmin:
   bss-dev-authentik_database:
-      driver: local
+    driver: local

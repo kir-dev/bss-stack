@@ -9,19 +9,36 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as CoursesRouteImport } from './routes/courses'
-import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as VideosIndexRouteImport } from './routes/videos/index'
-import { Route as MembersIndexRouteImport } from './routes/members/index'
+import { Route as AboutRouteImport } from './routes/about'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as CoursesRouteImport } from './routes/courses'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminAuditRouteImport } from './routes/admin/audit'
+import { Route as AdminHomepageRouteImport } from './routes/admin/homepage'
+import { Route as AdminMembersRouteImport } from './routes/admin/members'
+import { Route as AdminTrashRouteImport } from './routes/admin/trash'
 import { Route as EventsIndexRouteImport } from './routes/events/index'
-import { Route as VideosVideoIdRouteImport } from './routes/videos/$videoId'
-import { Route as MembersMemberIdRouteImport } from './routes/members/$memberId'
-import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
+import { Route as EventsSlugRouteImport } from './routes/events/$slug'
+import { Route as MembersIndexRouteImport } from './routes/members/index'
+import { Route as MembersSlugRouteImport } from './routes/members/$slug'
+import { Route as MembersArchivedRouteImport } from './routes/members/archived'
+import { Route as MembersContributorsRouteImport } from './routes/members/contributors'
+import { Route as VideosIndexRouteImport } from './routes/videos/index'
+import { Route as VideosSlugRouteImport } from './routes/videos/$slug'
+import { Route as AdminCatalogStaffRolesRouteImport } from './routes/admin/catalog/staff-roles'
+import { Route as AdminCatalogTagsRouteImport } from './routes/admin/catalog/tags'
+import { Route as AdminEventsIndexRouteImport } from './routes/admin/events/index'
+import { Route as AdminEventsIdRouteImport } from './routes/admin/events/$id'
+import { Route as AdminEventsNewRouteImport } from './routes/admin/events/new'
+import { Route as AdminVideosIndexRouteImport } from './routes/admin/videos/index'
+import { Route as AdminVideosIdRouteImport } from './routes/admin/videos/$id'
+import { Route as AdminVideosNewRouteImport } from './routes/admin/videos/new'
 
-const CoursesRoute = CoursesRouteImport.update({
-  id: '/courses',
-  path: '/courses',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AboutRoute = AboutRouteImport.update({
@@ -29,14 +46,54 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const VideosIndexRoute = VideosIndexRouteImport.update({
-  id: '/videos/',
-  path: '/videos/',
+const CoursesRoute = CoursesRouteImport.update({
+  id: '/courses',
+  path: '/courses',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminAuditRoute = AdminAuditRouteImport.update({
+  id: '/audit',
+  path: '/audit',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminHomepageRoute = AdminHomepageRouteImport.update({
+  id: '/homepage',
+  path: '/homepage',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMembersRoute = AdminMembersRouteImport.update({
+  id: '/members',
+  path: '/members',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTrashRoute = AdminTrashRouteImport.update({
+  id: '/trash',
+  path: '/trash',
+  getParentRoute: () => AdminRoute,
+} as any)
+const EventsIndexRoute = EventsIndexRouteImport.update({
+  id: '/events/',
+  path: '/events/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EventsSlugRoute = EventsSlugRouteImport.update({
+  id: '/events/$slug',
+  path: '/events/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MembersIndexRoute = MembersIndexRouteImport.update({
@@ -44,104 +101,253 @@ const MembersIndexRoute = MembersIndexRouteImport.update({
   path: '/members/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const EventsIndexRoute = EventsIndexRouteImport.update({
+const MembersSlugRoute = MembersSlugRouteImport.update({
+  id: '/members/$slug',
+  path: '/members/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembersArchivedRoute = MembersArchivedRouteImport.update({
+  id: '/members/archived',
+  path: '/members/archived',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MembersContributorsRoute = MembersContributorsRouteImport.update({
+  id: '/members/contributors',
+  path: '/members/contributors',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VideosIndexRoute = VideosIndexRouteImport.update({
+  id: '/videos/',
+  path: '/videos/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VideosSlugRoute = VideosSlugRouteImport.update({
+  id: '/videos/$slug',
+  path: '/videos/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCatalogStaffRolesRoute = AdminCatalogStaffRolesRouteImport.update({
+  id: '/catalog/staff-roles',
+  path: '/catalog/staff-roles',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminCatalogTagsRoute = AdminCatalogTagsRouteImport.update({
+  id: '/catalog/tags',
+  path: '/catalog/tags',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminEventsIndexRoute = AdminEventsIndexRouteImport.update({
   id: '/events/',
   path: '/events/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AdminRoute,
 } as any)
-const VideosVideoIdRoute = VideosVideoIdRouteImport.update({
-  id: '/videos/$videoId',
-  path: '/videos/$videoId',
-  getParentRoute: () => rootRouteImport,
+const AdminEventsIdRoute = AdminEventsIdRouteImport.update({
+  id: '/events/$id',
+  path: '/events/$id',
+  getParentRoute: () => AdminRoute,
 } as any)
-const MembersMemberIdRoute = MembersMemberIdRouteImport.update({
-  id: '/members/$memberId',
-  path: '/members/$memberId',
-  getParentRoute: () => rootRouteImport,
+const AdminEventsNewRoute = AdminEventsNewRouteImport.update({
+  id: '/events/new',
+  path: '/events/new',
+  getParentRoute: () => AdminRoute,
 } as any)
-const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
-  id: '/demo/tanstack-query',
-  path: '/demo/tanstack-query',
-  getParentRoute: () => rootRouteImport,
+const AdminVideosIndexRoute = AdminVideosIndexRouteImport.update({
+  id: '/videos/',
+  path: '/videos/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminVideosIdRoute = AdminVideosIdRouteImport.update({
+  id: '/videos/$id',
+  path: '/videos/$id',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminVideosNewRoute = AdminVideosNewRouteImport.update({
+  id: '/videos/new',
+  path: '/videos/new',
+  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/courses': typeof CoursesRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/members/$memberId': typeof MembersMemberIdRoute
-  '/videos/$videoId': typeof VideosVideoIdRoute
+  '/search': typeof SearchRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/members': typeof AdminMembersRoute
+  '/admin/trash': typeof AdminTrashRoute
+  '/events/$slug': typeof EventsSlugRoute
+  '/members/$slug': typeof MembersSlugRoute
+  '/members/archived': typeof MembersArchivedRoute
+  '/members/contributors': typeof MembersContributorsRoute
+  '/videos/$slug': typeof VideosSlugRoute
+  '/admin/': typeof AdminIndexRoute
   '/events/': typeof EventsIndexRoute
   '/members/': typeof MembersIndexRoute
   '/videos/': typeof VideosIndexRoute
+  '/admin/catalog/staff-roles': typeof AdminCatalogStaffRolesRoute
+  '/admin/catalog/tags': typeof AdminCatalogTagsRoute
+  '/admin/events/$id': typeof AdminEventsIdRoute
+  '/admin/events/new': typeof AdminEventsNewRoute
+  '/admin/videos/$id': typeof AdminVideosIdRoute
+  '/admin/videos/new': typeof AdminVideosNewRoute
+  '/admin/events/': typeof AdminEventsIndexRoute
+  '/admin/videos/': typeof AdminVideosIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/courses': typeof CoursesRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/members/$memberId': typeof MembersMemberIdRoute
-  '/videos/$videoId': typeof VideosVideoIdRoute
+  '/search': typeof SearchRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/members': typeof AdminMembersRoute
+  '/admin/trash': typeof AdminTrashRoute
+  '/events/$slug': typeof EventsSlugRoute
+  '/members/$slug': typeof MembersSlugRoute
+  '/members/archived': typeof MembersArchivedRoute
+  '/members/contributors': typeof MembersContributorsRoute
+  '/videos/$slug': typeof VideosSlugRoute
+  '/admin': typeof AdminIndexRoute
   '/events': typeof EventsIndexRoute
   '/members': typeof MembersIndexRoute
   '/videos': typeof VideosIndexRoute
+  '/admin/catalog/staff-roles': typeof AdminCatalogStaffRolesRoute
+  '/admin/catalog/tags': typeof AdminCatalogTagsRoute
+  '/admin/events/$id': typeof AdminEventsIdRoute
+  '/admin/events/new': typeof AdminEventsNewRoute
+  '/admin/videos/$id': typeof AdminVideosIdRoute
+  '/admin/videos/new': typeof AdminVideosNewRoute
+  '/admin/events': typeof AdminEventsIndexRoute
+  '/admin/videos': typeof AdminVideosIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/admin': typeof AdminRouteWithChildren
   '/courses': typeof CoursesRoute
-  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
-  '/members/$memberId': typeof MembersMemberIdRoute
-  '/videos/$videoId': typeof VideosVideoIdRoute
+  '/search': typeof SearchRoute
+  '/admin/audit': typeof AdminAuditRoute
+  '/admin/homepage': typeof AdminHomepageRoute
+  '/admin/members': typeof AdminMembersRoute
+  '/admin/trash': typeof AdminTrashRoute
+  '/events/$slug': typeof EventsSlugRoute
+  '/members/$slug': typeof MembersSlugRoute
+  '/members/archived': typeof MembersArchivedRoute
+  '/members/contributors': typeof MembersContributorsRoute
+  '/videos/$slug': typeof VideosSlugRoute
+  '/admin/': typeof AdminIndexRoute
   '/events/': typeof EventsIndexRoute
   '/members/': typeof MembersIndexRoute
   '/videos/': typeof VideosIndexRoute
+  '/admin/catalog/staff-roles': typeof AdminCatalogStaffRolesRoute
+  '/admin/catalog/tags': typeof AdminCatalogTagsRoute
+  '/admin/events/$id': typeof AdminEventsIdRoute
+  '/admin/events/new': typeof AdminEventsNewRoute
+  '/admin/videos/$id': typeof AdminVideosIdRoute
+  '/admin/videos/new': typeof AdminVideosNewRoute
+  '/admin/events/': typeof AdminEventsIndexRoute
+  '/admin/videos/': typeof AdminVideosIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
     | '/about'
+    | '/admin'
     | '/courses'
-    | '/demo/tanstack-query'
-    | '/members/$memberId'
-    | '/videos/$videoId'
+    | '/search'
+    | '/admin/audit'
+    | '/admin/homepage'
+    | '/admin/members'
+    | '/admin/trash'
+    | '/events/$slug'
+    | '/members/$slug'
+    | '/members/archived'
+    | '/members/contributors'
+    | '/videos/$slug'
+    | '/admin/'
     | '/events/'
     | '/members/'
     | '/videos/'
+    | '/admin/catalog/staff-roles'
+    | '/admin/catalog/tags'
+    | '/admin/events/$id'
+    | '/admin/events/new'
+    | '/admin/videos/$id'
+    | '/admin/videos/new'
+    | '/admin/events/'
+    | '/admin/videos/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
     | '/courses'
-    | '/demo/tanstack-query'
-    | '/members/$memberId'
-    | '/videos/$videoId'
+    | '/search'
+    | '/admin/audit'
+    | '/admin/homepage'
+    | '/admin/members'
+    | '/admin/trash'
+    | '/events/$slug'
+    | '/members/$slug'
+    | '/members/archived'
+    | '/members/contributors'
+    | '/videos/$slug'
+    | '/admin'
     | '/events'
     | '/members'
     | '/videos'
+    | '/admin/catalog/staff-roles'
+    | '/admin/catalog/tags'
+    | '/admin/events/$id'
+    | '/admin/events/new'
+    | '/admin/videos/$id'
+    | '/admin/videos/new'
+    | '/admin/events'
+    | '/admin/videos'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/admin'
     | '/courses'
-    | '/demo/tanstack-query'
-    | '/members/$memberId'
-    | '/videos/$videoId'
+    | '/search'
+    | '/admin/audit'
+    | '/admin/homepage'
+    | '/admin/members'
+    | '/admin/trash'
+    | '/events/$slug'
+    | '/members/$slug'
+    | '/members/archived'
+    | '/members/contributors'
+    | '/videos/$slug'
+    | '/admin/'
     | '/events/'
     | '/members/'
     | '/videos/'
+    | '/admin/catalog/staff-roles'
+    | '/admin/catalog/tags'
+    | '/admin/events/$id'
+    | '/admin/events/new'
+    | '/admin/videos/$id'
+    | '/admin/videos/new'
+    | '/admin/events/'
+    | '/admin/videos/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  AdminRoute: typeof AdminRouteWithChildren
   CoursesRoute: typeof CoursesRoute
-  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
-  MembersMemberIdRoute: typeof MembersMemberIdRoute
-  VideosVideoIdRoute: typeof VideosVideoIdRoute
+  SearchRoute: typeof SearchRoute
+  EventsSlugRoute: typeof EventsSlugRoute
+  MembersSlugRoute: typeof MembersSlugRoute
+  MembersArchivedRoute: typeof MembersArchivedRoute
+  MembersContributorsRoute: typeof MembersContributorsRoute
+  VideosSlugRoute: typeof VideosSlugRoute
   EventsIndexRoute: typeof EventsIndexRoute
   MembersIndexRoute: typeof MembersIndexRoute
   VideosIndexRoute: typeof VideosIndexRoute
@@ -149,11 +355,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/courses': {
-      id: '/courses'
-      path: '/courses'
-      fullPath: '/courses'
-      preLoaderRoute: typeof CoursesRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/about': {
@@ -163,18 +369,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/videos/': {
-      id: '/videos/'
-      path: '/videos'
-      fullPath: '/videos/'
-      preLoaderRoute: typeof VideosIndexRouteImport
+    '/courses': {
+      id: '/courses'
+      path: '/courses'
+      fullPath: '/courses'
+      preLoaderRoute: typeof CoursesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/': {
+      id: '/admin/'
+      path: '/'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/audit': {
+      id: '/admin/audit'
+      path: '/audit'
+      fullPath: '/admin/audit'
+      preLoaderRoute: typeof AdminAuditRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/homepage': {
+      id: '/admin/homepage'
+      path: '/homepage'
+      fullPath: '/admin/homepage'
+      preLoaderRoute: typeof AdminHomepageRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/members': {
+      id: '/admin/members'
+      path: '/members'
+      fullPath: '/admin/members'
+      preLoaderRoute: typeof AdminMembersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/trash': {
+      id: '/admin/trash'
+      path: '/trash'
+      fullPath: '/admin/trash'
+      preLoaderRoute: typeof AdminTrashRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/events/': {
+      id: '/events/'
+      path: '/events'
+      fullPath: '/events/'
+      preLoaderRoute: typeof EventsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/events/$slug': {
+      id: '/events/$slug'
+      path: '/events/$slug'
+      fullPath: '/events/$slug'
+      preLoaderRoute: typeof EventsSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/members/': {
@@ -184,44 +446,145 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MembersIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/events/': {
-      id: '/events/'
+    '/members/$slug': {
+      id: '/members/$slug'
+      path: '/members/$slug'
+      fullPath: '/members/$slug'
+      preLoaderRoute: typeof MembersSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/members/archived': {
+      id: '/members/archived'
+      path: '/members/archived'
+      fullPath: '/members/archived'
+      preLoaderRoute: typeof MembersArchivedRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/members/contributors': {
+      id: '/members/contributors'
+      path: '/members/contributors'
+      fullPath: '/members/contributors'
+      preLoaderRoute: typeof MembersContributorsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/videos/': {
+      id: '/videos/'
+      path: '/videos'
+      fullPath: '/videos/'
+      preLoaderRoute: typeof VideosIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/videos/$slug': {
+      id: '/videos/$slug'
+      path: '/videos/$slug'
+      fullPath: '/videos/$slug'
+      preLoaderRoute: typeof VideosSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/catalog/staff-roles': {
+      id: '/admin/catalog/staff-roles'
+      path: '/catalog/staff-roles'
+      fullPath: '/admin/catalog/staff-roles'
+      preLoaderRoute: typeof AdminCatalogStaffRolesRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/catalog/tags': {
+      id: '/admin/catalog/tags'
+      path: '/catalog/tags'
+      fullPath: '/admin/catalog/tags'
+      preLoaderRoute: typeof AdminCatalogTagsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/events/': {
+      id: '/admin/events/'
       path: '/events'
-      fullPath: '/events/'
-      preLoaderRoute: typeof EventsIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/admin/events/'
+      preLoaderRoute: typeof AdminEventsIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
-    '/videos/$videoId': {
-      id: '/videos/$videoId'
-      path: '/videos/$videoId'
-      fullPath: '/videos/$videoId'
-      preLoaderRoute: typeof VideosVideoIdRouteImport
-      parentRoute: typeof rootRouteImport
+    '/admin/events/$id': {
+      id: '/admin/events/$id'
+      path: '/events/$id'
+      fullPath: '/admin/events/$id'
+      preLoaderRoute: typeof AdminEventsIdRouteImport
+      parentRoute: typeof AdminRoute
     }
-    '/members/$memberId': {
-      id: '/members/$memberId'
-      path: '/members/$memberId'
-      fullPath: '/members/$memberId'
-      preLoaderRoute: typeof MembersMemberIdRouteImport
-      parentRoute: typeof rootRouteImport
+    '/admin/events/new': {
+      id: '/admin/events/new'
+      path: '/events/new'
+      fullPath: '/admin/events/new'
+      preLoaderRoute: typeof AdminEventsNewRouteImport
+      parentRoute: typeof AdminRoute
     }
-    '/demo/tanstack-query': {
-      id: '/demo/tanstack-query'
-      path: '/demo/tanstack-query'
-      fullPath: '/demo/tanstack-query'
-      preLoaderRoute: typeof DemoTanstackQueryRouteImport
-      parentRoute: typeof rootRouteImport
+    '/admin/videos/': {
+      id: '/admin/videos/'
+      path: '/videos'
+      fullPath: '/admin/videos/'
+      preLoaderRoute: typeof AdminVideosIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/videos/$id': {
+      id: '/admin/videos/$id'
+      path: '/videos/$id'
+      fullPath: '/admin/videos/$id'
+      preLoaderRoute: typeof AdminVideosIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/videos/new': {
+      id: '/admin/videos/new'
+      path: '/videos/new'
+      fullPath: '/admin/videos/new'
+      preLoaderRoute: typeof AdminVideosNewRouteImport
+      parentRoute: typeof AdminRoute
     }
   }
 }
 
+interface AdminRouteChildren {
+  AdminAuditRoute: typeof AdminAuditRoute
+  AdminHomepageRoute: typeof AdminHomepageRoute
+  AdminMembersRoute: typeof AdminMembersRoute
+  AdminTrashRoute: typeof AdminTrashRoute
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminCatalogStaffRolesRoute: typeof AdminCatalogStaffRolesRoute
+  AdminCatalogTagsRoute: typeof AdminCatalogTagsRoute
+  AdminEventsIdRoute: typeof AdminEventsIdRoute
+  AdminEventsNewRoute: typeof AdminEventsNewRoute
+  AdminVideosIdRoute: typeof AdminVideosIdRoute
+  AdminVideosNewRoute: typeof AdminVideosNewRoute
+  AdminEventsIndexRoute: typeof AdminEventsIndexRoute
+  AdminVideosIndexRoute: typeof AdminVideosIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminAuditRoute: AdminAuditRoute,
+  AdminHomepageRoute: AdminHomepageRoute,
+  AdminMembersRoute: AdminMembersRoute,
+  AdminTrashRoute: AdminTrashRoute,
+  AdminIndexRoute: AdminIndexRoute,
+  AdminCatalogStaffRolesRoute: AdminCatalogStaffRolesRoute,
+  AdminCatalogTagsRoute: AdminCatalogTagsRoute,
+  AdminEventsIdRoute: AdminEventsIdRoute,
+  AdminEventsNewRoute: AdminEventsNewRoute,
+  AdminVideosIdRoute: AdminVideosIdRoute,
+  AdminVideosNewRoute: AdminVideosNewRoute,
+  AdminEventsIndexRoute: AdminEventsIndexRoute,
+  AdminVideosIndexRoute: AdminVideosIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  AdminRoute: AdminRouteWithChildren,
   CoursesRoute: CoursesRoute,
-  DemoTanstackQueryRoute: DemoTanstackQueryRoute,
-  MembersMemberIdRoute: MembersMemberIdRoute,
-  VideosVideoIdRoute: VideosVideoIdRoute,
+  SearchRoute: SearchRoute,
+  EventsSlugRoute: EventsSlugRoute,
+  MembersSlugRoute: MembersSlugRoute,
+  MembersArchivedRoute: MembersArchivedRoute,
+  MembersContributorsRoute: MembersContributorsRoute,
+  VideosSlugRoute: VideosSlugRoute,
   EventsIndexRoute: EventsIndexRoute,
   MembersIndexRoute: MembersIndexRoute,
   VideosIndexRoute: VideosIndexRoute,

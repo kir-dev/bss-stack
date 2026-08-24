@@ -3,10 +3,8 @@
 import { useRef, useState, useEffect } from 'react'
 
 export default function Videoplayer({
-  videoId = '',
   videoUrl = '/test_video.mp4',
 }: Readonly<{
-  videoId?: string
   videoUrl?: string
 }>) {
   const videoRef = useRef<HTMLVideoElement>(null)

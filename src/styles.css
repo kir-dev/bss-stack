@@ -1,38 +1,36 @@
-
-@import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/geist';
 
 @font-face {
-  font-family: "Bank Gothic";
-  src: url("/fonts/Bank Gothic Light Regular.otf") format("opentype");
+  font-family: 'Bank Gothic';
+  src: url('/fonts/Bank Gothic Light Regular.otf') format('opentype');
   font-weight: 300;
 }
 
 @font-face {
-  font-family: "Bank Gothic";
-  src: url("/fonts/bank gothic medium bt.ttf") format("truetype");
+  font-family: 'Bank Gothic';
+  src: url('/fonts/bank gothic medium bt.ttf') format('truetype');
   font-weight: 500;
 }
 
 @font-face {
-  font-family: "Bank Gothic";
-  src: url("/fonts/BankGothic Bold.ttf") format("truetype");
+  font-family: 'Bank Gothic';
+  src: url('/fonts/BankGothic Bold.ttf') format('truetype');
   font-weight: 700;
 }
 
 @custom-variant dark (&:is(.dark *));
 @plugin "@tailwindcss/typography";
 
-
-
 @theme {
   /*--font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;*/
-  --font-montserrat: "Montserrat", ui-sans-serif, system-ui, sans-serif;
-  --font-bank-gothic: "Bank Gothic", Montserrat, ui-sans-serif, system-ui, sans-serif;
+  --font-montserrat: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+  --font-bank-gothic:
+    'Bank Gothic', Montserrat, ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
@@ -87,42 +85,51 @@
   /*--sidebar-accent-foreground: oklch(0.205 0 0);*/
   /*--sidebar-border: oklch(0.922 0 0);*/
   /*--sidebar-ring: oklch(0.708 0 0);*/
-  --bg: #FFFFFF;
-  --orange: #FF9100;
-  --nav-bg: #FFFFFF;
-  --blue: #023E8A;
+  --bg: #ffffff;
+  --orange: #ff9100;
+  --nav-bg: #ffffff;
+  --blue: #023e8a;
   --darker-blue: #031731;
   --bss-text: var(--blue);
   --bss-text-secondary: var(--darker-blue);
-  --nav-search-bg: #F4F4F4;
+  --nav-search-bg: #f4f4f4;
   --nav-icon: var(--blue);
-  --nav-border-b: #8D8D8D;
+  --nav-border-b: #8d8d8d;
   --mini-video-triangle: var(--blue);
-  --mini-video-bg: #FFFFFF;
+  --mini-video-bg: #ffffff;
   --card-title: var(--blue);
-  --card-text: #6F6F6F;
-  --card-bg: #FFFFFF;
-  --videos-search-bg: #F4F4F4;
-  --videos-search-placeholder: #A8A8A8;
-  --vidoes-search-border-b: #8D8D8D;
+  --card-text: #6f6f6f;
+  --card-bg: #ffffff;
+  --videos-search-bg: #f4f4f4;
+  --videos-search-placeholder: #a8a8a8;
+  --vidoes-search-border-b: #8d8d8d;
   --vidoes-search-icon: #161616;
-  --videos-dropdown-hr: #E0E0E0;
-  --videos-tag: #E5E0DF;
+  --videos-dropdown-hr: #e0e0e0;
+  --videos-tag: #e5e0df;
   --videos-tag-text: #171414;
   --videos-video-title: var(--blue);
   --members-title: var(--blue);
-  --members-card-bg: #FFFFFF;
-  --members-data-category: #6F6F6F;
+  --members-card-bg: #ffffff;
+  --members-data-category: #6f6f6f;
   --members-data: var(--blue);
-  --courses-input-bg: #F4F4F4;
-  --courses-input-label: #A8A8A8;
+  --courses-input-bg: #f4f4f4;
+  --courses-input-label: #a8a8a8;
   --courses-title: var(--blue);
   --courses-input-placeholder: var(--darker-blue);
-  --events-card-bg: #FFFFFF;
+  --events-card-bg: #ffffff;
   --about-title: var(--darker-blue);
+  /* Card border: the card background and page background are both white in
+   * light theme, so card edges only separate with an explicit border. */
+  --card-border: #e0e0e0;
+  /* Skeleton placeholder base and shine colors. */
+  --skeleton-bg: #e8e8e8;
+  --skeleton-shine: #f7f7f7;
+  --popover-bg: #ffffff;
+  /* Page pattern: one layer of `background.svg` (its dots are 10% opaque). */
+  --bg-pattern: url('/background.svg');
 }
 
-:root[data-theme="dark"] {
+:root[data-theme='dark'] {
   /*--sea-ink: #d7ece8;*/
   /*--sea-ink-soft: #afcdc8;*/
   /*--lagoon: #60d7cf;*/
@@ -144,16 +151,18 @@
   /*--hero-b: rgba(110, 200, 154, 0.12);*/
   --bg: #262626;
   --nav-bg: #161616;
-  --bss-text: #FFFFFF;
-  --bss-text-secondary: #FFFFFF;
-  --nav-search-bg: #262626;
-  --nav-search-placeholder: #A8A8A8;
+  --bss-text: #ffffff;
+  --bss-text-secondary: #ffffff;
+  /* The fill must not match the page background (--bg: #262626),
+   * otherwise the input fields blend into the page. */
+  --nav-search-bg: #333333;
+  --nav-search-placeholder: #a8a8a8;
   --nav-icon: var(--orange);
-  --nav-border-b: #262626;
-  --mini-video-triangle: #FFFFFF;
+  --nav-border-b: #545454;
+  --mini-video-triangle: #ffffff;
   --mini-video-bg: #161616;
   --card-title: var(--orange);
-  --card-text: #FFFFFF;
+  --card-text: #ffffff;
   --card-bg: #161616;
   --videos-video-title: var(--orange);
   --members-title: var(--blue);
@@ -162,10 +171,17 @@
   --courses-title: var(--orange);
   --events-card-bg: #161616;
   --about-title: var(--orange);
+  --card-border: #3d3d3d;
+  --skeleton-bg: #2e2e2e;
+  --skeleton-shine: #3d3d3d;
+  --popover-bg: #1c1c1c;
+  /* On the dark page a single 10% layer disappears, so the same tile is
+   * painted twice (~19% effective opacity). */
+  --bg-pattern: url('/background.svg'), url('/background.svg');
 }
 
 @media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
+  :root:not([data-theme='light']) {
     /*--sea-ink: #d7ece8;*/
     /*--sea-ink-soft: #afcdc8;*/
     /*--lagoon: #60d7cf;*/
@@ -188,16 +204,18 @@
     --bg: #262626;
     --bg-color: #262626;
     --nav-bg: #161616;
-    --bss-text: #FFFFFF;
-    --bss-text-secondary: #FFFFFF;
-    --nav-search-bg: #262626;
-    --nav-search-placeholder: #A8A8A8;
+    --bss-text: #ffffff;
+    --bss-text-secondary: #ffffff;
+    /* The fill must not match the page background (--bg: #262626),
+     * otherwise the input fields blend into the page. */
+    --nav-search-bg: #333333;
+    --nav-search-placeholder: #a8a8a8;
     --nav-icon: var(--orange);
-    --nav-border-b: #262626;
-    --mini-video-triangle: #FFFFFF;
+    --nav-border-b: #545454;
+    --mini-video-triangle: #ffffff;
     --mini-video-bg: #161616;
     --card-title: var(--orange);
-    --card-text: #FFFFFF;
+    --card-text: #ffffff;
     --card-bg: #161616;
     --videos-video-title: var(--orange);
     --members-title: var(--orange);
@@ -206,6 +224,13 @@
     --courses-title: var(--orange);
     --events-card-bg: #161616;
     --about-title: var(--orange);
+    --card-border: #3d3d3d;
+    --skeleton-bg: #2e2e2e;
+    --skeleton-shine: #3d3d3d;
+    --popover-bg: #1c1c1c;
+    /* On the dark page a single 10% layer disappears, so the same tile is
+     * painted twice (~19% effective opacity). */
+    --bg-pattern: url('/background.svg'), url('/background.svg');
   }
 }
 
@@ -219,17 +244,31 @@
 /*  min-height: 100%;*/
 /*}*/
 
+/* --- Page background: the brand dot grid on every page --------------------
+ * The pattern lives on the root element, not on `body`: the root background
+ * is painted as the canvas, so it covers the viewport even on short pages
+ * and no page-level `bg-*` utility can hide it. `background.svg` has a
+ * 760x760 tile, exactly 20 x 38px dot pitches, so `repeat` leaves no seam
+ * on viewports wider or taller than one tile. */
+html {
+  background-color: var(--bg);
+  background-image: var(--bg-pattern);
+  background-repeat: repeat;
+  background-position: center top;
+}
+
 body {
-/*  margin: 0;*/
-/*  color: var(--sea-ink);*/
-/*  font-family: var(--font-bank-gothic);*/
-/*  background-color: var(--bg-base);*/
-/*  background:*/
-/*    radial-gradient(1100px 620px at -8% -10%, var(--hero-a), transparent 58%),*/
-/*    radial-gradient(1050px 620px at 112% -12%, var(--hero-b), transparent 62%),*/
-/*    radial-gradient(720px 380px at 50% 115%, rgba(79, 184, 178, 0.1), transparent 68%),*/
-/*    linear-gradient(180deg, color-mix(in oklab, var(--sand) 68%, white) 0%, var(--foam) 44%, var(--bg-base) 100%);*/
-/*  overflow-x: hidden;*/
+  background-color: transparent;
+  /*  margin: 0;*/
+  /*  color: var(--sea-ink);*/
+  /*  font-family: var(--font-bank-gothic);*/
+  /*  background-color: var(--bg-base);*/
+  /*  background:*/
+  /*    radial-gradient(1100px 620px at -8% -10%, var(--hero-a), transparent 58%),*/
+  /*    radial-gradient(1050px 620px at 112% -12%, var(--hero-b), transparent 62%),*/
+  /*    radial-gradient(720px 380px at 50% 115%, rgba(79, 184, 178, 0.1), transparent 68%),*/
+  /*    linear-gradient(180deg, color-mix(in oklab, var(--sand) 68%, white) 0%, var(--foam) 44%, var(--bg-base) 100%);*/
+  /*  overflow-x: hidden;*/
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -691,5 +730,289 @@ body {
   /*}*/
   html {
     @apply font-montserrat;
+  }
+}
+
+/* ===========================================================================
+ * Interaction layer
+ *
+ * Tailwind v4's preflight does not give `cursor: pointer` to `<button>`
+ * elements, and the project had no hover/active feedback anywhere, so the
+ * clickable surfaces looked dead. We restore the cursor here, and the
+ * shared hover/click animation also comes from here.
+ *
+ * The rules live in the `base`, respectively `components` layers so that any
+ * Tailwind utility can override them on a given element.
+ * ======================================================================== */
+
+:root {
+  --ease-interactive: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-interactive: 160ms;
+}
+
+@layer base {
+  button:not(:disabled),
+  summary,
+  select:not(:disabled),
+  a[href],
+  [role='button']:not([aria-disabled='true']),
+  [role='option'],
+  [role='tab'],
+  input[type='checkbox']:not(:disabled),
+  input[type='radio']:not(:disabled),
+  input[type='file']:not(:disabled),
+  input[type='range']:not(:disabled),
+  label:has(> input[type='checkbox']),
+  label:has(> input[type='radio']) {
+    cursor: pointer;
+  }
+
+  button:disabled,
+  input:disabled,
+  select:disabled,
+  textarea:disabled,
+  [aria-disabled='true'] {
+    cursor: not-allowed;
+  }
+
+  a,
+  button,
+  summary,
+  input,
+  select,
+  textarea,
+  [role='button'],
+  [role='option'],
+  [role='tab'] {
+    transition-property:
+      color, background-color, border-color, outline-color, fill, stroke,
+      opacity, box-shadow, transform, filter;
+    transition-duration: var(--duration-interactive);
+    transition-timing-function: var(--ease-interactive);
+  }
+
+  /* Uniform, clearly visible focus ring for keyboard navigation. */
+  :focus-visible {
+    outline: 2px solid var(--orange);
+    outline-offset: 2px;
+  }
+
+  /* Basic "press-in" on every button-like element. */
+  button:not(:disabled):active,
+  summary:active,
+  [role='button']:not([aria-disabled='true']):active,
+  [role='option']:active {
+    transform: scale(0.96);
+  }
+}
+
+/* Our own classes are generated as Tailwind utilities (`@utility`) so that they
+ * live in the `utilities` layer. That way their hover color overrides the
+ * `text-*` / `bg-*` / `shadow-*` utilities given at the call site — from
+ * `@layer components` this would not work, because the utilities layer is
+ * always stronger than it. */
+
+/* --- Nav link: sliding underline + color change ------------------------- */
+@utility nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline: 0;
+    bottom: -4px;
+    height: 2px;
+    background: var(--orange);
+    transform: scaleX(0);
+    transform-origin: left center;
+    transition: transform 200ms var(--ease-interactive);
+  }
+
+  &:hover {
+    color: var(--orange);
+  }
+
+  &:hover::after,
+  &:focus-visible::after,
+  &[aria-current='page']::after,
+  &[aria-selected='true']::after {
+    transform: scaleX(1);
+  }
+
+  &:active {
+    transform: translateY(1px);
+  }
+}
+
+/* --- Clickable card: lifts on hover, settles back on click -------------- */
+@utility hover-lift {
+  /* The cover image zooms in, so overflowing content must be clipped. */
+  overflow: hidden;
+  transition:
+    transform 220ms var(--ease-interactive),
+    box-shadow 220ms var(--ease-interactive);
+
+  /* The cover image inside the card zooms in gently. */
+  & img {
+    transition: transform 320ms var(--ease-interactive);
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 26px rgba(0, 0, 0, 0.28);
+  }
+
+  &:hover img {
+    transform: scale(1.04);
+  }
+
+  &:active {
+    transform: translateY(-1px) scale(0.99);
+  }
+}
+
+/* --- Icon button: background spot on hover, icon spins ------------------ */
+@utility icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+
+  & svg {
+    transition: transform 260ms var(--ease-overshoot);
+  }
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--orange) 16%, transparent);
+  }
+
+  &:hover svg {
+    transform: scale(1.15) rotate(-10deg);
+  }
+
+  &:active {
+    transform: scale(0.9);
+  }
+}
+
+/* --- Control button (filters, pager, admin) ----------------------------- */
+@utility ctrl-btn {
+  &:hover:not(:disabled):not([aria-disabled='true']) {
+    background-color: color-mix(in srgb, var(--orange) 14%, transparent);
+    color: var(--orange);
+  }
+
+  &:disabled {
+    opacity: 0.3;
+  }
+}
+
+/* --- Filled (orange) button --------------------------------------------- */
+@utility solid-btn {
+  &:hover:not(:disabled) {
+    background-color: color-mix(in srgb, var(--orange) 85%, black);
+    box-shadow: 0 6px 16px rgba(255, 145, 0, 0.35);
+  }
+
+  &:not(:disabled):active {
+    transform: scale(0.96) translateY(1px);
+    box-shadow: none;
+  }
+}
+
+/* --- Card surface: background + visible border ---------------------------
+ * The card background is the same white as the page background in light
+ * theme, so a shadow alone doesn't pull out the card's edge. The border
+ * guarantees a visible edge in both themes. */
+@utility card-surface {
+  background-color: var(--card-bg);
+  border: 1px solid var(--card-border);
+}
+
+/* --- Shared page width ---------------------------------------------------
+ * Keep a compact gutter instead of scaling the empty margins with the
+ * viewport. On 16:9 desktop displays this lets grids, tables and media use
+ * virtually all of the available width while retaining safe mobile edges. */
+@utility site-width {
+  width: calc(100% - 2rem);
+  margin-inline: auto;
+
+  @media (min-width: 40rem) {
+    width: calc(100% - 3rem);
+  }
+
+  @media (min-width: 64rem) {
+    width: calc(100% - 4rem);
+  }
+}
+
+/* --- Cover image frame: always 16:9, even before the image loads ----------
+ * The thumbnails are 16:9 without exception, so we reserve their space up
+ * front. This keeps the page layout from jumping and the grid from having
+ * holes before loading. */
+@utility thumb-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background-color: var(--skeleton-bg);
+}
+
+/* --- Skeleton placeholder: base color + sweeping shine ------------------ */
+@utility skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--skeleton-bg);
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    transform: translateX(-100%);
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      var(--skeleton-shine) 50%,
+      transparent 100%
+    );
+    animation: skeleton-shine 1.4s infinite;
+  }
+}
+
+@keyframes skeleton-shine {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Motion-sensitive users: all movement disabled. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+  }
+
+  .skeleton::after {
+    display: none;
+  }
+
+  .hover-lift:hover,
+  .hover-lift:active,
+  .hover-lift:hover img,
+  .icon-btn:hover svg,
+  .icon-btn:active,
+  .nav-link:active,
+  button:not(:disabled):active,
+  summary:active,
+  [role='button']:not([aria-disabled='true']):active,
+  [role='option']:active {
+    transform: none !important;
   }
 }

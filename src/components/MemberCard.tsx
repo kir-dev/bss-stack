@@ -1,8 +1,4 @@
-
-
-export default function MemberCard({
-  memberId = 'unknown',
-}: Readonly<{ memberId?: string }>) {
+export default function MemberCard() {
   return (
     <div
       className={

@@ -1,53 +1,139 @@
-import { createFileRoute } from '@tanstack/react-router'
-import MemberCard from '#/components/MemberCard.tsx'
+import { createFileRoute, Link } from '@tanstack/react-router'
+import { createServerFn } from '@tanstack/react-start'
+import { useQuery } from '@tanstack/react-query'
+import { getActiveMemberBlocks } from '#/server/pages/members.ts'
+import { getDefaultDb } from '#/server/auth/session-store.ts'
+
+const loadActiveMembers = createServerFn({ method: 'GET' }).handler(
+  async () => {
+    const db = await getDefaultDb()
+    return getActiveMemberBlocks(db)
+  },
+)
 
 export const Route = createFileRoute('/members/')({
-  component: RouteComponent,
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData({
+      queryKey: ['members-active'],
+      queryFn: loadActiveMembers,
+      staleTime: 60_000,
+    }),
+  component: MembersPage,
 })
 
-function RouteComponent() {
+function MembersPage() {
+  const blocksQuery = useQuery({
+    queryKey: ['members-active'],
+    queryFn: loadActiveMembers,
+    staleTime: 60_000,
+  })
+
   return (
-    <main
-      className={
-        'mx-auto w-[90dvw] flex flex-1 flex-col items-center justify-center my-[4dvh]'
-      }
-    >
-      <div className={'text-4xl font-bold text-(--members-title) mb-5'}>
-        TAGOK
-      </div>
-      <p className={'font-bold text-(--members-title)'}>
-        Kik dolgoznak nap mint nap azert, hogy a BSS mukodjon? Kiforgatott
-        golyabalon? Hol talalod meg a studiovezeto e-mail cimet?
-      </p>
-      <p className={'text-(--members-title)'}>
-        Ez az oldal Neked keszult, ha kivsnics vagy a BSS tagjaira, reszletesebb
-        adataikra.
-      </p>
-      <div className={'font-bold text-(--members-title) mt-[8dvh]'}>VEZETOSEG</div>
-      <div className={'grid grid-cols-7 gap-x-[3dvw] gap-y-[3dvh] mt-5'}>
-        <div className={'flex col-span-3 justify-end'}>
-          <MemberCard />
-        </div>
-        <MemberCard />
-        <div className={'flex col-span-3 justify-start'}>
-          <MemberCard />
-        </div>
-        {Array.from({ length: 7 }).map((_, index) => (
-          <MemberCard key={index} />
-        ))}
-      </div>
-      <div className={'font-bold text-(--members-title) mt-[8dvh]'}>STUDIOSOK</div>
-      <div className={'grid grid-cols-7 gap-x-[3dvw] gap-y-[3dvh] mt-5'}>
-        {Array.from({ length: 14 }).map((_, index) => (
-          <MemberCard key={index} />
-        ))}
-      </div>
-      <div className={'font-bold text-(--members-title) mt-[8dvh]'}>UJONCOK</div>
-      <div className={'grid grid-cols-7 gap-x-[3dvw] gap-y-[3dvh] mt-5'}>
-        {Array.from({ length: 14 }).map((_, index) => (
-          <MemberCard key={index} />
-        ))}
-      </div>
+    <main className="site-width my-[4dvh]">
+      <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">Tagok</h1>
+
+      {blocksQuery.isPending && (
+        <p
+          role="status"
+          className="py-[6dvh] text-center text-(--bss-text-secondary)"
+        >
+          Betöltés…
+        </p>
+      )}
+      {blocksQuery.isError && (
+        <p
+          role="alert"
+          className="py-[6dvh] text-center text-(--bss-text-secondary)"
+        >
+          Hiba történt a tagok betöltése közben. Próbáld újra később.
+        </p>
+      )}
+      {blocksQuery.isSuccess && (
+        <>
+          <MemberBlock
+            title="Vezetőség"
+            members={blocksQuery.data.leadership}
+          />
+          <MemberBlock
+            title="Stúdiósok"
+            members={blocksQuery.data.studioMembers}
+          />
+          <MemberBlock
+            title="Stúdiósjelöltek"
+            members={blocksQuery.data.studioCandidates}
+          />
+          <MemberBlock
+            title="Stúdiósjelölt-jelöltek"
+            members={blocksQuery.data.studioApplicants}
+          />
+          <MemberBlock
+            title="Aktív öregtagok"
+            members={blocksQuery.data.seniorActive}
+          />
+
+          <nav aria-label="Korábbi tagok" className="mt-10 flex gap-6">
+            <Link
+              to="/members/archived"
+              search={() => ({ page: undefined })}
+              className="font-bold text-(--orange) underline"
+            >
+              Archivált öregtagok
+            </Link>
+            <Link
+              to="/members/contributors"
+              search={() => ({ page: undefined })}
+              className="font-bold text-(--orange) underline"
+            >
+              Dolgozott még velünk
+            </Link>
+          </nav>
+        </>
+      )}
     </main>
+  )
+}
+
+export function MemberBlock({
+  title,
+  members,
+}: {
+  title: string
+  members: Array<{
+    sub: string
+    username: string
+    fullName: string
+    nickname: string | null
+    avatarUrl: string | null
+  }>
+}) {
+  if (members.length === 0) {
+    return null
+  }
+  return (
+    <section className="mt-8">
+      <h2 className="text-2xl font-bold text-(--bss-text)">{title}</h2>
+      <div className="mt-4 flex flex-wrap gap-4">
+        {members.map((member) => (
+          <Link
+            key={member.sub}
+            to="/members/$slug"
+            params={{ slug: member.username }}
+            className="hover-lift flex w-[178px] flex-col items-center border border-(--card-border) bg-(--members-card-bg) p-3 text-center shadow-[0_2px_2px_rgba(0,0,0,0.2)]"
+          >
+            <img
+              src={member.avatarUrl ?? '/test_member.png'}
+              alt={member.fullName}
+              className="h-[178px] w-[178px] overflow-hidden object-cover"
+            />
+            <p className="text-lg font-bold text-(--bss-text-secondary)">
+              {member.fullName}
+            </p>
+            {member.nickname !== null && (
+              <p className="text-(--bss-text-secondary)">„{member.nickname}”</p>
+            )}
+          </Link>
+        ))}
+      </div>
+    </section>
   )
 }

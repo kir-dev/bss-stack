@@ -13,6 +13,8 @@ import appCss from '../styles.css?url'
 
 import type { QueryClient } from '@tanstack/react-query'
 import Navbar from '#/components/Navbar.tsx'
+import { ErrorState, NotFoundContent } from '#/components/PageStates.tsx'
+import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
 
 interface MyRouterContext {
   queryClient: QueryClient
@@ -31,7 +33,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
         content: 'width=device-width, initial-scale=1',
       },
       {
-        title: 'TanStack Start Starter',
+        title: 'Budavári Schönherz Studió',
       },
     ],
     links: [
@@ -41,24 +43,30 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
     ],
   }),
+  // The navbar's login state is needed on every page: load it once.
+  loader: ({ context }) =>
+    context.queryClient.ensureQueryData({
+      queryKey: ['viewer'],
+      queryFn: fetchViewerState,
+      staleTime: 60_000,
+    }),
+  notFoundComponent: NotFoundContent,
+  errorComponent: () => <ErrorState />,
   shellComponent: RootDocument,
 })
 
-
 function RootDocument({ children }: { children: React.ReactNode }) {
-
-
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="hu" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
         <HeadContent />
       </head>
-      <body className="min-h-screen flex flex-col bg-(--bg)">
+      {/* The page background (color + dot pattern) sits on the root element
+           in styles.css, so `body` stays transparent. */}
+      <body className="min-h-screen flex flex-col">
         <Navbar />
-        <div className="flex-1">
-          {children}
-        </div>
+        <div className="flex-1">{children}</div>
         <Footer />
         <TanStackDevtools
           config={{

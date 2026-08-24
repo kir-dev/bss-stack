@@ -1,310 +1,443 @@
-'use client'
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import { createServerFn } from '@tanstack/react-start'
+import { getRequest } from '@tanstack/react-start/server'
+import { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import {
+  VIDEO_PAGE_SIZES,
+  VIDEO_SORTS,
+  getVideoFilterOptions,
+  getVideoListPage,
+  parseVideoListSearch,
+  videoSortLabel,
+} from '#/server/pages/video-list.ts'
+import { resolveViewerStateFromRequest } from '#/server/pages/viewer.ts'
+import { getDefaultDb } from '#/server/auth/session-store.ts'
+import { EmptyState, ThumbnailGridSkeleton } from '#/components/PageStates.tsx'
+import Thumbnail from '#/components/Thumbnail.tsx'
+import {
+  AdminSearchSelect,
+  FILTER_LABEL_CLASS,
+} from '#/components/admin/SearchSelect.tsx'
+import type { VideoListRawSearch } from '#/server/pages/video-list.ts'
 
-import { useState, useRef, useEffect } from 'react'
-import { createFileRoute } from '@tanstack/react-router'
-import MiniVideo from '#/components/MiniVideo.tsx'
+const loadVideoList = createServerFn({ method: 'GET' })
+  .validator((search: VideoListRawSearch) => search)
+  .handler(async ({ data }) => {
+    const { viewer } = await resolveViewerStateFromRequest(getRequest())
+    const db = await getDefaultDb()
+    return getVideoListPage(db, viewer, parseVideoListSearch(data))
+  })
+
+const loadFilterOptions = createServerFn({ method: 'GET' }).handler(
+  async () => {
+    const db = await getDefaultDb()
+    return getVideoFilterOptions(db)
+  },
+)
+
+const VIDEO_GRID_CLASS = 'grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5'
+const VIDEO_SORT_OPTIONS = VIDEO_SORTS.map((sort) => ({
+  value: sort,
+  label: videoSortLabel(sort),
+}))
+const VIDEO_PAGE_SIZE_OPTIONS = VIDEO_PAGE_SIZES.map((size) => ({
+  value: String(size),
+  label: String(size),
+}))
 
 export const Route = createFileRoute('/videos/')({
-  validateSearch: (search: Record<string, unknown>) => {
-    const rawPage = search.page
-    const sort = search.sort
-    const parsedPage = Number(rawPage)
-
+  validateSearch: (search: Record<string, unknown>): VideoListRawSearch => {
+    const pickString = (key: string): string | undefined => {
+      const value = search[key]
+      return typeof value === 'string' && value !== '' ? value : undefined
+    }
+    const tagsValue = search['tags']
+    const tags = Array.isArray(tagsValue)
+      ? tagsValue.filter((tag): tag is string => typeof tag === 'string')
+      : typeof tagsValue === 'string'
+        ? [tagsValue]
+        : undefined
     return {
-      page: Number.isInteger(parsedPage) && parsedPage > 0 ? parsedPage : 1,
-      sort: typeof sort === 'string' ? sort : 'newest',
+      q: pickString('q'),
+      sort: pickString('sort'),
+      page: pickString('page'),
+      perPage: pickString('perPage'),
+      event: pickString('event'),
+      from: pickString('from'),
+      to: pickString('to'),
+      staffMember: pickString('staffMember'),
+      staffRole: pickString('staffRole'),
+      ...(tags !== undefined && tags.length > 0 ? { tags } : {}),
     }
   },
-  component: RouteComponent,
+  loaderDeps: ({ search }) => ({ search }),
+  loader: ({ deps, context }) =>
+    context.queryClient.ensureQueryData({
+      queryKey: ['video-list', deps.search],
+      queryFn: () => loadVideoList({ data: deps.search }),
+    }),
+  component: VideoListPage,
+  pendingComponent: VideoListSkeleton,
 })
 
-function MegaVideo({
-  videoName = 'Unknown video',
-  thumbnailUrl = '/video-thumbnail.png',
-}: Readonly<{
-  videoName?: string
-  thumbnailUrl?: string
-}>) {
+/** Placeholder for the video list: header plus a 16:9 card grid. */
+function VideoListSkeleton() {
   return (
-    <div className="relative w-full max-w-[986px]  shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)] mb-2">
-      <img
-        alt={videoName}
-        src={thumbnailUrl}
-        className="block w-full h-full max-h-[530px] object-cover"
+    <main className="mx-auto my-[4dvh] w-[90dvw]">
+      <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">Videók</h1>
+      <ThumbnailGridSkeleton
+        count={10}
+        className={VIDEO_GRID_CLASS}
+        label="Videók betöltése…"
       />
-      <div
-        className={
-          'absolute bottom-0 left-0 right-0 flex items-center gap-2 bg-(--mini-video-bg) py-1 px-2 text-(--bss-text-secondary) min-w-0'
-        }
-      >
-        <svg
-          viewBox="0 0 100 100"
-          width="2em"
-          height="2em"
-          xmlns="http://www.w3.org/2000/svg"
+    </main>
+  )
+}
+
+function VideoListPage() {
+  const navigate = useNavigate()
+  const rawSearch = Route.useSearch()
+  const pageData = useQuery({
+    queryKey: ['video-list', rawSearch],
+    queryFn: () => loadVideoList({ data: rawSearch }),
+  })
+  const optionsQuery = useQuery({
+    queryKey: ['video-filter-options'],
+    queryFn: loadFilterOptions,
+    staleTime: 5 * 60_000,
+  })
+  const parsed = parseVideoListSearch(rawSearch)
+
+  function update(patch: Partial<VideoListRawSearch>) {
+    navigate({
+      to: '/videos',
+      search: (prev) => ({ ...prev, ...patch, page: undefined }),
+    })
+  }
+
+  return (
+    <main className="mx-auto my-[4dvh] w-[90dvw]">
+      <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">Videók</h1>
+
+      <VideoFilterBar
+        parsed={parsed}
+        raw={rawSearch}
+        options={optionsQuery.data}
+        onUpdate={update}
+        onReset={() => navigate({ to: '/videos', search: {} })}
+      />
+
+      {pageData.isPending && (
+        <ThumbnailGridSkeleton
+          count={10}
+          className={VIDEO_GRID_CLASS}
+          label="Videók betöltése…"
+        />
+      )}
+      {pageData.isError && (
+        <p
+          role="alert"
+          className="py-[6dvh] text-center text-(--bss-text-secondary)"
         >
-          <path
-            d="M50 15 L85 85 L15 85 Z"
-            fill="var(--mini-video-triangle)"
-            transform="rotate(90 50 50)"
+          Hiba történt a videók betöltése közben. Próbáld újra később.
+        </p>
+      )}
+      {pageData.isSuccess &&
+        (pageData.data.items.length === 0 ? (
+          <EmptyState
+            title="Nincs találat"
+            description="A megadott szűrőkkel egyetlen videó sem található. Módosítsd vagy töröld a szűrőket."
           />
-        </svg>
-        <span
-          title={videoName}
-          aria-label={videoName}
-          className="flex-1 min-w-0 truncate text-3xl"
-        >
-          {videoName}
-        </span>
-        <span
-          className={
-            'bg-(--videos-tag) text-xs font-bold float-right p-2 rounded-4xl text-(--videos-tag-text)'
-          }
-        >
-          Legfrissebb!
-        </span>
+        ) : (
+          <>
+            <div className={VIDEO_GRID_CLASS}>
+              {pageData.data.items.map((item) => (
+                <a
+                  key={item.id}
+                  href={`/videos/${item.slug}`}
+                  className="group card-surface hover-lift block shadow-[0px_2px_6px_0_rgba(0,0,0,0.25)]"
+                >
+                  <Thumbnail src={item.thumbnailUrl} alt={item.title} />
+                  <span className="block truncate px-2 py-1 text-(--bss-text-secondary) group-hover:text-(--orange)">
+                    {item.title}
+                  </span>
+                </a>
+              ))}
+            </div>
+            <Pagination
+              page={pageData.data.page}
+              totalPages={pageData.data.totalPages}
+              onPage={(page) =>
+                navigate({
+                  to: '/videos',
+                  search: (prev) => ({
+                    ...prev,
+                    page: page === 1 ? undefined : String(page),
+                  }),
+                })
+              }
+            />
+          </>
+        ))}
+    </main>
+  )
+}
+
+function VideoFilterBar({
+  parsed,
+  raw,
+  options,
+  onUpdate,
+  onReset,
+}: {
+  parsed: ReturnType<typeof parseVideoListSearch>
+  raw: VideoListRawSearch
+  options?: Awaited<ReturnType<typeof getVideoFilterOptions>>
+  onUpdate: (patch: Partial<VideoListRawSearch>) => void
+  onReset: () => void
+}) {
+  const [q, setQ] = useState(parsed.q)
+
+  function submit(event: React.FormEvent) {
+    event.preventDefault()
+    onUpdate({ q: q.trim() === '' ? undefined : q.trim() })
+  }
+
+  const hasActiveFilters =
+    Object.keys(raw).filter((key) => key !== 'page' && key !== 'sort').length >
+    0
+  const eventOptions =
+    options?.events.map((item) => ({
+      value: item.slug,
+      label: item.title,
+    })) ?? []
+  const staffMemberOptions =
+    options?.staffMembers.map((item) => ({
+      value: item.sub,
+      label: item.fullName,
+    })) ?? []
+  const staffRoleOptions =
+    options?.staffRoles.map((item) => ({
+      value: item.id,
+      label: item.name,
+    })) ?? []
+
+  return (
+    <form onSubmit={submit} className="mb-6 flex flex-wrap items-end gap-3">
+      <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
+        Szabad szöveg
+        <input
+          value={q}
+          onChange={(event) => setQ(event.target.value)}
+          placeholder="Cím, leírás, vendég, stábtag"
+          className="h-10 w-56 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 outline-none"
+        />
+      </label>
+      <div className="w-56">
+        <AdminSearchSelect
+          label="Esemény"
+          value={parsed.eventSlug}
+          options={eventOptions}
+          onChange={(value) => onUpdate({ event: value || undefined })}
+          placeholder="Mind"
+          emptyOptionLabel="Mind"
+          searchPlaceholder="Esemény keresése…"
+          searchThreshold={0}
+          labelClassName={FILTER_LABEL_CLASS}
+        />
       </div>
+      <div className="w-56">
+        <AdminSearchSelect
+          label="Stábtag"
+          value={parsed.staffMemberSub}
+          options={staffMemberOptions}
+          onChange={(value) => onUpdate({ staffMember: value || undefined })}
+          placeholder="Mind"
+          emptyOptionLabel="Mind"
+          searchPlaceholder="Stábtag keresése…"
+          searchThreshold={0}
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
+      <div className="w-48">
+        <AdminSearchSelect
+          label="Stábszerep"
+          value={parsed.staffRoleId}
+          options={staffRoleOptions}
+          onChange={(value) => onUpdate({ staffRole: value || undefined })}
+          placeholder="Mind"
+          emptyOptionLabel="Mind"
+          searchPlaceholder="Stábszerep keresése…"
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
+      <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
+        Készült ettől
+        <input
+          type="date"
+          value={parsed.recordedFrom}
+          onChange={(event) =>
+            onUpdate({ from: event.target.value || undefined })
+          }
+          className="h-10 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2"
+        />
+      </label>
+      <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
+        Készült eddig
+        <input
+          type="date"
+          value={parsed.recordedTo}
+          onChange={(event) =>
+            onUpdate({ to: event.target.value || undefined })
+          }
+          className="h-10 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2"
+        />
+      </label>
+      <TagPicker
+        selected={parsed.tagNames}
+        allTags={options?.tags.map((tag) => tag.name) ?? []}
+        onChange={(tags) => onUpdate({ tags })}
+      />
+      <div className="w-48">
+        <AdminSearchSelect
+          label="Rendezés"
+          value={parsed.sort}
+          options={VIDEO_SORT_OPTIONS}
+          onChange={(value) => onUpdate({ sort: value })}
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
+      <div className="w-28">
+        <AdminSearchSelect
+          label="Oldalméret"
+          value={String(parsed.perPage)}
+          options={VIDEO_PAGE_SIZE_OPTIONS}
+          onChange={(value) => onUpdate({ perPage: value })}
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
+      <button
+        type="submit"
+        className="solid-btn h-10 bg-(--orange) px-4 font-bold text-white"
+      >
+        Szűrés
+      </button>
+      {hasActiveFilters && (
+        <button
+          type="button"
+          onClick={onReset}
+          className="ctrl-btn h-10 px-3 font-bold text-(--orange)"
+        >
+          Szűrők törlése
+        </button>
+      )}
+      {parsed.tagNames.length > 0 && (
+        <div
+          className="flex basis-full flex-wrap gap-1"
+          aria-label="Kiválasztott címkék"
+        >
+          {parsed.tagNames.map((tag) => (
+            <button
+              key={tag}
+              type="button"
+              onClick={() =>
+                onUpdate({
+                  tags: parsed.tagNames.filter(
+                    (selectedTag) => selectedTag !== tag,
+                  ),
+                })
+              }
+              aria-label={`${tag} címke eltávolítása`}
+              className="ctrl-btn max-w-full truncate px-2 py-0.5 text-xs text-(--bss-text-secondary) hover:text-(--orange)"
+            >
+              {tag} ×
+            </button>
+          ))}
+        </div>
+      )}
+    </form>
+  )
+}
+
+function TagPicker({
+  selected,
+  allTags,
+  onChange,
+}: {
+  selected: string[]
+  allTags: string[]
+  onChange: (tags: string[]) => void
+}) {
+  const availableTags = allTags
+    .filter((tag) => !selected.includes(tag))
+    .map((tag) => ({ value: tag, label: tag }))
+
+  return (
+    <div className="w-56">
+      <AdminSearchSelect
+        label="Címkék"
+        value=""
+        options={availableTags}
+        onChange={(tag) => {
+          if (tag !== '') {
+            onChange([...selected, tag])
+          }
+        }}
+        placeholder={
+          selected.length > 0 ? `${selected.length} kiválasztva (ÉS)` : 'Mind'
+        }
+        searchPlaceholder="Címke keresése…"
+        labelClassName={FILTER_LABEL_CLASS}
+      />
     </div>
   )
 }
 
-function RouteComponent() {
-  const [open, setOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement | null>(null)
-  const navigate = Route.useNavigate()
-  const { page, sort } = Route.useSearch()
-  const currentPage = page
-  const totalPages = 29
-
-  useEffect(() => {
-    function onDocClick(e: MouseEvent) {
-      if (!menuRef.current) return
-      if (e.target && menuRef.current.contains(e.target as Node)) return
-      setOpen(false)
-    }
-
-    document.addEventListener('click', onDocClick)
-    return () => document.removeEventListener('click', onDocClick)
-  }, [])
-
-  const options: Array<{ value: string; label: string }> = [
-    { value: 'newest', label: 'Legujabb' },
-    { value: 'popular', label: 'Legnepszerubb' },
-    { value: 'viewed', label: 'Legtobbet megnezett' },
-  ]
-
-  function handleSelect(option: string) {
-    setOpen(false)
-    // Add your event logic here — e.g., fetch/sort/update state
-    // For now we'll just log to the console
-    console.log('Selected:', option)
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        sort: option,
-        page: 1, // Reset to first page on sort change
-      }),
-    })
+function Pagination({
+  page,
+  totalPages,
+  onPage,
+}: {
+  page: number
+  totalPages: number
+  onPage: (page: number) => void
+}) {
+  if (totalPages <= 1) {
+    return null
   }
-
-  function handlePageChange(nextPage: number) {
-    if (nextPage < 1 || nextPage > totalPages || nextPage === currentPage)
-      return
-
-    navigate({
-      search: (prev) => ({
-        ...prev,
-        page: nextPage,
-      }),
-    })
-  }
-
-  function getPaginationItems(): Array<
-    { type: 'page'; value: number } | { type: 'ellipsis'; id: string }
-  > {
-    if (currentPage <= 4) {
-      return [
-        { type: 'page', value: 1 },
-        { type: 'page', value: 2 },
-        { type: 'page', value: 3 },
-        { type: 'page', value: 4 },
-        { type: 'page', value: 5 },
-        { type: 'ellipsis', id: 'end' },
-        { type: 'page', value: totalPages },
-      ]
-    }
-
-    if (currentPage >= totalPages - 3) {
-      return [
-        { type: 'page', value: 1 },
-        { type: 'ellipsis', id: 'start' },
-        { type: 'page', value: totalPages - 4 },
-        { type: 'page', value: totalPages - 3 },
-        { type: 'page', value: totalPages - 2 },
-        { type: 'page', value: totalPages - 1 },
-        { type: 'page', value: totalPages },
-      ]
-    }
-
-    return [
-      { type: 'page', value: 1 },
-      { type: 'ellipsis', id: 'start' },
-      { type: 'page', value: currentPage - 1 },
-      { type: 'page', value: currentPage },
-      { type: 'page', value: currentPage + 1 },
-      { type: 'ellipsis', id: 'end' },
-      { type: 'page', value: totalPages },
-    ]
-  }
-
+  const pages = Array.from({ length: totalPages }, (_, index) => index + 1)
   return (
-    <main className={'mx-auto w-[90dvw] my-[5dvh]'}>
-      <div
-        className={'mx-auto flex justify-start items-center gap-4 mb-[5dvh]'}
+    <nav aria-label="Videólapozás" className="mt-8 flex justify-center gap-1">
+      <button
+        type="button"
+        disabled={page === 1}
+        onClick={() => onPage(page - 1)}
+        aria-label="Előző oldal"
+        className="ctrl-btn h-10 rounded px-3"
       >
-        <div
-          className={
-            'inline-flex items-center gap-2 bg-(--videos-search-bg) px-4 py-2 border-b-(--videos-search-border-b) w-[288px] max-w-full h-[40px] max-h-full border-b'
-          }
+        ‹
+      </button>
+      {pages.map((value) => (
+        <button
+          key={value}
+          type="button"
+          onClick={() => onPage(value)}
+          aria-current={value === page ? 'page' : undefined}
+          className={`ctrl-btn h-10 w-10 rounded ${value === page ? 'font-bold text-(--orange)' : 'text-(--bss-text-secondary)'}`}
         >
-          <input
-            placeholder="Keresés..."
-            className="border-0 text-(--videos-search-placeholder) outline-none focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0"
-          />
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="var(--vidoes-search-icon)"
-          >
-            <path d="M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.156a5 5 0 1 1 0-10 5 5 0 0 1 0 10z" />
-          </svg>
-        </div>
-
-        <div className="" ref={menuRef}>
-          <div className="relative inline-block text-left ">
-            <button
-              type="button"
-              onClick={() => setOpen((s) => !s)}
-              className="inline-flex w-[288px] max-w-full h-[40px] max-h-full justify-between items-center px-4 py-2 bg-(--videos-search-bg) shadow-sm hover:bg-(--videos-search-bg)"
-            >
-              <span className="text-sm text-(--vidoes-search-icon)">
-                {'Rendezés: ' + (sort ? options.find((o) => o.value === sort)?.label : 'Rendezés kiválasztása')}
-              </span>
-              <svg
-                className="w-4 h-4 ml-2"
-                viewBox="0 0 20 20"
-                fill="var(--vidoes-search-icon)"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4.24 4.24a.75.75 0 01-1.06 0L5.21 8.27a.75.75 0 01.02-1.06z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </button>
-
-            {open && (
-              <div className="absolute  bg-(--videos-search-bg) shadow-lg z-2">
-                <div className="py-1 max-w-[288px]">
-                  {options.map((opt) => (
-                    <button
-                      key={opt.value}
-                      onClick={() => handleSelect(opt.value)}
-                      className="w-[256px] max-w-full h-[40px] max-h-full text-left mx-4 py-2 text-sm hover:bg-(--videos-search-bg) text-(--vidoes-search-icon) border-b-1 border-b-(--videos-dropdown-hr) last:border-b-0"
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-      <div className={'grid grid-cols-1 md:grid-cols-5 gap-2'}>
-        {currentPage === 1 && sort === 'newest' ? (
-          <>
-            <div className={'col-span-3 row-span-3'}>
-              <MegaVideo />
-            </div>
-            {Array.from({ length: 21 }, (_, i) => (
-              <MiniVideo key={i} />
-            ))}
-          </>
-        ) : (
-          <>
-            {Array.from({ length: 30 }, (_, i) => (
-              <MiniVideo key={i} />
-            ))}
-          </>
-        )}
-      </div>
-
-      <div className="mt-8 flex justify-center">
-        <nav
-          aria-label="Video pagination"
-          className="flex h-12 items-center  bg-(--bg) shadow-[0_2px_6px_rgba(0,0,0,0.12)]"
-        >
-          <button
-            type="button"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            className="flex h-12 w-12 items-center justify-center text-(--bss-text) disabled:cursor-not-allowed disabled:opacity-30"
-            aria-label="Previous page"
-          >
-            <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor">
-              <path d="M12.5 4.5L7 10l5.5 5.5-1.4 1.4L4.2 10l6.9-6.9 1.4 1.4z" />
-            </svg>
-          </button>
-
-          <div className="flex h-full items-stretch">
-            {getPaginationItems().map((item) => {
-              if (item.type === 'ellipsis') {
-                return (
-                  <span
-                    key={item.id}
-                    className="flex h-12 w-12 items-center justify-center text-(--bss-text-secondary)"
-                  >
-                    …
-                  </span>
-                )
-              }
-
-              const isActive = item.value === currentPage
-
-              return (
-                <button
-                  key={item.value}
-                  type="button"
-                  onClick={() => handlePageChange(item.value)}
-                  aria-current={isActive ? 'page' : undefined}
-                  className={`relative flex h-12 w-12 items-center justify-center text-sm transition-colors ${
-                    isActive
-                      ? 'font-semibold after:absolute after:bottom-0 after:left-1/2 after:h-1 after:w-6 after:-translate-x-1/2 after:rounded-full after:bg-(--videos-video-title)'
-                      : 'text-(--bss-text-secondary) hover:text-(--orange)'
-                  }`}
-                >
-                  {item.value}
-                </button>
-              )
-            })}
-          </div>
-
-          <button
-            type="button"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            className="flex h-12 w-12 items-center justify-center text-(--bss-text-secondary) disabled:cursor-not-allowed disabled:opacity-30"
-            aria-label="Next page"
-          >
-            <svg viewBox="0 0 20 20" className="h-4 w-4" fill="currentColor">
-              <path d="M7.5 4.5L13 10l-5.5 5.5 1.4 1.4L15.8 10 8.9 3.1 7.5 4.5z" />
-            </svg>
-          </button>
-        </nav>
-      </div>
-    </main>
+          {value}
+        </button>
+      ))}
+      <button
+        type="button"
+        disabled={page === totalPages}
+        onClick={() => onPage(page + 1)}
+        aria-label="Következő oldal"
+        className="ctrl-btn h-10 rounded px-3"
+      >
+        ›
+      </button>
+    </nav>
   )
 }

@@ -1,218 +1,167 @@
-Welcome to your new TanStack Start app! 
+# BSS weboldal V0
 
-# Getting Started
+A Budavári Schönherz Studió videóarchívum és szerkesztői rendszerének lokálisan
+futtatható V0 megvalósítása (TanStack Start + PostgreSQL + Authentik).
 
-To run this application:
+## Dokumentáció
+
+- [V0 követelményspecifikáció](./docs/product-specification.md)
+- [Kártyákra bontott implementációs terv](./docs/implementation-plan.md)
+- [Implementációs állapot](./docs/implementation-progress.md)
+- [OOB bemenetek](./docs/oob-inputs.md)
+- [Példa OOB config](./docs/examples/oob-config.example.json)
+- [Példa seed JSON](./docs/examples/seed.example.json)
+
+## Előfeltételek
+
+- Node 24+ és pnpm (`corepack enable`)
+- Docker (PostgreSQL + Authentik)
+
+## Telepítés és indítás (tiszta klónból)
+
+A sorrend a specifikáció 17.2 fejezetét követi. Adatbázis-kézi módosítás
+nincs szükség egyik lépéshez sem.
 
 ```bash
+# 1. Függőségek telepítése
 pnpm install
-pnpm dev
-```
 
-# Building For Production
+# 2. Helyi titkok és Authentik blueprint generálása (idempotens)
+pnpm infra:bootstrap
 
-To build this application for production:
+# 3. PostgreSQL és Authentik indítása
+docker compose -f docker-compose.dev.yml up -d
+export DATABASE_URL=postgres://bss:bss@127.0.0.1:5582/bss
 
-```bash
+# 4. Migrációk futtatása tiszta adatbázison
+pnpm db:migrate
+
+# 5. OOB fájlok ellenőrzése (konkrét magyar hibaüzenet hiány esetén)
+pnpm check:oob
+
+# 6. Seed betöltése (opcionális; az oob/seed.json-t a scraper állítja elő,
+#    lásd docs/oob-inputs.md). Idempotens: újrafuttatás nem duplikál.
+pnpm db:seed
+
+# 7. Alkalmazás indítása — induláskor lefut az első tagcache-szinkron is
+pnpm dev               # http://localhost:3000
+
+# 8. Minőségi kapu
+pnpm typecheck && pnpm lint && pnpm check
+TEST_DATABASE_URL=postgres://bss:bss@127.0.0.1:5582/bss pnpm test
 pnpm build
 ```
 
-## Testing
+Megjegyzések:
 
-This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
+- A `pnpm infra:bootstrap` meglévő titkokat nem ír felül; újraindítás nem
+  duplikál.
+- A seed stáblistája a bootstrap tesztprofiljaihoz kötődik (`tag-dev`,
+  `vezetoseg-dev`, …); ha a tagcache még üres, az importer magyar hibaüzenettel
+  kéri a szinkron lefuttatását (alkalmazásindítás vagy kézi szinkron az
+  `/admin/members` oldalon).
+- Az Authentik felülete: http://127.0.0.1:9000
 
-```bash
-pnpm test
-```
+## Tesztfelhasználók
 
-## Styling
+Jelszavak: `oob/local-secrets.json` (gitignore-olt).
 
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
+| Felhasználó           | Szerep                                                                |
+| --------------------- | --------------------------------------------------------------------- |
+| (nincs bejelentkezés) | névtelen látogató — csak publikus videók                              |
+| schonherz-dev         | bejelentkezett schönherzes — publikus + schönherz videók, admin nincs |
+| tag-dev               | BSS-tag — minden láthatóság, adminjogok                               |
+| vezetoseg-dev         | vezetőség — kibővített adminjogok                                     |
+| további `-dev` userek | szintetikus tagprofilok minden tagsági státuszhoz                     |
 
-### Removing Tailwind CSS
+## Demo forgatókönyvek szereplőnként
 
-If you prefer not to use Tailwind CSS:
+### Névtelen látogató
 
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `tailwindcss()` from the plugins array in `vite.config.ts`
-4. Uninstall the packages: `pnpm add @tailwindcss/vite tailwindcss --dev`
+1. Nyisd meg http://localhost:3000 — homepage normál vagy kiemelt/live hero-val.
+2. `/videos`: csak publikus videók jelennek meg; korlátozott tartalom metaadata
+   sem szivárog (keresésben, eseményoldalakon és kapcsolódó videóknál sem).
+3. Nyiss meg egy videót: player, kapcsolódó videók, címkére kattintva aktív
+   szűrős videólista.
+4. A navbar Belépés gombja belépésre visz, megtartva a kért oldalt.
 
-## Linting & Formatting
+### Schönherzes (schonherz-dev)
 
+1. Jelentkezz be; a `/videos` listában már a schönherz láthatóságú videók is
+   megjelennek.
+2. `/admin` közvetlenül: magyar tiltóoldal (403), sidebar sem látszik.
 
-This project uses [eslint](https://eslint.org/) and [prettier](https://prettier.io/) for linting and formatting. Eslint is configured using [tanstack/eslint-config](https://tanstack.com/config/latest/docs/eslint). The following scripts are available:
+### BSS-tag (tag-dev)
 
-```bash
-pnpm lint
-pnpm format
-pnpm check
-```
+1. Jelentkezz be, menj `/admin`-ra: Videók lista nyílik.
+2. Hozz létre piszkozatot (Új videó), adj meg érvénytelen média-URL-t —
+   piszkozatként menthető; a Publikálás magyar hibával elutasítja.
+3. Érvényes URL-lel (`https://v.bsstudio.hu/…`) publikálás — a média
+   hálózati ellenőrzése mockolható fejlesztésben, élesben HEAD-kéréssel fut.
+4. Egynapos eseményhez rendelve a videó automatikusan dátumot kap; többnaposnál
+   a hiányzó dátum publikálást blokkol, a tartományon kívüli figyelmeztet.
+5. Címkék és stáblista kezelése; archiválás és lomtárba helyezés.
 
+### Vezetőség (vezetoseg-dev)
 
-## Deploy with Nitro
+1. Lomtár (`/admin/trash`): visszaállítás archivált állapotba, kapcsolatokkal.
+2. Live és kiemelés (`/admin/homepage`): YouTube URL ütemezése (átfedés
+   kliensen és szerveren is tiltott), Indítás most / Lezárás most, kiemelt
+   videó választása, Rólunk-videók rendezése.
+3. Katalógusok: címke létrehozás/összevonás/törlés (használt címke csak név
+   beírásával), stábszerepek sorrendezése.
+4. Tagok (`/admin/members`): szinkronállapot, kézi szinkron (csak olvasható
+   profilok).
+5. Auditnapló (`/admin/audit`): minden előző lépés előtte-utána értékkel.
+6. Homepage: a kiemelt videó hero-ként jelenik meg; live aktiválásakor a
+   prioritás frissítés nélkül vált (percenkénti ellenőrzés).
+7. 30 napos törlés szimulációja: lomtárazz egy videót, majd az idő
+   előretolásával (tesztóra) a napi feladat véglegesen törli — külső médiafájl
+   érintetlen marad.
 
-This project uses Nitro as a generic server adapter, so it can run on any Node-compatible host.
+## Ismert V0-korlátok
 
-```bash
-npm run build
-node dist/server/index.mjs
-```
+- Éles telepítés nem része a V0-nak; a célkörnyezet a dokumentált lokális futtatás.
+- A külső MP4 URL-ek publikusak; a média tényleges hozzáférés-védelme külön feladat.
+- Email és mobil mezők nem léteznek; a tagprofilok csak olvashatók (Authentik forrás).
+- Audit export/visszaállítás és tömeges adminműveletek szándékosan nincsenek.
+- Rating, komment, share/download gomb, tanfolyamkezelés nem része a V0-nak.
+- A régi Drupal linkek (/video, /event, /user) átirányítása production feladat.
+- A kereső popoverje csoportonként öt találtat mutat thumbnail nélkül.
 
-The build output is a self-contained Node server. To deploy, push the `dist/` directory to your host (Render, Fly.io, your own VPS, etc.) and run the server command above.
+## Production előtti backlog (nem blokkolja a V0-t)
 
-For host-specific presets (Vercel, Netlify, Cloudflare, AWS Lambda, etc.) and tuning, see https://v3.nitro.build/deploy.
+Teljes régioldal-migráció; Drupal linkátirányítások; production telepítési
+pipeline; UptimeRobot; backup/visszaállítás; védett média; IP-alapú egyedi
+nézettség; tanfolyam- és felkéréskezelő integráció; tömeges adminműveletek;
+formális akadálymentességi audit.
 
+## Fejlesztői parancsok
 
+| Parancs                                | Funkció                              |
+| -------------------------------------- | ------------------------------------ |
+| `pnpm dev`                             | fejlesztői szerver                   |
+| `pnpm check`                           | formátumellenőrzés (Prettier)        |
+| `pnpm lint`                            | ESLint                               |
+| `pnpm typecheck`                       | route-generálás + `tsc --noEmit`     |
+| `TEST_DATABASE_URL=… pnpm test`        | unit + integrációs tesztek           |
+| `pnpm build`                           | produkciós build (Nitro)             |
+| `pnpm db:generate` / `pnpm db:migrate` | migráció generálása / futtatása      |
+| `pnpm db:seed`                         | idempotens seed import               |
+| `pnpm check:oob`                       | OOB config validáció                 |
+| `pnpm infra:bootstrap`                 | lokális titkok + Authentik blueprint |
 
-## Routing
+## Tiszta klónból végzett átadási próba
 
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
+Az elfogadási bemutató (spec 20/17) a fenti „Telepítés és indítás” szakasz
+lépéseit követi adatbázis-kézi módosítás nélkül, majd a négy szereplő
+demoforgatókönyvét futtatja végig. Ellenőrzési pontok:
 
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
+- `pnpm check:oob` hiányzó OOB elemnél konkrét magyar hibát ad, az alkalmazás
+  nem indul félkonfiguráltan;
+- `pnpm db:migrate` tiszta adatbázison hibátlanul lefut;
+- `pnpm db:seed` újrafuttatva nem duplikál;
+- a tesztek determinisztikus mockokkal futnak (külső média, YouTube,
+  Authentik hívások élő elérése nélkül);
+- a kizárt V0 elemek (rating, komment, médiafeltöltés, tömeges műveletek stb.)
+  sehol nem jelennek meg.
