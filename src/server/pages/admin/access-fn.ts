@@ -9,7 +9,7 @@ export interface AdminAccessDto {
   viewer?: { level: string; sub: string | null; username: string | null }
 }
 
-/** Admin váz guardja (BSS-027): session cookie-ból, Authentik-hívás nélkül. */
+/** Guard for the admin area (BSS-027): from the session cookie, without Authentik calls. */
 export const fetchAdminAreaAccess = createServerFn({ method: 'GET' }).handler(
   async (): Promise<AdminAccessDto> => {
     return toDto(
@@ -21,7 +21,7 @@ export const fetchAdminAreaAccess = createServerFn({ method: 'GET' }).handler(
   },
 )
 
-/** Vezetőségi területek (tagok, audit) külön, szigorúbb guardja. */
+/** Separate, stricter guard for leadership areas (members, audit). */
 export const fetchLeadershipAreaAccess = createServerFn({
   method: 'GET',
 }).handler(async (): Promise<AdminAccessDto> => {

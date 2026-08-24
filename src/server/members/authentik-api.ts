@@ -77,15 +77,15 @@ async function fetchJson(
 }
 
 /**
- * Tagcache-szinkronhoz használt Authentik REST API kliens.
- * A hozzáférés a configban lévő szolgáltatási fiókkal (username + API token)
- * client_credentials granthasználatával történő bearer tokennel történik.
+ * Authentik REST API client used for member cache synchronization.
+ * Access is done with a bearer token obtained via client_credentials grant
+ * using the service account (username + API token) from the config.
  */
 export function createAuthentikApi(
   config: OobConfig['authentik'],
   options: {
     fetchImpl?: typeof fetch
-    /** A discovery-ből származó token végpont; hiányában az issuer-ből képezzük. */
+    /** Token endpoint from the discovery document; derived from the issuer if missing. */
     tokenEndpoint?: string
   } = {},
 ): AuthentikApi {

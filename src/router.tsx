@@ -23,7 +23,7 @@ export function getRouter() {
   return router
 }
 
-/** A `hydrate()` üres állapotra no-opként fut le. */
+/** `hydrate()` runs as a no-op on empty state. */
 const EMPTY_DEHYDRATED_QUERY_STATE = { queries: [], mutations: [] }
 
 interface QueryStreamCarrier {
@@ -37,22 +37,22 @@ interface QueryStreamCarrier {
 }
 
 /**
- * Kerülőmegoldás a `@tanstack/router-ssr-query-core@1.169.1` hibájára
- * (`dist/esm/index.js:93`): a hidratáló ciklus a stream lezáró olvasásánál is
- * meghívja a `hydrate()`-et, pedig ott a `value` már `undefined`. Ettől minden
- * oldalbetöltés végén eldobja az
- * „Error reading query stream: TypeError: … dehydratedState is undefined”
- * hibát. Adat nem vész el — a valódi darabok addigra mind beérkeztek —, de a
- * konzolt teleírja.
+ * Workaround for a bug in `@tanstack/router-ssr-query-core@1.169.1`
+ * (`dist/esm/index.js:93`): the hydration loop calls `hydrate()` even on the
+ * stream's closing read, where `value` is already `undefined`. As a result,
+ * at the end of every page load it throws away an
+ * "Error reading query stream: TypeError: … dehydratedState is undefined"
+ * error. No data is lost — all the real chunks have arrived by then — but it
+ * fills up the console.
  *
- * A lezáró olvasásra üres dehidratált állapotot adunk vissza `undefined`
- * helyett. Valódi stream-hibát ez nem nyel el, csak a záró értéket pótolja.
- * Ha fölfelé javítják, ez a függvény törölhető.
+ * For the closing read we return an empty dehydrated state instead of
+ * `undefined`. This does not swallow real stream errors; it only supplies
+ * the closing value. If it gets fixed upstream, this function can be deleted.
  */
 function silenceQueryStreamEndError(router: {
   options: { hydrate?: (dehydrated: never) => unknown }
 }): void {
-  // A csomag csak a kliensen állít be `hydrate`-et; a szerveren nincs teendő.
+  // The package only sets up `hydrate` on the client; nothing to do on the server.
   const ssrQueryHydrate = router.options.hydrate
   if (ssrQueryHydrate === undefined) {
     return

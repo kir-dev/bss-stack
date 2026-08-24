@@ -1,9 +1,9 @@
 import { getCachedOobConfig } from '#/server/config/load.ts'
 
 /**
- * Engedélyezett média-hostok a kliensoldali, mentés előtti figyelmeztetéshez
- * (spec 5.4). Config nélkül üres lista megy ki, ilyenkor a kliens a
- * specifikált alap hostra esik vissza; a kikényszerítés szerveroldali marad
+ * Allowed media hosts for the client-side, pre-save warning (spec 5.4).
+ * Without a config an empty list is sent, in which case the client falls
+ * back to the specified default host; enforcement stays server-side
  * (`checkMediaUrlShape`).
  */
 export function allowedMediaHosts(): string[] {

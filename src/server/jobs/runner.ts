@@ -16,11 +16,11 @@ export interface JobContext {
 }
 
 export interface JobDefinition {
-  /** Rögzített név, az advisory lock kulcsa ebből származik. */
+  /** Fixed name; the advisory lock key derives from it. */
   name: string
   /**
-   * Ütemezés milliszekundumban a feladat utolsó (sikeres vagy sikertelen)
-   * futása után. A `startup` jelölésű feladatok induláskor egyszer futnak.
+   * Schedule in milliseconds after the job's last (successful or failed)
+   * run. Jobs marked `startup` run once at startup.
    */
   intervalMs: number | 'startup'
   run: (ctx: JobContext) => Promise<void>
@@ -35,8 +35,8 @@ export interface JobRunRecord {
 }
 
 /**
- * Háttérfeladat-nyilvántartás. A tesztek a FakeClock-kal együtt
- * `runDueJobs` hívásokkal vezérlik az idő múlását.
+ * Background job registry. The tests, together with the FakeClock,
+ * drive the passage of time via `runDueJobs` calls.
  */
 export class JobRegistry {
   private readonly jobs = new Map<string, JobDefinition>()
@@ -69,7 +69,7 @@ export interface RunDueJobsOptions {
   execute?: (job: JobDefinition) => Promise<JobRunRecord>
 }
 
-/** Azok a startup és esedékes intervallumos feladatok, amelyeket most le kell futtatni. */
+/** The startup and due interval jobs that must run now. */
 export function dueJobs(registry: JobRegistry, now: Date): JobDefinition[] {
   return registry.list().filter((job) => {
     if (job.intervalMs === 'startup') {
@@ -88,9 +88,9 @@ export interface RunnerDeps extends MemberSyncDeps {
 }
 
 /**
- * Egy feladat lefuttatása advisory lock alatt. Ha a lockot más példány tartja,
- * a futás `skipped-locked` eredménnyel kimarad — így két alkalmazáspéldány
- * soha nem futtatja ugyanazt a feladatot kétszer.
+ * Run a single job under an advisory lock. If the lock is held by another
+ * instance, the run is skipped with a `skipped-locked` result — so two
+ * application instances never run the same job twice.
  */
 export async function runJobWithLock(
   job: JobDefinition,
@@ -123,8 +123,8 @@ export async function runJobWithLock(
       message: null,
     }
   } catch (error) {
-    // A háttérhiba soha nem állítja le az alkalmazást vagy a publikus cache-t:
-    // a hiba rögzítésre kerül, a futás folytatódik.
+    // A background failure never stops the application or the public cache:
+    // the error is recorded and execution continues.
     const finishedAt = clock.now()
     const message =
       error instanceof Error
@@ -146,7 +146,7 @@ export async function runJobWithLock(
   }
 }
 
-/** Alapértelmezett feladatok: induláskori + óránkénti Authentik tagcache szinkron. */
+/** Default jobs: startup + hourly Authentik Tagcache sync. */
 export function createDefaultSyncJobs(deps: RunnerDeps): JobDefinition[] {
   const syncOnce = async (trigger: SyncTrigger) => {
     await runMemberSync(trigger, deps)
@@ -159,7 +159,7 @@ export function createDefaultSyncJobs(deps: RunnerDeps): JobDefinition[] {
     },
     {
       name: 'member-sync-hourly',
-      // Óránkénti szinkron (spec 8.2 / 15).
+      // Hourly sync (spec 8.2 / 15).
       intervalMs: 60 * 60 * 1000,
       run: () => syncOnce('hourly'),
     },
@@ -173,9 +173,9 @@ export interface BackgroundRunnerHandle {
 }
 
 /**
- * Elindítja a háttérfeladatokat: startup feladatok egyszer, majd percenkénti
- * ellenőrzéssel az esedékes intervallumos feladatok. Percenkénti tick valós
- * időben; tesztben a `tickNow` hívással vezérelhető.
+ * Starts the background jobs: startup jobs once, then due interval jobs with
+ * a per-minute check. The per-minute tick runs in real time; in tests it can
+ * be driven via the `tickNow` call.
  */
 export function startBackgroundRunner(
   deps: RunnerDeps = {},
@@ -234,8 +234,8 @@ export function startBackgroundRunner(
 }
 
 /**
- * Vezetőségi hibasáv: a legutóbbi szinkronfuttatások állapota a persistent
- * member_sync_runs táblából. Csak vezetőség kérheti le.
+ * Leadership error band: the status of the most recent sync runs from the
+ * persistent member_sync_runs table. Only leadership can request it.
  */
 export async function getRecentSyncAlerts(
   viewer: Viewer,

@@ -2,13 +2,14 @@
 
 import { useCallback, useState } from 'react'
 
-/** Minden borítókép 16:9, a hiányzó kép is ezt a helyet foglalja. */
+/** Every thumbnail is 16:9; a missing image also reserves that space. */
 export const THUMBNAIL_FALLBACK_SRC = '/video-thumbnail.png'
 
 /**
- * Borítókép fix 16:9 kerettel (BSS-019 UI): a keret a kép megérkezése előtt
- * is elfoglalja a helyét, így a rács nem ugrik meg betöltés közben. Amíg a
- * kép nincs kész, a keret skeletonként villog; a kép utána beúszik.
+ * Thumbnail with a fixed 16:9 frame (BSS-019 UI): the frame reserves the
+ * space even before the image arrives, so the grid doesn't jump during
+ * loading. Until the image is ready, the frame flashes as a skeleton; the
+ * image then fades in.
  */
 export default function Thumbnail({
   src,
@@ -19,21 +20,22 @@ export default function Thumbnail({
 }: {
   src: string | null | undefined
   alt: string
-  /** A 16:9 keretre kerülő extra osztályok. */
+  /** Extra classes applied to the 16:9 frame. */
   className?: string
-  /** Magára a `<img>`-re kerülő extra osztályok. */
+  /** Extra classes applied to the `<img>` itself. */
   imgClassName?: string
   loading?: 'lazy' | 'eager'
 }) {
   const resolvedSrc = src ?? THUMBNAIL_FALLBACK_SRC
-  // A betöltött URL-t tároljuk, nem egy sima logikai jelzőt: így `src`-váltásra
-  // (pl. szűrés utáni újrarenderelésre) magától visszaáll a helyőrző.
+  // We store the loaded URL rather than a plain boolean flag: this way the
+  // placeholder resets automatically when `src` changes (e.g. on re-render
+  // after filtering).
   const [settledSrc, setSettledSrc] = useState<string | null>(null)
   const loaded = settledSrc === resolvedSrc
 
-  // A gyorsítótárból érkező kép `load` eseménye lefuthat még a hidratálás
-  // előtt, ezért a `complete` jelzőt a ref-ben is megnézzük – különben a kép
-  // láthatatlan maradna.
+  // The `load` event of an image arriving from cache can fire before hydration
+  // completes, so we also check the `complete` flag via the ref — otherwise
+  // the image would stay invisible.
   const measureRef = useCallback(
     (node: HTMLImageElement | null) => {
       if (node !== null && node.complete) {
@@ -54,7 +56,7 @@ export default function Thumbnail({
         width={1280}
         height={720}
         onLoad={() => setSettledSrc(resolvedSrc)}
-        // Hibás URL esetén se maradjon a skeleton örökre villogva.
+        // On a broken URL, don't leave the skeleton flashing forever.
         onError={() => setSettledSrc(resolvedSrc)}
         className={`absolute inset-0 block h-full w-full object-cover transition-opacity duration-300 ${
           loaded ? 'opacity-100' : 'opacity-0'

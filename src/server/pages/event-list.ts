@@ -12,7 +12,7 @@ export interface PublicEventCard {
   slug: string
   title: string
   thumbnailUrl: string | null
-  /** A néző számára látható publikált videók száma. */
+  /** Number of published videos visible to the viewer. */
   visibleVideoCount: number
 }
 
@@ -25,9 +25,9 @@ export interface EventListPage {
 }
 
 /**
- * Publikus eseménylista (spec 6.3): kezdődátum szerint csökkenő, csak
- * publikált események; a kártyán lévő videószám és a thumbnail-fallback is
- * csak a néző számára látható videókból készül (spec 6.2).
+ * Public event list (spec 6.3): descending by start date, only published
+ * events; the video count on the card and the thumbnail fallback are also
+ * derived only from videos visible to the viewer (spec 6.2).
  */
 export async function getEventListPage(
   executor: Executor,
@@ -127,16 +127,16 @@ async function countVisibleVideosByEvent(
 }
 
 /**
- * Az eseményhez tartozó legfrissebb látható videó borítóképe. A publikus
- * eseménylista és a főoldali eseménysáv is ezt használja fallbacknek, hogy a
- * két helyen ugyanaz a kép jelenjen meg.
+ * Cover image of the most recent visible video of the event. The public event
+ * list and the homepage event strip both use it as a fallback so that the
+ * same image appears in the two places.
  */
 export async function latestVisibleThumbnailByEvent(
   executor: Executor,
   viewer: Viewer,
   eventIds: string[],
 ): Promise<Map<string, string>> {
-  // DISTINCT ON: az esemény legfrissebb látható videójának thumbnailje.
+  // DISTINCT ON: the thumbnail of the event's most recent visible video.
   const rows = await executor
     .selectDistinctOn([videos.eventId], {
       eventId: videos.eventId,
@@ -179,14 +179,14 @@ export interface EventDetailData {
     }>
     total: number
   }
-  /** A videók egyedi stábtagjai név szerint rendezve, titulus nélkül (spec 6.2). */
+  /** The videos' unique staff members sorted by name, without titles (spec 6.2). */
   staffMembers: Array<{ username: string; fullName: string }>
 }
 
 /**
- * Publikus eseményrészlet: videók `recordedAt` csökkenő sorrendben (hiányzó
- * értékek hátul), 50-es lapozással; a származtatott stáblista csak látható
- * videókból készül.
+ * Public event detail: videos in descending `recordedAt` order (missing
+ * values at the end), paginated by 50; the derived staff list is built only
+ * from visible videos.
  */
 export async function getEventDetail(
   executor: Executor,

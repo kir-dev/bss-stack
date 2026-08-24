@@ -76,7 +76,7 @@ export function redirectResponse(
   return new Response(null, { status: 302, headers })
 }
 
-/** Csak relatív, egyszintű "/" kezdetű útvonal engedélyezett (nyitott átirányítás ellen). */
+/** Only a relative, single-level path starting with "/" is allowed (against open redirects). */
 export function sanitizeReturnTo(raw: string | null): string {
   if (
     !raw ||

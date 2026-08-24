@@ -9,9 +9,9 @@ import type { Executor } from '#/server/shared/db-executor.ts'
 import { writeAudit } from '#/server/shared/write.ts'
 
 /**
- * Kiemelés (spec 9.2): csak publikált, publikus videó emelhető ki; a
- * kiemelés nem időzíthető. Az érvénytelenedést a BSS-014 életciklus kezeli
- * ugyanabban a tranzakcióban.
+ * Highlight (spec 9.2): only a published, public video can be highlighted;
+ * the highlight cannot be scheduled. Invalidation is handled by the BSS-014
+ * lifecycle in the same transaction.
  */
 export async function setHighlightedVideo(
   executor: Executor,

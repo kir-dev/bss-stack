@@ -50,9 +50,10 @@ export interface VideoDetail {
 }
 
 /**
- * Publikus videórészlet adatai (spec 5.7). Csak publikált és a néző számára
- * látható videó adható vissza; minden más → null (egységes magyar 404).
- * A kapcsolódó videók a BSS-015 szolgáltatásból jönnek, az SQL-ben szűrve.
+ * Public video detail data (spec 5.7). Only a video that is published and
+ * visible to the viewer may be returned; anything else → null (uniform
+ * Hungarian 404). The related videos come from the BSS-015 service, filtered
+ * in the SQL.
  */
 export async function getVideoDetail(
   executor: Executor,

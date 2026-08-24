@@ -26,7 +26,7 @@ export default function Navbar() {
   })
   const viewer = viewerQuery.data
 
-  // Útvonalváltásra zárjuk be a mobilmenüt.
+  // Close the mobile menu on route change.
   useEffect(() => {
     setMenuOpen(false)
   }, [location.href])
@@ -145,7 +145,7 @@ export default function Navbar() {
   )
 }
 
-/** Belépés a jelenlegi oldalra visszatérve; a kilépés a profilmenüben van. */
+/** Logs in, returning to the current page; logout lives in the profile menu. */
 function LoginButton() {
   const location = useLocation()
   const returnTo = `${location.pathname}${location.searchStr}`

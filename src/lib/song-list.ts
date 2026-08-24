@@ -1,7 +1,8 @@
 /**
- * A „Felhasznált zenék" mező szerkezetes kezelése. Tárolásban továbbra is
- * egyetlen szöveg, soronként `Előadó - Szám címe` (spec 5.2), a szerkesztő
- * viszont két beviteli mezőre bontja, ha a meglévő tartalom értelmezhető.
+ * Structured handling of the "Used songs" field. In storage it remains a
+ * single text, one `Artist - Song title` per line (spec 5.2), while the
+ * editor splits it into two input fields when the existing content is
+ * interpretable.
  */
 
 export interface SongEntry {
@@ -9,10 +10,10 @@ export interface SongEntry {
   title: string
 }
 
-/** Kötőjel-változatok: ezek a sor szétválasztói, ezért mezőben nem lehetnek. */
+/** Dash variants: these are line separators, so they cannot appear within a field. */
 const DASHES = /[-–—]/
 const DASHES_GLOBAL = /[-–—]/g
-/** Szóközzel határolt kötőjel: ez a normál elválasztó. */
+/** Whitespace-surrounded dash: this is the normal separator. */
 const SPACED_DASH = /\s+[-–—]\s+/g
 
 function splitLine(line: string): SongEntry | null {
@@ -24,10 +25,10 @@ function splitLine(line: string): SongEntry | null {
     return artist === '' || title === '' ? null : { artist, title }
   }
   if (spaced.length > 1) {
-    // Több elválasztó: nem eldönthető, melyik a határ.
+    // Multiple separators: it can't be determined which one is the boundary.
     return null
   }
-  // Szóköz nélküli, egyetlen kötőjel (pl. „Artist-Title").
+  // A single dash without surrounding whitespace (e.g. "Artist-Title").
   const dashCount = (line.match(DASHES_GLOBAL) ?? []).length
   if (dashCount !== 1) {
     return null
@@ -39,9 +40,9 @@ function splitLine(line: string): SongEntry | null {
 }
 
 /**
- * Sorok értelmezése előadó/cím párokra. `null`, ha bármelyik sor nem
- * értelmezhető — ilyenkor a szerkesztő a szabad szöveges mezőt használja,
- * hogy a meglévő tartalom ne sérüljön.
+ * Interprets lines into artist/title pairs. Returns `null` if any line is
+ * not interpretable — in that case the editor falls back to the free-text
+ * field so that the existing content isn't damaged.
  */
 export function parseSongList(raw: string): Array<SongEntry> | null {
   const lines = raw
@@ -60,8 +61,8 @@ export function parseSongList(raw: string): Array<SongEntry> | null {
 }
 
 /**
- * Visszaírás a tárolt szöveges formába. A teljesen üres sorok kimaradnak, a
- * félig kitöltött sorból pedig nem lóg ki elválasztó kötőjel.
+ * Serializes back into the stored text form. Completely empty rows are
+ * omitted, and a half-filled row never leaks a separating dash.
  */
 export function serializeSongList(entries: ReadonlyArray<SongEntry>): string {
   return entries
@@ -73,12 +74,12 @@ export function serializeSongList(entries: ReadonlyArray<SongEntry>): string {
     .join('\n')
 }
 
-/** Kötőjelek eltávolítása: szerkezetes módban ezek az elválasztók. */
+/** Removes dashes: in structured mode these are the separators. */
 export function stripSongDashes(value: string): string {
   return value.replace(DASHES_GLOBAL, '')
 }
 
-/** Igaz, ha a szerkezetes módban tiltott karakter került a mezőbe. */
+/** True if a character forbidden in structured mode got into the field. */
 export function hasSongDash(value: string): boolean {
   return DASHES.test(value)
 }

@@ -17,7 +17,7 @@ export interface OobConfig {
     clientId: string
     clientSecret: string
     scopes: string[]
-    /** Tagcache-szinkronhoz használt szolgáltatási fiók (OOB titok). */
+    /** Service account used for Tagcache sync (OOB secret). */
     sync: {
       username: string
       token: string
@@ -136,7 +136,7 @@ export function validateOobConfig(raw: unknown): OobConfig {
     try {
       const parsed = new URL(url)
       if (parsed.protocol !== 'http:') return false
-      // RFC1918 magánhálózatok + loopback alternatívák (pl. LAN IP-s dev futtatás).
+      // RFC1918 private networks + loopback alternatives (e.g. dev runs on a LAN IP).
       return /^(10\.|127\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(
         parsed.hostname,
       )

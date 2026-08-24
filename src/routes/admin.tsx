@@ -4,9 +4,9 @@ import { AdminSidebar } from '#/components/admin/AdminSidebar.tsx'
 import { fetchAdminAreaAccess } from '#/server/pages/admin/access-fn.ts'
 
 /**
- * Admin váz (BSS-027): minden /admin alatti oldalt szerveroldali guard véd.
- * Névtelen felhasználó a returnTo megtartásával belépésre kerül,
- * bejelentkezett jogosulatlan magyar 403 tartalmat kap.
+ * Admin layout (BSS-027): every page under /admin is protected by a
+ * server-side guard. Anonymous users are sent to login with returnTo
+ * preserved; logged-in users without permission receive a Hungarian 403 page.
  */
 export const Route = createFileRoute('/admin')({
   loader: async () => {
@@ -28,7 +28,7 @@ function AdminLayout() {
 
   return (
     <div className="mx-auto flex w-[95dvw] max-w-[1400px] my-[3dvh] flex-col gap-4 md:flex-row">
-      {/* Az adminfelület nem indexelhető (spec 16). */}
+      {/* The admin area must not be indexed (spec 16). */}
       <meta name="robots" content="noindex, nofollow" />
       <AdminSidebar level={access.viewer.level} />
       <div className="min-w-0 flex-1">

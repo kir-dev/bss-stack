@@ -10,7 +10,7 @@ type MembershipStatus = (typeof membershipStatusEnum.enumValues)[number]
 
 export const MEMBER_PAGE_SIZE = 50
 
-/** Magyar státusznevek (spec 8.3). */
+/** Hungarian status names (spec 8.3). */
 export const MEMBERSHIP_STATUS_LABELS: Record<MembershipStatus, string> = {
   studio_member: 'Stúdiós',
   studio_candidate: 'Stúdiósjelölt',
@@ -47,9 +47,9 @@ export interface ActiveMemberBlocks {
 }
 
 /**
- * Aktív tagoldal blokkjai (spec 8.4): vezetőség, stúdiósok, jelöltek,
- * jelölt-jelöltek, aktív öregtagok. Csak `sync_status = 'ok'` profilok;
- * a vezetőségi tag csak a Vezetőség blokkban jelenik meg.
+ * Blocks of the active members page (spec 8.4): leadership, studio members,
+ * candidates, applicant-applicants, active seniors. Only profiles with
+ * `sync_status = 'ok'`; a leadership member appears only in the Leadership block.
  */
 export async function getActiveMemberBlocks(
   executor: Executor,
@@ -109,7 +109,8 @@ export interface MemberListPage {
 }
 
 /**
- * Külön archivált öregtag- és közreműködő-aloldal (spec 8.4), 50-es lapozással.
+ * Separate archived-seniors and contributors sub-pages (spec 8.4),
+ * paginated by 50.
  */
 export async function getMemberArchivePage(
   executor: Executor,
@@ -171,8 +172,8 @@ export interface MemberProfile {
 }
 
 /**
- * Tagprofil (spec 8.4): csak `sync_status='ok'` rekord; email és mobil a
- * sémában sem létezik, így soha nem kerülhet válaszba.
+ * Member profile (spec 8.4): only records with `sync_status='ok'`; email and
+ * mobile do not even exist in the schema, so they can never end up in a response.
  */
 export async function getMemberProfile(
   executor: Executor,
@@ -210,9 +211,9 @@ export interface ActivityPage {
 }
 
 /**
- * Tag tevékenysége: csak publikált és a néző számára látható videók,
- * `recordedAt` szerint csökkenő (hiányzó értékek hátul). Több szerepnél ugyanaz
- * a videó egy sorban, szereplistával jelenik meg.
+ * Member activity: only published videos visible to the viewer, descending by
+ * `recordedAt` (missing values at the end). With multiple roles the same video
+ * appears in a single row with a role list.
  */
 export async function getMemberActivity(
   executor: Executor,

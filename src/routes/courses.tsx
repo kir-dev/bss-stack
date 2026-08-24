@@ -1,10 +1,10 @@
 import { createFileRoute } from '@tanstack/react-router'
 
 /**
- * Tanfolyam (spec 10.2): a `/courses` ugyanabban a böngészőfülben a
- * tanfolyami oldalra irányít. Helyi űrlap, adatmodell és ál-sikerüzenet nincs.
- * A szerveroldali átirányítás az alkalmazás belépési pontján történik
- * (src/server.ts); ez a kliensoldali navigációt kezeli le.
+ * Course (spec 10.2): `/courses` redirects to the course page in the same
+ * browser tab. No local form, data model or fake success message.
+ * The server-side redirect happens at the application entry point
+ * (src/server.ts); this handles client-side navigation.
  */
 export const Route = createFileRoute('/courses')({
   beforeLoad: () => {

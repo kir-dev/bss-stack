@@ -295,8 +295,8 @@ export function createAuthRouteHandlers(
   }
 
   /**
-   * Bejelentkezési állapot lekérdezése a kliensnek. Csak a lokális DB-t olvassa,
-   * az Authentiket soha nem hívja (a publikus kérés nem függhet külső szolgáltatástól).
+   * Query the login state for the client. Reads only the local DB and never
+   * calls Authentik (a public request must not depend on an external service).
    */
   async function me(request: Request): Promise<Response> {
     const token = readCookieValue(request, SESSION_COOKIE_NAME)

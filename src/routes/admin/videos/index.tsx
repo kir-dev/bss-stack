@@ -54,8 +54,8 @@ const loadFilterOptions = createServerFn({ method: 'GET' }).handler(
   },
 )
 
-// Típus-alias (nem interface), hogy a szerverfüggvény `Record` paraméterébe
-// implicit indexszignatúrával átadható legyen.
+// Type alias (not an interface) so it can be passed to the server function's
+// `Record` parameter with an implicit index signature.
 type AdminVideoSearch = {
   q?: string
   status?: string
@@ -192,7 +192,7 @@ const videoColumns: Array<AdminColumn<AdminVideoListItem>> = [
         >
           {row.title}
         </Link>
-        {/* Publikált videó nyilvános oldala; piszkozatnál nincs mit megnyitni. */}
+        {/* Public page of a published video; nothing to open for a draft. */}
         {row.status === 'published' && (
           <Link
             to="/videos/$slug"

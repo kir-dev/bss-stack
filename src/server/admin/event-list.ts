@@ -51,8 +51,8 @@ export interface AdminEventListItem {
 }
 
 /**
- * Esemény-admin lista (spec 12.3): cím, dátumintervallum, állapot,
- * videók száma (minden állapot), utolsó módosító és időpont.
+ * Event admin list (spec 12.3): title, date range, status,
+ * video count (all statuses), last modifier and timestamp.
  */
 export async function getAdminEventList(
   executor: Executor,
@@ -139,7 +139,7 @@ export interface AdminEventDetail {
   version: number
   updatedAt: Date
   updatedByName: string | null
-  /** A végleges törlés előnézetéhez: hány videó válik le. */
+  /** For the hard-delete preview: how many videos will be detached. */
   attachedVideoIds: string[]
 }
 

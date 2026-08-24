@@ -27,12 +27,12 @@ export const Route = createFileRoute('/')({
       queryFn: loadHomepage,
     }),
   component: HomePage,
-  // A loader várakozása alatt is a helyőrző látszik, nem egy sima szövegsor.
+  // The placeholder stays visible while the loader is pending, not a plain text line.
   pendingComponent: HomepageSkeleton,
 })
 
 function HomePage() {
-  // Percenkénti ellenőrzés (spec 9.3): a homepage frissítés nélkül vált.
+  // Per-minute check (spec 9.3): the homepage switches without a reload.
   const homeQuery = useQuery({
     queryKey: ['homepage'],
     queryFn: loadHomepage,
@@ -119,7 +119,7 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
           </div>
         )}
 
-        {/* Hero melletti lista: live/kiemelt esetén öt, normálban a maradék */}
+        {/* List next to the hero: five in live/highlight mode, the remainder otherwise */}
         <div>
           <h2 className="mb-[2dvh] text-3xl font-bold text-(--orange)">
             További friss videóink
@@ -132,7 +132,7 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
         </div>
       </section>
 
-      {/* Események */}
+      {/* Events */}
       <section className="mb-[10dvh]">
         <div className="flex items-baseline justify-between">
           <h2 className="mb-[2dvh] text-3xl font-bold text-(--orange)">
@@ -177,9 +177,9 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
 }
 
 /**
- * A főoldal betöltési helyőrzője. A hero, az oldalsó lista és az eseménysáv
- * ugyanazt a rácsot és 16:9 arányt kapja, mint a valódi tartalom, így a
- * megjelenéskor nem ugrik el a tördelés.
+ * The homepage loading placeholder. The hero, the side list and the event
+ * strip get the same grid and 16:9 ratio as the real content, so the
+ * layout doesn't jump when content appears.
  */
 function HomepageSkeleton() {
   return (
@@ -226,8 +226,8 @@ function HomepageSkeleton() {
 }
 
 /**
- * Live és kiemelt állapotban a hero mellett öt, normál állapotban hat
- * legutóbbi publikus videó jelenik meg; a hero nem ismétlődhet (spec 9.1).
+ * In live and highlighted mode five recent public videos appear next to the
+ * hero, in normal mode six; the hero must not repeat (spec 9.1).
  */
 function sideList(state: HomepageStateDto) {
   if (state.priority === 'normal') {
@@ -246,7 +246,7 @@ function HeroCard({ video }: { video: HomepageStateDto['hero'] }) {
       params={{ slug: video.slug }}
       className="group card-surface hover-lift block"
     >
-      {/* A hero a legfontosabb kép az oldalon: azonnal töltjük. */}
+      {/* The hero is the most important image on the page: load it eagerly. */}
       <Thumbnail src={video.thumbnailUrl} alt={video.title} loading="eager" />
       <span className="block truncate px-2 py-2 text-xl font-bold text-(--bss-text-secondary) group-hover:text-(--orange)">
         {video.title}

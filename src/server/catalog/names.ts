@@ -20,14 +20,14 @@ const HUNGARIAN_ACCENTS: Record<string, string> = {
 }
 
 /**
- * Katalógusnév normalizálása (spec 7.1): a kis- és nagybetű, valamint a
- * felesleges szóköz nem hozhat létre duplikációt. Az ékezet jelentésmegkülönböztető.
+ * Normalize a catalog name (spec 7.1): letter case and superfluous
+ * whitespace must not create duplicates. Accents are meaning-distinguishing.
  */
 export function normalizeCatalogName(raw: string): string {
   return raw.trim().replace(/\s+/g, ' ').toLowerCase()
 }
 
-/** Ékezetek lehajtogatása szóközök megtartásával (csak figyelmeztetéshez). */
+/** Fold accents while preserving whitespace (only used for warnings). */
 export function foldAccents(value: string): string {
   return value.replace(
     /[áéíóöőúüűÁÉÍÓÖŐÚÜŰ]/g,
@@ -36,8 +36,8 @@ export function foldAccents(value: string): string {
 }
 
 /**
- * Ékezeti hasonlóság (spec 7.1): az ékezet nélkül megegyező, de eltérő
- * normalizált nevek csak figyelmeztetést kapnak, nem blokkolnak.
+ * Accent similarity (spec 7.1): normalized names that match when accents
+ * are folded but otherwise differ only produce a warning, not a block.
  */
 export function isAccentSimilar(a: string, b: string): boolean {
   const fa = foldAccents(normalizeCatalogName(a))

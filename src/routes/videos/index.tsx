@@ -69,7 +69,7 @@ export const Route = createFileRoute('/videos/')({
   pendingComponent: VideoListSkeleton,
 })
 
-/** A videólista helyőrzője: fejléc plusz 16:9-es kártyarács. */
+/** Placeholder for the video list: header plus a 16:9 card grid. */
 function VideoListSkeleton() {
   return (
     <main className="mx-auto my-[4dvh] w-[90dvw]">

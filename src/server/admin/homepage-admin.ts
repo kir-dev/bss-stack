@@ -4,8 +4,8 @@ import type { Executor } from '#/server/shared/db-executor.ts'
 import { getHighlightedVideoId } from '#/server/homepage/highlight.ts'
 
 /**
- * A Live és kiemelés adminoldal betöltési adatai (BSS-031). Csak
- * vezetőség hívhatja — a route guardja és az API-végpontok is ellenőrzik.
+ * Load data for the Live and highlight admin pages (BSS-031). Only
+ * leadership may call it — both the route guard and the API endpoints verify this.
  */
 
 export interface HomepageAdminData {
@@ -25,10 +25,10 @@ export interface HomepageAdminData {
     videoId: string
     position: number
     title: string | null
-    /** Érvénytelen (archivált/lomtári/nem publikus) bejegyzés jelölése. */
+    /** Marks an invalid (archived/trashed/non-public) entry. */
     valid: boolean
   }>
-  /** Kiemeléshez és Rólunkhoz választható videók: publikált + publikus. */
+  /** Videos selectable for highlight and About: published + public. */
   selectableVideos: Array<{
     id: string
     title: string
@@ -101,7 +101,7 @@ export async function getHomepageAdminData(
   }
 }
 
-/** Vezetőségi Rólunk-előnézet: a konfigurált lista érvényes elemei. */
+/** Leadership preview of the About page: valid entries of the configured list. */
 export async function resolveAboutTitles(
   executor: Executor,
   videoIds: readonly string[],

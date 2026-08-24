@@ -2,7 +2,7 @@ export interface ActivityRow {
   videoId: string
   slug: string
   title: string
-  /** Naptári dátum (`YYYY-MM-DD` vagy null); rendezés: csökkenő, hiányzó hátul. */
+  /** Calendar date (`YYYY-MM-DD` or null); sorting: descending, missing values last. */
   recordedAt: string | null
   year: number | null
   roles: string[]
@@ -19,10 +19,10 @@ export interface RoleGroup {
 }
 
 /**
- * Tevékenység csoportosítása (spec 8.4):
- * - év nézet: évek csökkenő, alatta stábszerep szerinti csoportok;
- * - szerep nézet: szerepek alatt időrendben a videók.
- * Több szerepnél ugyanaz a videó minden érintett csoportban megjelenik.
+ * Activity grouping (spec 8.4):
+ * - year view: years in descending order, with staff-role groups below;
+ * - role view: videos listed chronologically under each role.
+ * With multiple roles, the same video appears in every affected group.
  */
 export function groupActivity(
   rows: Array<ActivityRow>,

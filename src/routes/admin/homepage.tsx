@@ -83,7 +83,7 @@ function HomepageAdminPage() {
 
 type HomepageAdminPayload = Awaited<ReturnType<typeof getHomepageAdminData>>
 
-/** Videólista a kereshető választóhoz. */
+/** Video list for the searchable select. */
 function videoOptions(
   videos: HomepageAdminPayload['selectableVideos'],
 ): Array<SearchSelectOption> {
@@ -246,8 +246,8 @@ function LiveSection({
     })
   }
 
-  // A szerver az oEmbed ellenőrzés előtt ugyanezzel a parserrel dolgozik,
-  // ezért a nem értelmezhető URL-t érdemes már itt jelezni (spec 9.3).
+  // The server uses the same parser before the oEmbed check,
+  // so it's worth flagging an unparsable URL already here (spec 9.3).
   const urlWarning = youtubeUrlWarning(youtubeUrl)
   const activeOrScheduled = data.live.filter((live) => live.status !== 'ended')
   const ended = data.live.filter((live) => live.status === 'ended')

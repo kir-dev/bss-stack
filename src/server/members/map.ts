@@ -8,7 +8,7 @@ import type { AuthentikApiUser } from './authentik-api.ts'
 export type MemberSyncStatus = 'ok' | 'error'
 
 export interface MappedMember {
-  /** Az Authentik sub értéke (user_id sub_mode esetén a pk). */
+  /** The Authentik sub value (the pk when user_id sub_mode is used). */
   sub: string
   username: string
   fullName: string
@@ -24,7 +24,7 @@ export interface MappedMember {
   syncError: string | null
 }
 
-/** Rendszerfelhasználók, akik nem tartoznak a tagcache-be. */
+/** System users that do not belong to the member cache. */
 export function isSystemUser(user: AuthentikApiUser): boolean {
   return (
     user.type !== 'internal' ||
@@ -63,9 +63,10 @@ export function parseJoinedSemester(
 }
 
 /**
- * Egy Authentik felhasználó leképezése tagcache rekorddá.
- * Ismeretlen vagy hiányzó tagsági státusz esetén syncStatus='error':
- * az utolsó ismert adat megmaradhat, de publikus csoportba nem kerül.
+ * Maps an Authentik user to a member cache record.
+ * If the membership status is unknown or missing, syncStatus='error':
+ * the last known data may be preserved, but the member is not placed
+ * into the public group.
  */
 export function mapMember(
   user: AuthentikApiUser,

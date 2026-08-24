@@ -13,8 +13,8 @@ export class EntityNotFoundError extends Error {
 }
 
 /**
- * Elavult mentés blokkolása (spec 12.4): ha más módosította a rekordot,
- * a második mentés konfliktust kap. Csendes „utolsó mentés nyer” nincs.
+ * Blocking stale writes (spec 12.4): if someone else modified the record,
+ * the second save gets a conflict. There is no silent "last write wins".
  */
 export class StaleWriteError extends Error {
   constructor(entityType: string) {
@@ -29,7 +29,7 @@ function tableFor(entityType: 'video' | 'event') {
   return entityType === 'video' ? videos : events
 }
 
-/** Auditnapló bejegyzés írása (csak INSERT lehetséges, módosítani nem lehet). */
+/** Writing an audit log entry (only INSERT is possible, it cannot be modified). */
 export async function writeAudit(
   executor: Executor,
   entry: {
@@ -57,27 +57,27 @@ export interface OptimisticUpdateParams {
   db: Executor
   entityType: 'video' | 'event'
   entityId: string
-  /** Az a verzió, amelyről a kliens kiindult; eltérés esetén StaleWriteError. */
+  /** The version the client started from; on mismatch a StaleWriteError is thrown. */
   expectedVersion: number
   changes: Record<string, unknown>
   actor: string
   clock?: Clock
-  /** Audit műveletneve; alapértelmezetten `update`. */
+  /** Audit action name; defaults to `update`. */
   action?: string
   /**
-   * Tranzakción belüli kiegészítő írás (pl. kapcsolatok érvénytelenítése,
-   * slug előzmény) — sikertelen futásnál az egész mentés visszagörget.
+   * Supplementary write inside the transaction (e.g. invalidating relations,
+   * slug history) — on failure the entire save is rolled back.
    */
   afterWrite?: (tx: Executor) => Promise<void>
 }
 
 /**
- * Közös, optimista zárolásos frissítés tranzakciós auditbejegyzéssel.
- * - SELECT ... FOR UPDATE zárolja a sort;
- * - verzióeltérés esetén StaleWriteError;
- * - sikeres mentésnél updatedAt/updatedBy/version frissül és audit készül
- *   előtte-utána érték párral;
- * - `system` szereplőnél updatedBy NULL marad (a mező tagokra hivatkozik).
+ * Common optimistic-lock update with a transactional audit entry.
+ * - SELECT ... FOR UPDATE locks the row;
+ * - on a version mismatch a StaleWriteError is thrown;
+ * - on a successful save updatedAt/updatedBy/version are updated and an audit
+ *   entry with a before-after value pair is written;
+ * - for the `system` actor updatedBy stays NULL (the field references members).
  */
 export async function updateWithOptimisticLock(
   params: OptimisticUpdateParams,

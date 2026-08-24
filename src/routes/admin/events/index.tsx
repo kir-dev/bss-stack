@@ -36,8 +36,8 @@ const loadAdminEventList = createServerFn({ method: 'GET' })
     })
   })
 
-// Típus-alias (nem interface), hogy a szerverfüggvény `Record` paraméterébe
-// implicit indexszignatúrával átadható legyen.
+// Type alias (not an interface) so it can be passed to the server function's
+// `Record` parameter with an implicit index signature.
 type AdminEventSearch = {
   q?: string
   status?: string

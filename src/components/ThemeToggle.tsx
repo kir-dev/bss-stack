@@ -8,7 +8,7 @@ function isThemeMode(value: unknown): value is ThemeMode {
   return value === 'light' || value === 'dark' || value === 'auto'
 }
 
-/** A `__root.tsx` inline szkriptje által már alkalmazott mentett beállítás. */
+/** The stored setting already applied by the inline script in `__root.tsx`. */
 function readStoredMode(): ThemeMode {
   try {
     const stored = window.localStorage.getItem('theme')
@@ -91,8 +91,8 @@ function MoonIcon() {
 }
 
 export default function ThemeToggle() {
-  // Az SSR mindig világosat renderel; a valódi módot hidratálás után vesszük
-  // át, hogy a szerver- és kliensoldali kimenet egyezzen.
+  // SSR always renders light; the real mode is picked up after hydration so
+  // that server and client output match.
   const [mode, setMode] = useState<ThemeMode>('auto')
   const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>('light')
 
@@ -117,8 +117,8 @@ export default function ThemeToggle() {
   }, [mode])
 
   function toggleMode() {
-    // Auto módból a jelenleg látható téma ellentettjére váltunk, hogy a
-    // kattintás mindig érzékelhető változást hozzon.
+    // From auto mode we switch to the opposite of the currently visible theme,
+    // so that every click produces a noticeable change.
     const nextMode: ThemeMode = resolvedTheme === 'dark' ? 'light' : 'dark'
 
     setMode(nextMode)

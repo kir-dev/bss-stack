@@ -4,9 +4,9 @@ import { auditLog } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 
 /**
- * Auditnapló admin (BSS-033, spec 13.2): csak olvasható, vezetőségi nézet
- * szereplő-, művelet-, entitás- és dátumszűrővel. Módosítás, törlés és
- * export nincs (spec 19) — a DB-trigger is tiltja az írást.
+ * Audit log admin (BSS-033, spec 13.2): read-only leadership view with
+ * actor, action, entity and date filters. No editing, deletion or export
+ * (spec 19) — a DB trigger also blocks writes.
  */
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
@@ -52,7 +52,7 @@ export interface AuditListItem {
   entityType: string
   entityId: string
   action: string
-  /** Előtte-utána értékek kliensbiztos JSON szövegként. */
+  /** Before-and-after values as client-safe JSON text. */
   beforeJson: string | null
   afterJson: string | null
   occurredAt: Date
@@ -71,7 +71,7 @@ export async function getAuditPage(
   const conditions: SQL[] = []
   const filters = query.filters ?? {}
   if (filters.actor !== undefined) {
-    // `system` szereplő és tagok egyaránt kereshetők.
+    // Both the `system` actor and members can be searched.
     conditions.push(eq(auditLog.actor, filters.actor))
   }
   if (filters.action !== undefined) {
@@ -138,7 +138,7 @@ export async function getAuditPage(
   }
 }
 
-/** Az elérhető művelet- és entitástípus-értékek a szűrőkhöz. */
+/** Available action and entity type values for the filters. */
 export async function getAuditFilterValues(
   executor: Executor,
 ): Promise<{ actions: string[]; entityTypes: string[] }> {

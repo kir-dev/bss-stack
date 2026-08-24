@@ -1,8 +1,8 @@
 import { Link } from '@tanstack/react-router'
 
 /**
- * Közös magyar oldalállapotok (BSS-019): eltérő betöltési, üres és hibaállapot
- * minden listára és nézetre (spec 18).
+ * Shared page states with Hungarian copy (BSS-019): distinct loading, empty,
+ * and error states for every list and view (spec 18).
  */
 
 export function LoadingState({ label = 'Betöltés…' }: { label?: string }) {
@@ -80,17 +80,17 @@ export function ForbiddenContent() {
   )
 }
 
-/* --- Betöltési helyőrzők ------------------------------------------------- */
+/* --- Loading placeholders ------------------------------------------------- */
 
-/** Egy szövegsor helyőrzője; a magasságot a hívó adja meg. */
+/** Placeholder for a line of text; the caller supplies the height. */
 export function SkeletonLine({ className = '' }: { className?: string }) {
   return <span className={`skeleton block rounded ${className}`} />
 }
 
 /**
- * Videó- vagy eseménykártya helyőrzője: 16:9 borítókép plusz címsor. A méretei
- * megegyeznek a valódi kártyáéval, így a tartalom megjelenésekor nem ugrik a
- * tördelés.
+ * Placeholder for a video or event card: 16:9 thumbnail plus a heading. Its
+ * sizes match the real card's, so the layout doesn't jump when content
+ * appears.
  */
 export function ThumbnailCardSkeleton({
   lines = 1,
@@ -118,8 +118,8 @@ export function ThumbnailCardSkeleton({
 }
 
 /**
- * Kártyarács helyőrzője. A `className`-ben a valódi rács oszlopbeállítását kell
- * átadni, hogy a helyőrzők ugyanannyi hasábban jelenjenek meg.
+ * Placeholder for a card grid. The `className` must carry the real grid's
+ * column settings so the placeholders render with the same number of columns.
  */
 export function ThumbnailGridSkeleton({
   count,

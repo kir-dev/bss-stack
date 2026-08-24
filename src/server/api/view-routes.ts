@@ -23,8 +23,8 @@ export interface VideoViewDeps {
 }
 
 /**
- * Megtekintésszámláló végpont (spec 5.5): az első sikeres `play` eseménynél
- * hívja a kliens. Egy böngésző-session videónként egyszer számol.
+ * View counter endpoint (spec 5.5): the client calls it on the first successful
+ * `play` event. Counts once per video per browser session.
  */
 export async function handleVideoView(
   request: Request,
@@ -62,7 +62,7 @@ export async function handleVideoView(
     const db = deps.db ?? (await getDefaultDb())
     await recordVideoView(db, { videoId, viewer, token })
   } catch {
-    // Ismeretlen, nem publikált vagy nem látható videó: nincs információszivárgás.
+    // Unknown, non-published or non-visible video: no information leak.
     return new Response(JSON.stringify({ error: 'not_found' }), {
       status: 404,
       headers: { 'content-type': 'application/json' },

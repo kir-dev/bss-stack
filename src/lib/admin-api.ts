@@ -1,8 +1,8 @@
 /**
- * Admin kliensoldali hívási segéd (BSS-028). A szerver JSON-válaszait
- * diszkriminált eredménnyé fordítja: a 401-es (lejárt session) esetén
- * a loginUrl-t adja vissza, hogy a kliens megőrizze az űrlapadatot és
- * új belépés után újraküldhesse (spec 12.4).
+ * Admin client-side request helper (BSS-028). It turns the server's JSON
+ * responses into a discriminated result: on a 401 (expired session) it
+ * returns the loginUrl so the client can preserve the form data and
+ * resubmit it after a new login (spec 12.4).
  */
 
 export interface ApiError {
@@ -53,7 +53,7 @@ export async function postJson<T>(
   try {
     payload = (await response.json()) as Record<string, unknown>
   } catch {
-    // Nem JSON válasz (pl. proxy hibaoldal)
+    // Not a JSON response (e.g. a proxy error page)
   }
 
   if (!response.ok) {

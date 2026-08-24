@@ -17,12 +17,12 @@ import type { Executor } from '#/server/shared/db-executor.ts'
 export const RELATED_VIDEO_LIMIT = 5
 
 /**
- * Kapcsolódó videók kiszolgálása (spec 5.6). A kiválasztás sorrendje:
- * 1. sorrendezett manuális lista, ha van;
- * 2. azonos esemény öt legutóbb publikált videója;
- * 3. esemény nélkül a legalább egy közös címkével rendelkező öt legjobb videó,
- *    több közös címke erősebb, egyezésnél `publishedAt` csökkenő dönt.
- * A megjelenítés minden esetben a néző jogosultsága szerint szűr az SQL-ben.
+ * Serving related videos (spec 5.6). The selection order:
+ * 1. ordered manual list, if there is one;
+ * 2. the five most recently published videos of the same event;
+ * 3. without an event, the top five videos having at least one common tag;
+ *    more common tags are stronger, on a tie `publishedAt` descending decides.
+ * Display is always filtered in the SQL according to the viewer's permissions.
  */
 export async function getRelatedVideos(
   executor: Executor,
@@ -103,8 +103,8 @@ export async function getRelatedVideos(
 }
 
 /**
- * Manuális kapcsolódó lista cseréje. Csak publikált videó választható,
- * láthatóságtól függetlenül; önhivatkozás és duplikáció tiltva.
+ * Replace the manual related list. Only a published video can be selected,
+ * regardless of visibility; self-reference and duplication are forbidden.
  */
 export async function setManualRelatedVideos(
   executor: Executor,

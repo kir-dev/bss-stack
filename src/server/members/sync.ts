@@ -96,14 +96,15 @@ async function writeAuditEntry(
 }
 
 /**
- * Tagcache szinkron: az Authentik felhasználóit beolvassa és a helyi,
- * csak olvasható cache-be írja.
+ * Member cache sync: reads the Authentik users and writes them into a local,
+ * read-only cache.
  *
- * Szabályok a specifikáció 8. fejezete alapján:
- * - eltűnt tag utolsó ismert rekordja megmarad (soha nem töröl);
- * - ismeretlen státuszú vagy formátumú profil hibás lesz, publikus csoportba nem kerül;
- * - csak tényleges változásnál ír auditbejegyzést (`system` szereplővel);
- * - minden futás rögzítésre kerül a member_sync_runs táblában.
+ * Rules based on chapter 8 of the specification:
+ * - the last known record of a disappeared member is preserved (never deleted);
+ * - a profile with unknown status or format is marked as erroneous and is not
+ *   placed into the public group;
+ * - an audit entry (with `system` as actor) is written only on actual change;
+ * - every run is recorded in the member_sync_runs table.
  */
 export async function runMemberSync(
   trigger: SyncTrigger,
@@ -160,7 +161,7 @@ export async function runMemberSync(
         if (mapped.syncStatus === 'error') {
           errorCount += 1
           if (existing !== undefined) {
-            // Utolsó ismert adat megtartása, csak a hibajelzés frissül.
+            // Keep the last known data; only the error flag is updated.
             if (existing.syncStatus !== 'error') {
               await tx
                 .update(memberCache)
@@ -243,14 +244,14 @@ export async function runMemberSync(
           continue
         }
 
-        // Változatlan: csak a látvány időpontja frissül, audit NEM készül.
+        // Unchanged: only the last-seen timestamp is updated, NO audit entry is written.
         await tx
           .update(memberCache)
           .set({ lastSeenAt: startedAt })
           .where(eq(memberCache.sub, mapped.sub))
 
         if (existing.syncStatus === 'error') {
-          // Korábban hibás, most már érvényes profil: a javulás változás.
+          // Previously erroneous but now valid profile: the improvement counts as a change.
           await tx
             .update(memberCache)
             .set({ syncStatus: 'ok', lastSyncError: null })
@@ -311,7 +312,7 @@ export async function runMemberSync(
   }
 }
 
-/** Kézi szinkron indítása: csak vezetőségi tag jogosult rá. */
+/** Start a manual sync: only leadership members are authorized. */
 export async function triggerManualMemberSync(
   viewer: Viewer,
   deps: MemberSyncDeps = {},

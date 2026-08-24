@@ -40,7 +40,7 @@ export interface AdminVideoListQuery {
   filters?: AdminVideoListFilters
 }
 
-/** URL-értékek értelmezése; ismeretlen szűrőérték alapállapotra esik vissza. */
+/** Parse URL values; an unknown filter value falls back to the default state. */
 export function parseAdminVideoFilters(raw: {
   q?: unknown
   status?: unknown
@@ -74,9 +74,9 @@ export function parseAdminVideoFilters(raw: {
 }
 
 /**
- * Admin videólista (spec 12.2): minden állapot látszik, lapozva,
- * kereséssel és állapot-, láthatóság-, esemény- és címkeszűrővel.
- * Tömeges művelet nincs (spec 19).
+ * Admin video list (spec 12.2): all statuses visible, paginated,
+ * with search and status, visibility, event and tag filters.
+ * No bulk operations (spec 19).
  */
 export async function getAdminVideoList(
   executor: Executor,
@@ -164,7 +164,7 @@ export interface AdminVideoFilterOptions {
   tags: Array<{ id: string; name: string }>
 }
 
-/** Szűrőlegörtek az admin videólistához. */
+/** Filter dropdowns for the admin video list. */
 export async function getAdminVideoFilterOptions(
   executor: Executor,
 ): Promise<AdminVideoFilterOptions> {

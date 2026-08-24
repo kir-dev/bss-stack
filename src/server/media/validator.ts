@@ -5,7 +5,7 @@ export const MEDIA_TOTAL_TIMEOUT_MS = 15_000
 
 export interface MediaCheckResult {
   ok: boolean
-  /** Magyar, felhasználónak szóló problémák. */
+  /** Problems phrased for the end user. */
   problems: string[]
 }
 
@@ -19,7 +19,7 @@ function parseUrl(rawUrl: string): URL | null {
   }
 }
 
-/** Host engedélylista (spec 5.4): csak a konfigurált médiahostok engedélyezettek. */
+/** Host allowlist (spec 5.4): only configured media hosts are allowed. */
 export function isAllowedMediaHost(
   rawUrl: string,
   config: OobConfig['media'],
@@ -35,8 +35,8 @@ export function isAllowedMediaHost(
 }
 
 /**
- * Hálózati hívás nélküli ellenőrzés: URL forma és host. Piszkózat mentésekor
- * ez az egyetlen kötelező vizsgálat; a hibás URL így is menthető piszkozatban.
+ * Check without a network call: URL shape and host. When saving a draft this
+ * is the only mandatory check; an invalid URL can still be saved as a draft.
  */
 export function checkMediaUrlShape(
   rawUrl: string,
@@ -115,11 +115,11 @@ function contentTypeProblem(
 }
 
 /**
- * Publikálás előtti teljes médiaellenőrzés (spec 5.4):
- * - HEAD kérés, átirányítás nélküli 200 válasz elfogadott;
- * - videónál video/mp4, képnél image/* content-type kell;
- * - 405 vagy 501 esetén egybájtos Range GET tartalékellenőrzés fut;
- * - a fájl tartalmát soha nem töltjük le, csak a fejléceket olvassuk.
+ * Full media check before publishing (spec 5.4):
+ * - HEAD request; a 200 response without redirects is accepted;
+ * - video requires a video/mp4, image an image/* content-type;
+ * - on 405 or 501 a one-byte Range GET fallback check runs;
+ * - the file content is never downloaded, only the headers are read.
  */
 export async function validateMediaForPublish(params: {
   url: string
@@ -153,7 +153,7 @@ export async function validateMediaForPublish(params: {
     }
   }
 
-  // Átirányítás nem elfogadott: 3xx válasz a hiányzó/rossz médiára utal.
+  // Redirects are not accepted: a 3xx response indicates missing/bad media.
   if (headResponse.status >= 300 && headResponse.status < 400) {
     return {
       ok: false,
@@ -162,7 +162,7 @@ export async function validateMediaForPublish(params: {
   }
 
   if (headResponse.status === 405 || headResponse.status === 501) {
-    // Tartalék: egybájtos Range GET.
+    // Fallback: one-byte Range GET.
     let getResponse: Response
     try {
       getResponse = await fetchWithTimeout(

@@ -10,18 +10,18 @@ export interface ViewerStateDto {
   level: 'anonymous' | 'schonherz' | 'member' | 'leadership'
   username: string | null
   loggedIn: boolean
-  /** Navbarban kiírt név: a tagprofil teljes neve, hiányában a felhasználónév. */
+  /** Name shown in the navbar: the member profile's full name, or the username if missing. */
   displayName: string | null
-  /** Profilkép a tagprofilból; hiányában a navbar monogramot rajzol. */
+  /** Profile picture from the member profile; the navbar draws a monogram if missing. */
   avatarUrl: string | null
-  /** Látszik-e az adminfelület a menüben (legalább tag). */
+  /** Whether the admin area is visible in the menu (at least a member). */
   canAccessAdmin: boolean
 }
 
 /**
- * A navbar belépési állapota (BSS-019). Csak a helyi session-ből és a
- * tagcache-ből dönt, Authentik-hívás nélkül; a kliens a `/api/auth/me`
- * végpontot is használhatja.
+ * The navbar's login state (BSS-019). It decides only from the local session
+ * and the member cache, without Authentik calls; the client may also use the
+ * `/api/auth/me` endpoint.
  */
 export const fetchViewerState = createServerFn({ method: 'GET' }).handler(
   async (): Promise<ViewerStateDto> => {
@@ -43,9 +43,9 @@ export const fetchViewerState = createServerFn({ method: 'GET' }).handler(
 )
 
 /**
- * Név és profilkép a tagcache-ből. A navbar nem eshet szét attól, hogy egy
- * belépett nézőhöz (pl. Schönherz-szintű felhasználóhoz) nincs tagprofil,
- * vagy hogy a lekérdezés hibára fut – ilyenkor a felhasználónév marad.
+ * Name and profile picture from the member cache. The navbar must not break
+ * because a logged-in viewer (e.g. a user with `schonherz` level) has no member
+ * profile, or because the query fails – in that case the username is kept.
  */
 async function findMemberProfile(
   sub: string,

@@ -53,7 +53,7 @@ export const Route = createFileRoute('/events/')({
   pendingComponent: EventListSkeleton,
 })
 
-/** Az eseménylista helyőrzője: fejléc plusz 16:9-es kártyarács. */
+/** Placeholder for the event list: header plus a 16:9 card grid. */
 function EventListSkeleton() {
   return (
     <main className="mx-auto my-[4dvh] w-[90dvw]">
@@ -119,7 +119,7 @@ function EventListPageComponent() {
                   params={{ slug: item.slug }}
                   className="group card-surface hover-lift block shadow-[0_2px_6px_rgba(0,0,0,0.25)]"
                 >
-                  {/* A videószám-jelvény a borítóképhez tapad, nem a címhez. */}
+                  {/* The video-count badge attaches to the cover image, not the title. */}
                   <div className="relative">
                     <Thumbnail src={item.thumbnailUrl} alt={item.title} />
                     <span className="absolute right-2 bottom-2 rounded-full bg-black/70 px-2 py-1 text-xs font-bold text-white">

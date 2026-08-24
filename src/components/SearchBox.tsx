@@ -18,8 +18,8 @@ const EMPTY_RESULTS: SearchResults = {
 }
 
 /**
- * Globális kereső popover (spec 11.1): két karaktertől, 250 ms késleltetéssel;
- * csoportonként legfeljebb öt találat; billentyűzettel is kezelhető.
+ * Global search popover (spec 11.1): from two characters on, with a 250 ms
+ * delay; at most five hits per group; also keyboard-operable.
  */
 export default function SearchBox() {
   const navigate = useNavigate()

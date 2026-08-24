@@ -7,11 +7,11 @@ import {
 import type { Viewer } from '#/server/auth/viewer.ts'
 
 /**
- * Admin terület elérési eredménye. A route-ok loaderéből hívva dönt:
- * - névtelen: belépésre irányítás a megtartott returnTo-val;
- * - bejelentkezett jogosulatlan: magyar 403 tartalom;
- * - egyébként OK.
- * A szerver minden oldal- és API-kérésnél újra ellenőrzi (spec 14).
+ * Access result for the admin area. When called from a route's loader it decides:
+ * - anonymous: redirect to login with the preserved returnTo;
+ * - logged in but unauthorized: Hungarian 403 content;
+ * - otherwise OK.
+ * The server re-checks on every page and API request (spec 14).
  */
 export type AreaAccess =
   | { kind: 'ok'; viewer: Pick<Viewer, 'level' | 'sub' | 'username'> }

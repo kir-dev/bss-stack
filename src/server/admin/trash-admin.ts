@@ -4,8 +4,8 @@ import type { Executor } from '#/server/shared/db-executor.ts'
 import { TRASH_RETENTION_DAYS } from '#/server/videos/purge.ts'
 
 /**
- * Videólomtár admin (BSS-033, spec 13.1): minden tag látja a lomtárat,
- * a törlés szereplőjét és idejét; a visszaállítás vezetőségi jog.
+ * Video trash admin (BSS-033, spec 13.1): every member can see the trash,
+ * who deleted each item and when; restoring is a leadership privilege.
  */
 
 export interface TrashListItem {
@@ -24,7 +24,7 @@ export interface TrashPage {
   page: number
   perPage: number
   totalPages: number
-  /** A napi feladat által már véglegesen törölendő rekordok száma. */
+  /** Number of records already due to be permanently deleted by the daily job. */
   expiredCount: number
 }
 

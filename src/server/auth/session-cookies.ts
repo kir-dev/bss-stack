@@ -9,9 +9,9 @@ import type { OobConfig } from '#/server/config/oob-schema.ts'
 export const SESSION_COOKIE_NAME = 'bss_session'
 export const OIDC_TXN_COOKIE_NAME = 'bss_oidc_txn'
 
-/** A szerepváltozás legfeljebb egy órán belül érvényesül: abszolút session TTL. */
+/** Role changes take effect within at most an hour: absolute session TTL. */
 export const SESSION_TTL_MS = 60 * 60 * 1000
-/** A bejelentkezési tranzakció (state/PKCE/returnTo) rövid életű cookie-ban él. */
+/** The login transaction (state/PKCE/returnTo) lives in a short-lived cookie. */
 export const OIDC_TXN_TTL_SECONDS = 600
 
 export interface CookieSpec {

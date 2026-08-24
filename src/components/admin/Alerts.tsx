@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
 
 /**
- * Admin mentési hibaállapotok (BSS-028, spec 12.4):
- * - lejárt session: az űrlapadat a kliensen marad; új belépés után újraküldhető;
- * - elavult mentés (409): konfliktusüzenet + frissítési lehetőség,
- *   „utolsó mentés nyer" viselkedés nincs.
+ * Admin save error states (BSS-028, spec 12.4):
+ * - expired session: the form data stays on the client; it can be resubmitted
+ *   after logging in again;
+ * - stale save (409): conflict message + reload option, no "last save wins"
+ *   behavior.
  */
 
 export function LoginRequiredBanner({ loginUrl }: { loginUrl: string }) {
@@ -74,8 +75,8 @@ export function FormMessage({ children }: { children: ReactNode }) {
 }
 
 /**
- * Nem blokkoló figyelmeztetés (pl. nem engedélyezett média-host): piszkozatban
- * menthető, de publikálni nem lehet vele.
+ * Non-blocking warning (e.g. disallowed media host): the draft can still be
+ * saved with it, but it cannot be published.
  */
 export function WarningList({ warnings }: { warnings: string[] }) {
   if (warnings.length === 0) {

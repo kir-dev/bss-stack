@@ -5,13 +5,13 @@ export interface AdminColumn<TRow> {
   key: string
   header: string
   render: (row: TRow) => ReactNode
-  /** Kártyanézetben ez az elsődleges (félkövér) sor. */
+  /** The primary (bold) row in card view. */
   primary?: boolean
 }
 
 /**
- * Közös admin tábla (BSS-027): asztali nézetben táblázat, mobilon
- * kártyanézet — vízszintesen görgethetetlen tábla helyett (spec 12.1).
+ * Shared admin table (BSS-027): a table on desktop, cards on mobile —
+ * instead of a horizontally scrollable table (spec 12.1).
  */
 export function ResponsiveTable<TRow>({
   columns,
@@ -30,7 +30,7 @@ export function ResponsiveTable<TRow>({
 
   return (
     <>
-      {/* Asztali táblázat */}
+      {/* Desktop table */}
       <div className="hidden md:block">
         <table className="w-full text-left text-sm">
           <thead>
@@ -58,7 +58,7 @@ export function ResponsiveTable<TRow>({
           </tbody>
         </table>
       </div>
-      {/* Mobil kártyanézet */}
+      {/* Mobile card view */}
       <div className="flex flex-col gap-3 md:hidden">
         {rows.map((row, index) => (
           <div

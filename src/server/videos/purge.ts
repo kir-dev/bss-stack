@@ -10,9 +10,10 @@ export const TRASH_RETENTION_DAYS = 30
 export const TRASH_PURGE_JOB_NAME = 'video-trash-purge-daily'
 
 /**
- * Napi végleges törlés (spec 13.1): a legalább 30 napja lomtárban lévő
- * videók rekordja törlődik; a külső médiafájlokhoz nem nyúlunk. A slug a
- * történetbe kerül (újrahasználat tiltva), a törlés teljes auditot kap.
+ * Daily permanent deletion (spec 13.1): the record of videos that have been in
+ * the trash for at least 30 days is deleted; external media files are not
+ * touched. The slug goes into the history (reuse forbidden), and the deletion
+ * gets a full audit entry.
  */
 export async function purgeExpiredTrashedVideos(
   executor: Executor,
@@ -80,7 +81,7 @@ export async function purgeExpiredTrashedVideos(
   return purgedIds
 }
 
-/** Napi feladat regisztrálása a háttérfuttatóba (BSS-010 runner extra feladata). */
+/** Register the daily job into the background runner (extra job of the BSS-010 runner). */
 export function createTrashPurgeJob(deps: {
   clock?: Clock
   db: () => Promise<Executor>

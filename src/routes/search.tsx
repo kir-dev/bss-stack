@@ -21,7 +21,7 @@ const loadSearchResults = createServerFn({ method: 'GET' })
   .handler(async ({ data: query }) => {
     const { viewer } = await resolveViewerStateFromRequest(getRequest())
     const db = await getDefaultDb()
-    // Az Összes fül típusonként legfeljebb tíz találatot mutat (spec 11.3).
+    // The All tab shows at most ten results per type (spec 11.3).
     return search(db, viewer, query, { limitPerType: 10 })
   })
 
@@ -86,7 +86,7 @@ function SearchPage() {
 
   return (
     <main className="mx-auto w-[90dvw] my-[4dvh]">
-      {/* Technikai oldal: a keresés nem indexelhető (spec 16). */}
+      {/* Technical page: search must not be indexed (spec 16). */}
       <meta name="robots" content="noindex, nofollow" />
       <title>Keresés | BSS</title>
       <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">

@@ -1,649 +1,649 @@
-# BSS weboldal V0 követelményspecifikáció
+# BSS Website V0 Requirements Specification
 
-## Dokumentumállapot
+## Document status
 
-| Mező           | Érték                                                       |
-| -------------- | ----------------------------------------------------------- |
-| Állapot        | Elfogadott termékdöntések alapján készített V0 specifikáció |
-| Nyelv          | Magyar                                                      |
-| Időzóna        | Europe/Budapest                                             |
-| Célkörnyezet   | Dokumentáltan indítható lokális környezet                   |
-| Éles telepítés | Nem része a V0-nak                                          |
-| Vizuális alap  | A repóban lévő publikus prototípus                          |
+| Field              | Value                                                        |
+| ------------------ | ------------------------------------------------------------ |
+| Status             | V0 specification prepared on the basis of accepted product decisions |
+| Language           | English                                                      |
+| Time zone          | Europe/Budapest                                              |
+| Target environment | Locally runnable environment with documented startup          |
+| Production rollout | Not part of V0                                               |
+| Visual basis       | The public prototype in the repository                       |
 
-Ez a dokumentum az egyeztetés során elfogadott döntések egyetlen forrása. Ha a jelenlegi prototípus, a Figma vagy a régi bsstudio.hu működése eltér tőle, ez a specifikáció az irányadó.
+This document is the single source of truth for the decisions accepted during consultation. If the current prototype, Figma, or the legacy bsstudio.hu site behaves differently, this specification prevails.
 
-## 1. Cél és átadási határ
+## 1. Goal and delivery boundary
 
-A V0 egy lokálisan működő videóarchívum és szerkesztői rendszer. A publikus oldalak mellett az adminfolyamatoknak is használhatóknak kell lenniük. Adatbázis-kézi módosítás nem válthat ki hiányzó adminfunkciót.
+V0 is a locally operating video archive and editorial system. In addition to the public pages, the admin workflows must also be usable. Manual database modifications must not stand in for a missing admin feature.
 
-A V0 akkor tekinthető késznek, ha lokálisan bemutatható:
+V0 is considered complete when it can be demonstrated locally with:
 
-- a névtelen, schönherzes és BSS-tag nézői hozzáférés;
-- a tag és vezetőségi tag adminjogosultsága;
-- a videó teljes életciklusa;
-- az események kezelése;
-- a tagok Authentikből történő szinkronja;
-- a globális és részletes keresés;
-- a live, kiemelt és normál homepage-prioritás;
-- az auditnapló és a 30 napos videótörlés szimulációja.
+- anonymous, Schönherz-level, and BSS-member viewer access;
+- member and board-member admin privileges;
+- the full video lifecycle;
+- event management;
+- member synchronization from Authentik;
+- global and detailed search;
+- live, featured, and normal homepage priority;
+- the audit log and the 30-day video deletion simulation.
 
-## 2. Külső bemenetek
+## 2. External inputs
 
-A következő fájlok OOB érkeznek, és nem kerülnek gitbe:
+The following files arrive out-of-band (OOB) and are not committed to git:
 
-- Authentik attribútum- és csoportmappinget tartalmazó config;
-- helyi titkok;
-- előre kinyert seed JSON.
+- config containing Authentik attribute and group mapping;
+- local secrets;
+- pre-extracted seed JSON.
 
-A README-nek fel kell sorolnia a fájlok pontos helyét, formáját és ellenőrzési módját. Hiányzó fájlnál az alkalmazás konkrét hibaüzenettel álljon meg. Ne használjon kitalált alapértékeket.
+The README must list the exact location, format, and verification method of these files. When a file is missing, the application must stop with a specific error message. It must not fall back to invented default values.
 
-## 3. Szereplők és jogosultságok
+## 3. Actors and permissions
 
-### 3.1 Nézői szintek
+### 3.1 Viewer levels
 
-| Szereplő                   | Látható videók               | Admin                     |
-| -------------------------- | ---------------------------- | ------------------------- |
-| Névtelen látogató          | `public`                     | Nem                       |
-| Bejelentkezett schönherzes | `public`, `schonherz`        | Nem                       |
-| BSS-tag                    | `public`, `schonherz`, `bss` | Igen                      |
-| Vezetőségi tag             | `public`, `schonherz`, `bss` | Igen, kibővített jogokkal |
+| Actor                    | Visible videos               | Admin                        |
+| ------------------------ | ---------------------------- | ---------------------------- |
+| Anonymous visitor        | `public`                     | No                           |
+| Logged-in Schönherz user | `public`, `schonherz`        | No                           |
+| BSS member               | `public`, `schonherz`, `bss` | Yes                          |
+| Board member             | `public`, `schonherz`, `bss` | Yes, with extended rights    |
 
-Az Authentik `vezetoseg` csoportja kiegészíti a tagságot. Nem helyettesíti azt.
+The Authentik `vezetoseg` group complements membership. It does not replace it.
 
-### 3.2 Adminjogok
+### 3.2 Admin rights
 
-| Művelet                                                 | Tag  | Vezetőségi tag                   |
-| ------------------------------------------------------- | ---- | -------------------------------- |
-| Videó és esemény létrehozása, szerkesztése, publikálása | Igen | Igen                             |
-| Videó és esemény archiválása                            | Igen | Igen                             |
-| Videó lomtárba helyezése                                | Igen | Igen                             |
-| Videólomtár megtekintése                                | Igen | Igen                             |
-| Videó visszaállítása                                    | Nem  | Igen                             |
-| Esemény végleges törlése                                | Nem  | Igen                             |
-| Meglévő címkék videóhoz rendelése                       | Igen | Igen                             |
-| Címkekatalógus kezelése                                 | Nem  | Igen                             |
-| Stábszerepek kezelése                                   | Nem  | Igen                             |
-| Stáblista kezelése egy videón                           | Igen | Igen                             |
-| Live, kiemelés és Rólunk-videók kezelése                | Nem  | Igen                             |
-| Taglista és Authentik-szinkron diagnosztika             | Nem  | Igen, csak olvasható profilokkal |
-| Auditnapló megtekintése                                 | Nem  | Igen                             |
+| Action                                                  | Member | Board member                    |
+| ------------------------------------------------------- | ------ | ------------------------------- |
+| Create, edit, publish video and event                   | Yes    | Yes                             |
+| Archive video and event                                 | Yes    | Yes                             |
+| Move video to trash                                     | Yes    | Yes                             |
+| View video trash                                        | Yes    | Yes                             |
+| Restore video                                           | No     | Yes                             |
+| Permanently delete event                                | No     | Yes                             |
+| Assign existing tags to a video                         | Yes    | Yes                             |
+| Manage the tag catalog                                  | No     | Yes                             |
+| Manage crew roles                                       | No     | Yes                             |
+| Manage the credits of one video                         | Yes    | Yes                             |
+| Manage live, featured, and About videos                 | No     | Yes                             |
+| Member list and Authentik sync diagnostics              | No     | Yes, read-only profiles only    |
+| View audit log                                          | No     | Yes                             |
 
-Minden tag látja és szerkesztheti más tagok piszkozatait. Nincs tartalmi tulajdonjog szerző szerint. A szerver minden műveletnél újra ellenőrzi a jogosultságot.
+Every member can see and edit other members' drafts. There is no content ownership by author. The server re-checks authorization for every action.
 
-## 4. Közös tartalmi szabályok
+## 4. Common content rules
 
-### 4.1 Állapot és láthatóság
+### 4.1 Status and visibility
 
-Az állapot és a láthatóság külön adat.
+Status and visibility are separate data.
 
-Videó és esemény állapotai:
+Video and event statuses:
 
 - `draft`;
 - `published`;
 - `archived`.
 
-A videó ezen felül `trash` állapotba kerülhet. Csak a live használ időzítést.
+A video can additionally be moved to `trash` status. Only live uses scheduling.
 
-Az archivált tartalom nem látható publikus felületen. Bármely tag visszaállíthatja publikált állapotba. A lomtárból visszaállított videó archivált állapotba kerül, majd külön publikálható.
+Archived content is not visible on the public site. Any member can restore it to published status. A video restored from trash goes into archived status and can then be published separately.
 
-Videó láthatóságok:
+Video visibility levels:
 
 - `public`;
 - `schonherz`;
 - `bss`.
 
-Az új videó alapértelmezett láthatósága `public`. Az események és tagprofilok publikusak. A hozzájuk tartozó videókat és származtatott adatokat a néző jogosultsága szerint kell szűrni.
+The default visibility of a new video is `public`. Events and member profiles are public. Their associated videos and derived data must be filtered according to the viewer's access level.
 
-### 4.2 Azonosítók és slugok
+### 4.2 Identifiers and slugs
 
-- A belső azonosító UUID.
-- A publikus útvonal egyedi slugot használ.
-- A slug a címből kisbetűs, ékezet nélküli, kötőjeles formában képződik.
-- Ütközéskor számozott utótag készül.
-- A slug módosítható.
-- A régi slug átirányításként megmarad, és végleges törlés után sem használható fel újra.
-- A tagprofil stabil belső kulcsa az Authentik `sub` értéke. A profil slugja az Authentik felhasználónévből készül.
+- The internal identifier is a UUID.
+- The public path uses a unique slug.
+- The slug is derived from the title in lowercase, accent-free, hyphenated form.
+- On collision, a numbered suffix is appended.
+- The slug can be changed.
+- The old slug is kept as a redirect and is never reused even after permanent deletion.
+- A member profile's stable internal key is the Authentik `sub` value. The profile's slug is derived from the Authentik username.
 
-### 4.3 Szövegek
+### 4.3 Texts
 
-Minden leírás plain text, sortörések támogatásával. HTML, Markdown és rich text nem része a V0-nak.
+All descriptions are plain text with line break support. HTML, Markdown, and rich text are not part of V0.
 
-| Mező                          | Maximális hossz |
-| ----------------------------- | --------------: |
-| Cím                           |    200 karakter |
-| Slug                          |    200 karakter |
-| Címke és stábszerep           |     64 karakter |
-| Leírás és bemutatkozás        | 10 000 karakter |
-| Vendégek és felhasznált zenék |  5 000 karakter |
-| URL                           |  2 048 karakter |
+| Field                            | Maximum length |
+| -------------------------------- | --------------: |
+| Title                            |      200 chars  |
+| Slug                             |      200 chars  |
+| Tag and crew role                |       64 chars  |
+| Description and bio              |   10,000 chars  |
+| Guests and music used            |    5,000 chars  |
+| URL                              |    2,048 chars  |
 
-A kliens és a szerver ugyanazokat a korlátokat ellenőrizze.
+Client and server must enforce the same limits.
 
-### 4.4 Dátumok
+### 4.4 Dates
 
-- A pontos időpontok UTC timestampként tárolódnak.
-- A `recordedAt`, valamint az esemény kezdete és vége időzóna nélküli naptári dátum.
-- Megjelenítéskor Europe/Budapest érvényes.
-- Publikus dátumformátum: `2026. június 6.`
-- Admin és audit formátum: `2026. június 6. 14:32`
-- Eseményintervallum: `2026. június 6-8.`
-- Csatlakozási félév: `2023 ősz`
+- Exact timestamps are stored as UTC timestamps.
+- `recordedAt`, as well as an event's start and end, are time-zone-less calendar dates.
+- For display, Europe/Budapest applies.
+- Public date format: `2026. június 6.`
+- Admin and audit format: `2026. június 6. 14:32`
+- Event interval: `2026. június 6-8.`
+- Joining semester: `2023 ősz`
 
-## 5. Videók
+## 5. Videos
 
-### 5.1 Adatmodell
+### 5.1 Data model
 
-Egy videó mezői:
+The fields of a video:
 
-- UUID és slug;
-- cím;
-- leírás;
-- vendégek, szabad szöveg;
-- felhasznált zenék, szabad szöveg;
+- UUID and slug;
+- title;
+- description;
+- guests, free text;
+- music used, free text;
 - MP4 URL;
 - thumbnail URL;
-- láthatóság és állapot;
+- visibility and status;
 - `createdAt`, `updatedAt`, `publishedAt`, `recordedAt`;
-- megtekintésszám;
-- opcionális esemény;
-- címkék;
-- stábtagok és stábszerepek;
-- sorrendezett manuális kapcsolódó videók;
-- létrehozó és utolsó módosító.
+- view count;
+- optional event;
+- tags;
+- crew members and crew roles;
+- ordered manual related videos;
+- creator and last modifier.
 
-A felhasznált zenék formátuma soronként egy tétel:
+The format of the music used is one item per line:
 
 ```text
 Előadó - Szám címe
 Másik előadó - Másik szám
 ```
 
-Egy videó legfeljebb egy eseményhez tartozhat. Az eseménykapcsolat nem kötelező.
+A video can belong to at most one event. The event link is optional.
 
-### 5.2 Dátumszabályok
+### 5.2 Date rules
 
-- A `createdAt` rendszeradat, nem módosítható.
-- A `publishedAt` publikáláskor az aktuális időpontot kapja, de tag múltbeli időpontra módosíthatja.
-- Jövőbeli `publishedAt` nem engedélyezett.
-- Esemény nélküli videónál a `recordedAt` opcionális.
-- Egynapos esemény hozzárendelése kitölti az üres `recordedAt` mezőt.
-- Többnapos eseménynél publikálás előtt meg kell adni a `recordedAt` értéket.
-- Az esemény intervallumán kívüli dátum megengedett, de figyelmeztetést kap.
-- Esemény vagy eseménydátum módosítása nem írja felül csendben a videódátumot.
-- Esemény leválasztásakor a `recordedAt` megmarad.
+- `createdAt` is system data and cannot be modified.
+- On publication, `publishedAt` receives the current time, but a member can change it to a past point in time.
+- Future `publishedAt` values are not allowed.
+- For videos without an event, `recordedAt` is optional.
+- Assigning a one-day event fills in an empty `recordedAt`.
+- For a multi-day event, `recordedAt` must be provided before publishing.
+- A date outside the event interval is allowed but triggers a warning.
+- Changing the event or the event date does not silently overwrite the video date.
+- When detaching an event, `recordedAt` is preserved.
 
-### 5.3 Piszkozat és publikálás
+### 5.3 Draft and publishing
 
-Piszkozat mentéséhez csak a cím kötelező.
+Only the title is required to save a draft.
 
-Publikáláshoz kötelező:
+Required for publishing:
 
-- cím;
-- érvényes MP4 URL;
-- érvényes thumbnail URL;
-- láthatóság;
-- nem jövőbeli `publishedAt`;
-- többnapos eseménynél `recordedAt`.
+- title;
+- valid MP4 URL;
+- valid thumbnail URL;
+- visibility;
+- non-future `publishedAt`;
+- `recordedAt` for multi-day events.
 
-Az adminűrlap mentéskor választható műveleteket ad: `Piszkozat mentése` és `Publikálás`. Nincs automatikus mentés. Mentetlen változásokkal navigáláskor megerősítés szükséges.
+On save, the admin form offers selectable actions: `Save draft` and `Publish`. There is no autosave. Navigating away with unsaved changes requires confirmation.
 
-### 5.4 Média-URL-ek
+### 5.4 Media URLs
 
-Az alkalmazás fájlt nem tölt fel, nem kódol át és nem töröl a médiaszerverről. Csak távoli URL-t tárol.
+The application does not upload files, does not transcode, and does not delete anything from the media server. It only stores remote URLs.
 
-Videó és thumbnail esetén:
+For videos and thumbnails:
 
-- csak `https://v.bsstudio.hu` host engedélyezett;
-- a szerver `HEAD` kérést küld 5 másodperces kapcsolódási és 15 másodperces teljes timeouttal;
-- csak átirányítás nélküli `200` válasz fogadható el;
-- videónál `video/mp4`, thumbnailnél `image/*` content type szükséges;
-- `3xx`, `4xx`, timeout és `5xx` nem enged publikálást;
-- hibás vagy még nem ellenőrizhető URL piszkozatban menthető;
-- `405` vagy `501` esetén egybájtos Range GET használható tartalék ellenőrzésként.
+- only the `https://v.bsstudio.hu` host is allowed;
+- the server sends a `HEAD` request with a 5-second connection timeout and a 15-second total timeout;
+- only a `200` response without redirection is accepted;
+- videos require `video/mp4` and thumbnails require `image/*` content types;
+- `3xx`, `4xx`, timeout, and `5xx` do not allow publishing;
+- an invalid or not-yet-verifiable URL can be saved as a draft;
+- on `405` or `501`, a one-byte Range GET may be used as a fallback check.
 
-A láthatóság csak az oldal metaadatait védi. A külső MP4 URL publikus, ezért a link birtokában a fájl az alkalmazás megkerülésével is elérhető.
+Visibility only protects page metadata. The external MP4 URL is public, so anyone holding the link can access the file bypassing the application.
 
-### 5.5 Player és megtekintésszám
+### 5.5 Player and view count
 
-- Natív videóvezérlők.
-- A thumbnail a poster.
+- Native video controls.
+- The thumbnail serves as the poster.
 - `preload="metadata"`.
-- Nincs autoplay.
-- Nincs külön letöltés gomb.
-- Nincs lejátszási pozíció mentése.
-- Médiahiba esetén magyar hibaüzenet és újrapróbálás jelenik meg.
+- No autoplay.
+- No separate download button.
+- No playback position saving.
+- On media error, a Hungarian error message and a retry option are displayed.
 
-A számláló az első sikeres `play` eseménynél nő. Egy böngésző-session ugyanazt a videót egyszer számolja, több fülből is. A session cookie a böngésző bezárásáig él. IP-cím, felhasználói megtekintéstörténet és kézi számlálómódosítás nincs. A megtekintésszám csak adminban látható.
+The counter increments at the first successful `play` event. One browser session counts the same video once, even across multiple tabs. The session cookie lives until the browser closes. There is no IP address, no per-user viewing history, and no manual counter modification. The view count is visible only in admin.
 
-### 5.6 Kapcsolódó videók
+### 5.6 Related videos
 
-A kiválasztás sorrendje:
+Selection order:
 
-1. sorrendezett manuális lista, ha van;
-2. azonos esemény öt legutóbb publikált videója;
-3. esemény nélkül az öt legjobb, legalább egy közös címkével rendelkező videó.
+1. ordered manual list, if present;
+2. the five most recently published videos of the same event;
+3. without an event, the five best videos sharing at least one common tag.
 
-Közös címkés találatnál a több közös címke erősebb. Egyezésnél a `publishedAt` csökkenő sorrendje dönt.
+For common-tag matches, more common tags rank stronger. On ties, descending `publishedAt` decides.
 
-Manuálisan bármely publikált videó kiválasztható, láthatóságtól függetlenül. Piszkozat, archivált, lomtárban lévő, önhivatkozás vagy duplikáció nem engedélyezett. Megjelenítéskor a néző jogosultsága minden esetben szűr.
+Manually, any published video can be selected regardless of visibility. Drafts, archived videos, trashed videos, self-references, and duplicates are not allowed. At display time, the viewer's access level always filters.
 
-### 5.7 Videórészlet
+### 5.7 Video detail block
 
-A blokkok sorrendje:
+Block order:
 
 1. player;
-2. cím;
-3. készült és feltöltve dátum;
-4. esemény linkje;
-5. leírás;
-6. vendégek;
-7. felhasznált zenék;
-8. címkék;
-9. stáb pozíciónként;
-10. kapcsolódó videók.
+2. title;
+3. recorded and uploaded dates;
+4. event link;
+5. description;
+6. guests;
+7. music used;
+8. tags;
+9. crew grouped by role;
+10. related videos.
 
-Üres opcionális blokk nem jelenik meg. A stábtag neve a tagprofilra visz. A címke a videólistát nyitja aktív címkeszűrővel.
+Empty optional blocks are not displayed. A crew member's name links to their member profile. A tag opens the video list with that tag filter active.
 
-### 5.8 Videólista
+### 5.8 Video list
 
-A videókártya csak thumbnailt és címet mutat.
+The video card shows only a thumbnail and a title.
 
-Rendezések:
+Sortings:
 
-- alapértelmezett és utoljára feltöltött: `publishedAt` csökkenő;
-- időrendi: `recordedAt` csökkenő, hiányzó értékek hátul;
-- legnézettebb: megtekintésszám csökkenő.
+- default and latest uploads: `publishedAt` descending;
+- chronological: `recordedAt` descending, missing values at the end;
+- most viewed: view count descending.
 
-Egyezésnél `publishedAt`, majd UUID ad stabil sorrendet.
+On ties, `publishedAt` followed by UUID provides stable ordering.
 
-Szűrők:
+Filters:
 
-- szabad szöveg;
-- több címke `ÉS` kapcsolattal;
-- esemény;
-- `recordedAt` dátumtartomány;
-- stábtag;
-- stábszerep.
+- free text;
+- multiple tags joined by `AND`;
+- event;
+- `recordedAt` date range;
+- crew member;
+- crew role.
 
-Alapértelmezett oldalméret 50. Választható értékek: 10, 25, 50, 100. A rendezés, lapozás és szűrők az URL-ben maradnak.
+Default page size is 50. Selectable values: 10, 25, 50, 100. Sorting, pagination, and filters persist in the URL.
 
-## 6. Események
+## 6. Events
 
-### 6.1 Adatmodell és publikálás
+### 6.1 Data model and publishing
 
-Egy esemény mezői:
+The fields of an event:
 
-- UUID és slug;
-- cím;
-- plain text leírás;
-- opcionális thumbnail URL;
-- kezdődátum;
-- opcionális befejezési dátum;
-- állapot;
-- létrehozó, utolsó módosító és időbélyegek.
+- UUID and slug;
+- title;
+- plain-text description;
+- optional thumbnail URL;
+- start date;
+- optional end date;
+- status;
+- creator, last modifier, and timestamps.
 
-Piszkozathoz csak cím kell. Publikáláshoz cím és kezdődátum szükséges. A befejezés nem lehet korábbi a kezdésnél. Jövőbeli esemény publikálható.
+A draft needs only a title. Publishing requires title and start date. The end date cannot precede the start date. A future event can be published.
 
-Az esemény thumbnailje opcionális. Hiányában a legújabb, néző számára látható videó thumbnailje használható, majd placeholder következik.
+The event thumbnail is optional. If missing, the thumbnail of the newest video visible to the viewer may be used, followed by a placeholder.
 
-### 6.2 Láthatóság és származtatott adatok
+### 6.2 Visibility and derived data
 
-Az esemény mindig publikus. A videólista, a videók száma és a stáblista csak a néző számára látható videókból készül.
+An event is always public. The video list, the video count, and the credits are built only from videos visible to the viewer.
 
-Az eseményhez nincs külön stáblista. Az oldal a videók egyedi stábtagjait mutatja név szerint rendezve, titulus nélkül.
+There is no separate credits list for an event. The page shows the unique crew members of its videos, sorted by name, without titles.
 
-### 6.3 Lista és részletoldal
+### 6.3 List and detail page
 
-Az eseménykártyán jelenik meg:
+Shown on the event card:
 
 - thumbnail;
-- cím;
-- a néző számára látható videók száma a thumbnailre helyezett overlayben.
+- title;
+- the number of videos visible to the viewer in an overlay placed on the thumbnail.
 
-Az eseménylista kezdődátum szerint csökkenő sorrendű. Alapértelmezett oldalmérete 50, a videólistával azonos választható méretekkel.
+The event list is sorted descending by start date. Its default page size is 50, with the same selectable sizes as the video list.
 
-Az eseményrészleten jelenik meg:
+Shown on the event detail page:
 
-- cím, thumbnail, dátumintervallum és leírás;
-- videók `recordedAt` szerint csökkenő sorrendben, 50-es lapozással;
-- a származtatott stáblista.
+- title, thumbnail, date interval, and description;
+- videos sorted descending by `recordedAt`, paginated by 50;
+- the derived credits list.
 
-### 6.4 Végleges törlés
+### 6.4 Permanent deletion
 
-Eseményt csak vezetőségi tag törölhet. A művelet azonnali és végleges.
+Only a board member can delete an event. The action is immediate and final.
 
-Egy tranzakción belül:
+Within one transaction:
 
-1. minden videó eseménykapcsolata megszűnik;
-2. az esemény törlődik;
-3. teljes auditbejegyzés készül.
+1. every video's event link is removed;
+2. the event is deleted;
+3. a full audit entry is created.
 
-A videók `recordedAt` értéke megmarad. A megerősítéshez az esemény címét be kell írni.
+The videos' `recordedAt` values are preserved. To confirm, the event title must be typed in.
 
-## 7. Címkék és stábszerepek
+## 7. Tags and crew roles
 
-### 7.1 Címkék
+### 7.1 Tags
 
-Külön kategóriarendszer nincs. Egy videóhoz több címke, egy címkéhez több videó tartozhat.
+There is no separate category system. Multiple tags can belong to a video, and multiple videos to a tag.
 
-- Tag csak meglévő címkét rendelhet videóhoz.
-- Vezetőségi tag létrehozhat, átnevezhet, összevonhat és törölhet címkét.
-- Használt címke törölhető figyelmeztetés és címbeírás után.
-- Törléskor minden videókapcsolat megszűnik.
-- Összevonáskor minden kapcsolat a célcímkére kerül.
-- Kis- és nagybetű, valamint felesleges szóköz nem hozhat létre duplikációt.
-- Az ékezet jelentésmegkülönböztető. A rendszer csak figyelmeztet az ékezet nélkül hasonló névre.
+- A member can only assign existing tags to a video.
+- A board member can create, rename, merge, and delete tags.
+- A tag in use can be deleted after a warning and typing in its name.
+- On deletion, all video links are removed.
+- On merge, all links move to the target tag.
+- Letter case and redundant whitespace must not create duplicates.
+- Accents are meaning-distinguishing. The system only warns about names similar when unaccented.
 
-### 7.2 Stábszerepek
+### 7.2 Crew roles
 
-A jogosultsági szerepek és a stábszerepek külön táblában élnek.
+Authorization roles and crew roles live in separate tables.
 
-- Vezetőségi tag hozhat létre, nevezhet át, rendezhet és vonhat össze stábszerepet.
-- A szerepnek `displayOrder` értéke van.
-- Használatban lévő szerep nem törölhető.
-- Egy videó azonos szerepéhez több tag tartozhat.
-- Egy tag ugyanazon a videón több szerepet is kaphat.
+- Only a board member can create, rename, order, and merge crew roles.
+- A role has a `displayOrder` value.
+- A role in use cannot be deleted.
+- Multiple members can hold the same role on one video.
+- A member can hold multiple roles on the same video.
 
-## 8. Tagok
+## 8. Members
 
-### 8.1 Authentik mint forrás
+### 8.1 Authentik as source
 
-Az Authentik a profil- és jogosultsági adatok egyetlen írható forrása. Az alkalmazás profiloldala és adminfelülete csak olvas.
+Authentik is the single writable source of profile and authorization data. The application's profile pages and admin surface are read-only.
 
-Az OOB config leképezi:
+The OOB config maps:
 
-- a stabil `sub` azonosítót;
-- felhasználónevet;
-- teljes nevet;
-- becenevet;
-- profilkép URL-t;
-- tagsági státuszt;
-- csatlakozási évet és félévet;
-- bemutatkozást;
-- `tag` és `vezetoseg` csoportot.
+- the stable `sub` identifier;
+- username;
+- full name;
+- nickname;
+- profile image URL;
+- membership status;
+- joining year and semester;
+- bio;
+- `tag` and `vezetoseg` groups.
 
-A csatlakozási félév szabad szövegként is érkezhet. A cache tárolja a nyers értéket, valamint a config alapján feldolgozott évet és `spring | autumn` értéket. Ismeretlen formátum vagy státusz szinkronhibát okoz. A profil ilyenkor nem jelenik meg a publikus listán.
+The joining semester may arrive as free text. The cache stores the raw value plus the year and the `spring | autumn` value processed according to the config. An unknown format or status causes a sync error. In that case, the profile is not shown on the public list.
 
-Emailt és mobilszámot az alkalmazás nem kér, nem cache-el és nem jelenít meg.
+The application neither requests, caches, nor displays email addresses or mobile numbers.
 
-### 8.2 Cache és szinkron
+### 8.2 Cache and synchronization
 
-- Szinkron induláskor, óránként és vezetőségi kézi indításra fut.
-- A publikus kérés nem hívja közvetlenül az Authentiket.
-- Authentik-kieséskor az utolsó cache marad publikus.
-- Új belépés nem lehetséges, a meglévő session legfeljebb egy óráig él.
-- Authentikből eltűnt tag utolsó ismert, nem szerkeszthető rekordja megmarad.
-- A történelmi stáblista és tevékenység nem törlődik.
-- A rejtett vezetőségi felület mutatja a szinkronállapotot, hibákat és az utolsó futást.
+- Sync runs at startup, hourly, and on manual trigger by the board.
+- Public requests do not call Authentik directly.
+- During an Authentik outage, the last cache remains public.
+- New logins are impossible; an existing session lives at most one hour.
+- A member who has disappeared from Authentik keeps their last known, non-editable record.
+- Historical credits and activity are not deleted.
+- The hidden board-only surface shows sync status, errors, and the last run.
 
-### 8.3 Tagsági státuszok
+### 8.3 Membership statuses
 
-Egy személynek pontosan egy tagsági státusza van:
+A person has exactly one membership status:
 
-- stúdiós;
-- stúdiósjelölt;
-- stúdiósjelölt-jelölt;
-- aktív öregtag;
-- archivált öregtag;
-- dolgozott még velünk.
+- studio member;
+- studio candidate;
+- candidate candidate;
+- active alumnus;
+- archived alumnus;
+- worked with us before.
 
-A vezetőségi szerep ettől külön áll. A vezetőségi tag csak a Vezetőség blokkban jelenik meg, saját státuszának blokkjában nem ismétlődik.
+The board role is separate from this. A board member appears only in the Board block and is not repeated in the block of their own status.
 
-### 8.4 Taglista és profil
+### 8.4 Member list and profile
 
-Aktív tagoldal blokkjai:
+Blocks of the active members page:
 
-1. vezetőség;
-2. stúdiósok;
-3. stúdiósjelöltek;
-4. stúdiósjelölt-jelöltek;
-5. aktív öregtagok.
+1. board;
+2. studio members;
+3. studio candidates;
+4. candidate candidates;
+5. active alumni.
 
-Az archivált öregtagok és a korábbi közreműködők külön publikus aloldalt kapnak, 50-es lapozással. Az aktív tagoldalon nincs lapozás.
+Archived alumni and former contributors get a separate public subpage with pagination of 50. The active members page has no pagination.
 
-A tagkártya profilképet, teljes nevet és becenevet mutat.
+The member card shows a profile image, full name, and nickname.
 
-A profil sorrendje:
+Profile order:
 
-1. profilkép, név és becenév;
-2. státusz és vezetőségi szerep;
-3. csatlakozási félév;
-4. bemutatkozás;
-5. tevékenység.
+1. profile image, name, and nickname;
+2. status and board role;
+3. joining semester;
+4. bio;
+5. activity.
 
-A tevékenység év és szerep nézet között váltható. Mindkettő `recordedAt` szerint csökkenő.
+Activity can switch between year and role views. Both sort descending by `recordedAt`.
 
-- Év nézetben az évek alatt stábszerep szerinti csoportok jelennek meg.
-- Szerep nézetben a szerepek alatt időrendben jelennek meg a videók.
-- Több szerepnél ugyanaz a videó minden érintett csoportban megjelenik.
-- Nézetenként 50 videó töltődik be, majd `Továbbiak betöltése` folytatja.
-- A nézet és a kiválasztott csoport az URL-ben marad.
-- Csak a néző számára látható videók jelennek meg.
+- In year view, groups by crew role appear under each year.
+- In role view, videos appear chronologically under each role.
+- With multiple roles, the same video appears in every affected group.
+- Each view loads 50 videos at a time, then `Load more` continues.
+- The view and the selected group persist in the URL.
+- Only videos visible to the viewer are shown.
 
-## 9. Homepage és live
+## 9. Homepage and live
 
-### 9.1 Prioritás
+### 9.1 Priority
 
-A homepage állapota számított prioritás:
+The homepage state is a computed priority:
 
-1. aktív live;
-2. kiemelt videó;
-3. normál állapot.
+1. active live;
+2. featured video;
+3. normal state.
 
-Live és kiemelt állapotban a hero mellett öt legutóbbi publikus videó jelenik meg. A hero videó nem ismétlődhet a listában. Normál állapotban hat legutóbbi publikus videó jelenik meg.
+In live and featured states, five recent public videos are shown next to the hero. The hero video must not repeat in the list. In normal state, six recent public videos are shown.
 
-Mindhárom állapot alatt hat esemény látható, kezdődátum szerint csökkenő sorrendben. Jövőbeli publikált esemény is szerepelhet.
+In all three states, six events are shown, sorted descending by start date. A future published event may also appear.
 
-### 9.2 Kiemelés
+### 9.2 Featuring
 
-- Csak publikált, publikus videó emelhető ki.
-- A vezetőség választja ki.
-- A kiemelés nem időzíthető.
-- Archiválás, lomtár vagy láthatóság-szűkítés ugyanabban a tranzakcióban megszünteti a kiemelést.
+- Only published, public videos can be featured.
+- The board selects them.
+- Featuring cannot be scheduled.
+- Archiving, trashing, or narrowing visibility removes the featuring within the same transaction.
 
 ### 9.3 Live
 
-A live egy YouTube-videóhoz tartozó ütemezés:
+Live is a schedule attached to a YouTube video:
 
-- elfogadott URL-formák: `youtube.com/watch`, `youtube.com/live`, `youtu.be`, YouTube embed;
-- a rendszer videóazonosítóra normalizálja az URL-t;
-- a megjelenítés `youtube-nocookie.com` embedet használ;
-- az oEmbed ellenőrzés mentéskor és aktiváláskor fut;
-- kezdési és befejezési idő kötelező;
-- egymást átfedő live-ok nem menthetők;
-- a vezetőség `Indítás most` és `Lezárás most` műveletet kap;
-- nincs autoplay;
-- a kezdés előtti 24 órában `Adás hamarosan` sáv jelenik meg;
-- a sáv nem váltja le a normál vagy kiemelt hero tartalmát;
-- a homepage frissítés nélkül vált, és percenként ellenőrzi az állapotot;
-- aktiválási hibánál a homepage kiemelt vagy normál állapotra esik vissza;
-- futó live-ot átmeneti YouTube-hiba nem kapcsol le automatikusan.
+- accepted URL forms: `youtube.com/watch`, `youtube.com/live`, `youtu.be`, YouTube embed;
+- the system normalizes the URL to a video ID;
+- display uses a `youtube-nocookie.com` embed;
+- oEmbed validation runs at save and activation;
+- start and end times are required;
+- overlapping lives cannot be saved;
+- the board gets `Start now` and `Close now` actions;
+- no autoplay;
+- during the 24 hours before the start, an `Adás hamarosan` banner appears;
+- the banner does not replace normal or featured hero content;
+- the homepage switches without refresh and checks state once per minute;
+- on activation failure, the homepage falls back to featured or normal state;
+- a transient YouTube failure does not automatically shut down a running live.
 
-Befejezett live nem jelenik meg publikus archívumban. Az admin olvasható előzményt tart meg. Korábbi live csak másolatként ütemezhető újra.
+A finished live does not appear in any public archive. Admin retains a readable history. A past live can only be rescheduled as a copy.
 
-A live-ból nem készül automatikusan videó. Az editor új normál videót vesz fel, és kézzel rendelheti hozzá az `Adás` címkét.
+No video is automatically created from a live. The editor creates a new normal video and may manually assign the `Adás` tag to it.
 
-## 10. További publikus oldalak
+## 10. Other public pages
 
-### 10.1 Rólunk
+### 10.1 About
 
-- A szöveg verziókezelt plain text tartalom.
-- Módosítása kódváltozást igényel.
-- Az oldal alján legfeljebb hat, vezetőség által választott és sorrendezett publikus videó jelenik meg.
-- Archivált, lomtárban lévő vagy nem publikus videó automatikusan kiesik.
+- The text is version-controlled plain-text content.
+- Modifying it requires a code change.
+- At the bottom of the page, at most six public videos chosen and ordered by the board are shown.
+- Archived, trashed, or non-public videos drop out automatically.
 
-### 10.2 Tanfolyam
+### 10.2 Course
 
-A `/courses` útvonal ugyanabban a böngészőfülben a `https://tanfolyam.bsstudio.hu/` oldalra irányít.
+The `/courses` path redirects to `https://tanfolyam.bsstudio.hu/` in the same browser tab.
 
-Helyi tanfolyami űrlap, adatmodell, admin, export és email nincs.
+There is no local course form, data model, admin, export, or email.
 
-## 11. Keresés
+## 11. Search
 
-### 11.1 Globális kereső
+### 11.1 Global search box
 
-A navbar keresője két karaktertől indul, 250 ms késleltetéssel. Csoportonként legfeljebb öt találatot mutat, billentyűzettel is használható.
+The navbar search activates from two characters with a 250 ms delay. It shows at most five results per group and is keyboard-accessible.
 
-Találattípusok:
+Result types:
 
-- videó, amely a videórészletre visz;
-- esemény, amely az eseményrészletre visz;
-- tag, amely a tagprofilra visz;
-- címke, amely aktív szűrővel a videólistára visz.
+- video, leading to the video detail page;
+- event, leading to the event detail page;
+- member, leading to the member profile;
+- tag, leading to the video list with that filter active.
 
-A felületen a személy `Tag`, a videóhoz rendelt adat `Címke` néven jelenik meg.
+In the interface, a person appears as `Tag` and data assigned to videos as `Címke`.
 
-### 11.2 Súlyozás
+### 11.2 Weighting
 
-Fontossági sorrend:
+Importance order:
 
-1. pontos cím, név vagy becenév;
-2. cím, név vagy címke elejének egyezése;
-3. videócímke és eseménycím;
-4. vendégek és stáblista;
-5. leírás és bemutatkozás.
+1. exact title, name, or nickname;
+2. prefix match on title, name, or tag;
+3. video tags and event titles;
+4. guests and credits;
+5. description and bio.
 
-A felhasznált zenékben nincs keresés. A keresés kis- és nagybetűtől, valamint ékezettől független. A kisebb elgépeléseket trigram alapú hasonlóság kezeli.
+Music used is not searched. Search ignores letter case and accents. Minor typos are handled by trigram-based similarity.
 
-Keresőkifejezésnél a relevancia az alapértelmezett rendezés, egyezésnél `publishedAt` csökkenő. A felhasználó ezt felülírhatja a videólista rendezéseivel.
+For a search query, relevance is the default sorting; on ties, `publishedAt` descending. The user can override this with the video list sortings.
 
-### 11.3 Teljes keresőoldal
+### 11.3 Full search page
 
-A `/search` fülei:
+The `/search` tabs:
 
-- Összes;
-- Videók;
-- Események;
-- Tagok.
+- All;
+- Videos;
+- Events;
+- Members.
 
-Az Összes fül típusonként legfeljebb tíz találatot mutat. A részletes videókeresés a `/videos` oldal elfogadott szűrőit használja. A dátum csak külön dátummezőként kereshető, természetes nyelvű dátumfelismerés nincs.
+The All tab shows at most ten results per type. Detailed video search uses the accepted filters of the `/videos` page. Dates can only be searched via a dedicated date field; there is no natural-language date recognition.
 
-Üres keresés nem listázza ki az adatbázist. Keresési útmutatót és linket mutat a részletes videószűrőhöz.
+An empty search does not dump the database. It shows search guidance and a link to the detailed video filter.
 
-### 11.4 Hozzáférés
+### 11.4 Access
 
-A keresési lekérdezés már az adatbázisban kizárja a nem látható videókat. Cím, thumbnail, találatszám és más metaadat sem szivároghat ki kliensoldali utószűrés előtt.
+The search query already excludes non-visible videos at the database level. Titles, thumbnails, result counts, and other metadata must not leak before client-side post-filtering.
 
-## 12. Adminfelület
+## 12. Admin interface
 
-### 12.1 Navigáció
+### 12.1 Navigation
 
-A sidebar elemei:
+Sidebar items:
 
-- Videók;
-- Események;
-- Live és kiemelés;
-- Címkekatalógus;
-- Stábszerepek;
-- Tagok, csak vezetőségnek és csak olvashatóan;
-- Lomtár;
-- Auditnapló, csak vezetőségnek.
+- Videos;
+- Events;
+- Live and featuring;
+- Tag catalog;
+- Crew roles;
+- Members, board-only and read-only;
+- Trash;
+- Audit log, board-only.
 
-Külön dashboard nincs. Belépés után a Videók lista nyílik meg. Az admin mobilon is használható. Az összetett táblák kártyanézetre válthatnak.
+There is no separate dashboard. After login, the Videos list opens. The admin is usable on mobile. Complex tables may switch to card views.
 
-### 12.2 Videólista
+### 12.2 Video list
 
-Oszlopok:
+Columns:
 
-- thumbnail és cím;
-- állapot;
-- láthatóság;
-- esemény;
+- thumbnail and title;
+- status;
+- visibility;
+- event;
 - `recordedAt`;
 - `publishedAt`;
-- megtekintésszám;
-- utolsó módosító és módosítás ideje.
+- view count;
+- last modifier and modification time.
 
-Szűrők:
+Filters:
 
-- keresés;
-- állapot;
-- láthatóság;
-- esemény;
-- címke.
+- search;
+- status;
+- visibility;
+- event;
+- tag.
 
-Tömeges törlés, archiválás és láthatóság-módosítás nincs a V0-ban.
+Bulk deletion, archiving, and visibility changes do not exist in V0.
 
-### 12.3 Eseménylista
+### 12.3 Event list
 
-Oszlopok:
+Columns:
 
-- cím;
-- dátum vagy intervallum;
-- állapot;
-- videók száma;
-- utolsó módosító és módosítás ideje.
+- title;
+- date or interval;
+- status;
+- number of videos;
+- last modifier and modification time.
 
-Szűrők: keresés, állapot és dátum. Tömeges törlés nincs.
+Filters: search, status, and date. No bulk deletion.
 
-### 12.4 Párhuzamos szerkesztés
+### 12.4 Concurrent editing
 
-Az alkalmazás optimista verzióellenőrzést használ. Ha más közben módosította a rekordot, a második mentés blokkolódik. A felület konfliktusüzenetet és frissítési lehetőséget ad. Csendes, utolsó mentés nyer működés nincs.
+The application uses optimistic version checking. If someone else modified the record meanwhile, the second save is blocked. The interface shows a conflict message and offers a refresh option. There is no silent last-write-wins behavior.
 
-Session lejártakor a szerver elutasítja a mentést. A kliens megőrzi a kitöltött adatot, új belépést kér, majd engedi az újraküldést.
+When a session expires, the server rejects the save. The client keeps the entered data, requests re-login, and then allows resubmission.
 
-## 13. Törlés és audit
+## 13. Deletion and audit
 
-### 13.1 Videólomtár
+### 13.1 Video trash
 
-- Bármely tag lomtárba tehet videót normál megerősítés után.
-- Minden tag látja a lomtárat és a törlés szereplőjét, illetve idejét.
-- Csak vezetőségi tag állíthat vissza.
-- Visszaállításkor a videó archivált lesz.
-- A címke-, stáb-, esemény- és kapcsolódóvideó-kapcsolatok a lomtárban megmaradnak.
-- Napi feladat törli végleg a legalább 30 napja lomtárban lévő rekordot.
-- A külső médiafájlok nem törlődnek.
+- Any member can trash a video after standard confirmation.
+- Every member sees the trash and who deleted what and when.
+- Only a board member can restore.
+- On restore, the video becomes archived.
+- Tag, crew, event, and related-video links are preserved in the trash.
+- A daily job permanently deletes records that have been in the trash for at least 30 days.
+- External media files are not deleted.
 
-### 13.2 Auditnapló
+### 13.2 Audit log
 
-Minden létrehozás, módosítás, publikálás, archiválás, lomtár, visszaállítás, végleges törlés és konfigurált adminművelet naplózódik.
+Every creation, modification, publication, archival, trashing, restoration, permanent deletion, and configured admin action is logged.
 
-Az audit tartalma:
+Audit contents:
 
-- Authentik-azonosító vagy `system` szereplő;
-- pontos idő;
-- entitástípus és azonosító;
-- művelet;
-- változás előtti és utáni érték.
+- Authentik ID or the `system` actor;
+- exact time;
+- entity type and ID;
+- action;
+- value before and after the change.
 
-A naplót csak a vezetőség látja. Szereplőre, műveletre, entitásra és dátumra szűrhető. Nem törölhető, nem exportálható és nem kínál automatikus visszaállítást. Megőrzése korlátlan.
+Only the board sees the log. It is filterable by actor, action, entity, and date. It cannot be deleted or exported and does not offer automatic rollback. Its retention is unlimited.
 
-Rendszerművelet csak tényleges változásnál, hibánál vagy törlésnél ír auditot. Változatlan óránkénti szinkron nem.
+System actions write audit entries only on actual changes, errors, or deletions. An unchanged hourly sync does not.
 
-## 14. Authentik és alkalmazásbiztonság
+## 14. Authentik and application security
 
-- OIDC Authorization Code flow PKCE-vel.
-- Access token nem kerül `localStorage`-ba.
-- Session HTTP-only cookie-ban él.
-- Productionben a cookie `Secure`, mindig `SameSite=Lax`.
-- Jogosultságot minden szerveroldali lekérdezés és módosítás ellenőriz.
-- Szerepváltozás legfeljebb egy órán belül érvényesül.
-- Névtelen felhasználó korlátozott linknél belépési lehetőséget kap, megtartott visszatérési URL-lel.
-- Bejelentkezett, de jogosulatlan felhasználó `403` oldalt kap.
-- A tiltott videó címe és thumbnailje nem kerül a HTML-be.
-- Piszkozat, archivált, lomtárban lévő, végleg törölt vagy nem létező publikus útvonal egységes `404` oldalt ad.
+- OIDC Authorization Code flow with PKCE.
+- Access token never lands in `localStorage`.
+- Session lives in an HTTP-only cookie.
+- In production the cookie is `Secure`, always `SameSite=Lax`.
+- Every server-side query and modification checks authorization.
+- Role changes take effect within at most one hour.
+- Anonymous users hitting a restricted link get a login prompt with the return URL preserved.
+- Logged-in but unauthorized users get a `403` page.
+- The title and thumbnail of forbidden videos never enter the HTML.
+- Drafts, archived, trashed, permanently deleted, or nonexistent public paths return a consistent `404` page.
 
-## 15. Háttérfolyamatok és health
+## 15. Background jobs and health
 
-Az alkalmazásszerver indítja:
+The application server starts:
 
-- az óránkénti Authentik-szinkront;
-- a napi videólomtár-törlést;
-- a live kezdési és befejezési állapotváltásait.
+- the hourly Authentik sync;
+- the daily video-trash deletion job;
+- the live start and end state transitions.
 
-PostgreSQL advisory lock akadályozza meg a párhuzamos, kétszeres futást. Külön worker és Redis nem kell.
+A PostgreSQL advisory lock prevents parallel double execution. No separate worker or Redis needed.
 
-Health végpontok:
+Health endpoints:
 
-- `/health/live`, amely az alkalmazás futását ellenőrzi;
-- `/health/ready`, amely az adatbázist és a migrációk állapotát ellenőrzi.
+- `/health/live`, which checks that the application is running;
+- `/health/ready`, which checks the database and migration state.
 
-Authentik-, live- és médiaellenőrzési hiba tartós vezetőségi figyelmeztető sávban és részletes naplóban jelenik meg. Külső email vagy SMS nincs.
+Persistent Authentik, live, or media validation failures appear in a board-facing warning banner and a detailed log. No external email or SMS.
 
-## 16. Útvonalak és metaadatok
+## 16. Routes and metadata
 
-Publikus útvonalak:
+Public routes:
 
 - `/videos`;
 - `/videos/{slug}`;
@@ -651,114 +651,114 @@ Publikus útvonalak:
 - `/events/{slug}`;
 - `/members`;
 - `/members/{slug}`;
-- külön archivált tag- és közreműködő-aloldalak;
+- separate archived-member and contributor subpages;
 - `/about`;
 - `/courses`;
 - `/search`;
 - `/admin`.
 
-A régi Drupal `/video`, `/event` és `/user` linkek átirányítása nem része a lokális V0-nak. Production átállás előtt külön feladat.
+Redirecting the old Drupal `/video`, `/event`, and `/user` links is not part of local V0. It is a separate task before production cutover.
 
-Minden publikus videó-, esemény- és tagoldal kap:
+Every public video, event, and member page gets:
 
-- egyedi címet;
-- leírást;
-- canonical URL-t;
-- Open Graph képet.
+- a unique title;
+- a description;
+- a canonical URL;
+- an Open Graph image.
 
-Legyen robots.txt és csak publikus tartalmat felsoroló sitemap. Külön megosztás gomb nincs.
+Provide robots.txt and a sitemap listing only public content. There is no separate share button.
 
-## 17. Seed és lokális környezet
+## 17. Seed and local environment
 
 ### 17.1 Scraper
 
-Egy agent futtatja a scraper folyamatot. Az eredmény előre kinyert, gitignore-olt JSON.
+One agent runs the scraper process. The result is pre-extracted, gitignored JSON.
 
-A minta tartalma:
+Sample content:
 
-- 50 videó;
-- a hozzájuk tartozó események és címkék;
-- cím, leírás, zene, dátumok, MP4 URL és thumbnail URL;
-- stábszerepek és kapcsolatok;
-- következetes álnevekre cserélt személyek.
+- 50 videos;
+- their events and tags;
+- titles, descriptions, music, dates, MP4 URLs, and thumbnail URLs;
+- crew roles and relationships;
+- persons consistently replaced with pseudonyms.
 
-Profilbemutatkozás, email és médiafájl nem kerül a JSON-ba. A scrapernek kifejezett üzemeltetői engedélye van a robots.txt crawl delay figyelmen kívül hagyására.
+Profile bios, emails, and media files are not included in the JSON. The scraper has explicit operator permission to ignore the robots.txt crawl delay.
 
-Futtatási szabályok:
+Execution rules:
 
-- legfeljebb öt párhuzamos kérés;
-- `429` és `5xx` esetén exponenciális visszalépés;
-- oldalanként legfeljebb három próbálkozás;
-- megszakítás után folytatható működés.
+- at most five parallel requests;
+- exponential backoff on `429` and `5xx`;
+- at most three attempts per page;
+- resumable operation after interruption.
 
-A seedhez tartozó álneveket a lokális Authentik bootstrap tesztprofiljai képviselik.
+The seed's pseudonyms are represented by the test profiles of the local Authentik bootstrap.
 
-### 17.2 Indítás
+### 17.2 Startup
 
-A dokumentált lokális folyamat:
+The documented local process:
 
-1. függőségek telepítése;
-2. OOB fájlok ellenőrzése;
-3. PostgreSQL és Authentik indítása;
-4. tiszta migrációk futtatása;
-5. Authentik blueprint vagy bootstrap futtatása;
-6. seed betöltése;
-7. alkalmazás indítása;
-8. typecheck, lint és tesztek futtatása.
+1. install dependencies;
+2. verify OOB files;
+3. start PostgreSQL and Authentik;
+4. run clean migrations;
+5. run the Authentik blueprint or bootstrap;
+6. load the seed;
+7. start the application;
+8. run typecheck, lint, and tests.
 
-A jelenlegi prototípus adatbázissémája eldobható. Új, tiszta migrációs alap készül.
+The current prototype's database schema is disposable. A new, clean migration baseline will be created.
 
-## 18. Minőségi követelmények
+## 18. Quality requirements
 
-- Magyar felület.
-- Reszponzív publikus és adminoldalak.
-- Mobil és asztali használat.
-- Billentyűzettel kezelhető kereső és alapvető űrlapok.
-- Az akadálymentesség hasznos cél, de formális WCAG megfelelés nem V0 kiadási feltétel.
-- Magyar, eltérő üres, betöltési és hibaállapotok.
-- Stabil, szerveroldali lapozás és rendezés.
-- Typecheck és lint hibamentes.
-- Tiszta adatbázison lefutó migrációk.
-- Jogosultság-, állapot-, keresés- és törlésfolyamatokat lefedő integrációs tesztek.
-- Belépést, videópublikálást, eseménykezelést és live prioritást lefedő végponttól végpontig tesztek.
-- Külső média- és YouTube-hívások tesztben mockolva.
-- A 30 napos törlés tesztelhető órával, valós várakozás nélkül.
+- Hungarian UI.
+- Responsive public and admin pages.
+- Mobile and desktop usage.
+- Keyboard-operable search and basic forms.
+- Accessibility is a useful goal, but formal WCAG compliance is not a V0 release condition.
+- Distinct Hungarian empty, loading, and error states.
+- Stable, server-side pagination and sorting.
+- Typecheck and lint error-free.
+- Migrations running on a clean database.
+- Integration tests covering authorization, status, search, and deletion flows.
+- End-to-end tests covering login, video publishing, event management, and live priority.
+- External media and YouTube calls mocked in tests.
+- The 30-day deletion testable with a test clock, without real waiting.
 
-## 19. V0-n kívüli elemek
+## 19. Out of scope for V0
 
 - rating;
-- kommentek;
-- share és download gomb;
-- IP-alapú egyedi megtekintés;
-- médiafeltöltés és transzkódolás;
-- az MP4-fájlok tényleges hozzáférés-védelme;
-- tanfolyami űrlap, admin, export és email;
-- felkéréskezelő;
-- live publikus archívum és automatikus replay-videó;
-- a régi oldal teljes migrációja;
-- régi Drupal linkek átirányítása;
-- production telepítés;
-- külső UptimeRobot-konfiguráció;
-- email- és mobilmezők;
-- audit export és automatikus visszaállítás;
-- tömeges adminműveletek.
+- comments;
+- share and download buttons;
+- IP-based unique views;
+- media upload and transcoding;
+- actual access protection of MP4 files;
+- course form, admin, export, and email;
+- request manager;
+- public live archive and automatic replay video;
+- full migration of the old site;
+- redirects for old Drupal links;
+- production deployment;
+- external UptimeRobot configuration;
+- email and mobile fields;
+- audit export and automatic rollback;
+- bulk admin operations.
 
-## 20. Elfogadási forgatókönyvek
+## 20. Acceptance scenarios
 
-1. Névtelen látogató csak publikus videót talál és nyit meg.
-2. Schönherzes felhasználó publikus és schönherzes videót lát, adminba nem léphet.
-3. Tag minden láthatóságot elér, piszkozatot készít, publikál, archivál és lomtárba helyez.
-4. Vezetőségi tag visszaállít videót, végleg töröl eseményt, címkét és stábszerepet kezel.
-5. Hibás vagy átirányító média-URL piszkozatban menthető, de nem publikálható.
-6. Egy videó egynapos eseménynél automatikus dátumot kap. Többnapos eseménynél a tartományon kívüli dátum figyelmeztetést ad.
-7. Kapcsolódó videók manuális, eseményes és közöscímkés ága is működik, jogosultsági szűréssel.
-8. Az esemény videószáma, videólistája és stáblistája nem szivárogtat korlátozott videót.
-9. A tagprofil tevékenysége év és szerep szerint váltható, és jogosultság szerint szűrt.
-10. A globális kereső nem ad ki nem látható videómetaadatot.
-11. A homepage live, kiemelt és normál prioritása frissítés nélkül vált.
-12. Átfedő live nem menthető, hibás YouTube live nem aktiválódik.
-13. Két egyidejű szerkesztés közül az elavult mentést a szerver blokkolja.
-14. A lomtár visszaállítása megőrzi a kapcsolatokat, majd archivált állapotot ad.
-15. A tesztóra 30 nap után végleg törli a videó rekordját, a külső média érintése nélkül.
-16. Authentik-kieséskor a publikus cache működik, új belépés nem.
-17. Tiszta klón dokumentált lépésekkel elindítható az OOB csomag birtokában.
+1. An anonymous visitor finds and opens only public videos.
+2. A Schönherz user sees public and Schönherz videos and cannot enter admin.
+3. A member reaches every visibility level, creates drafts, publishes, archives, and trashes.
+4. A board member restores a video, permanently deletes an event, and manages tags and crew roles.
+5. An invalid or redirecting media URL can be saved as a draft but not published.
+6. A video attached to a one-day event receives an automatic date. For multi-day events, an out-of-range date gives a warning.
+7. All three branches of related videos — manual, event-based, and shared-tag — work with permission filtering.
+8. An event's video count, video list, and credits leak no restricted video.
+9. A member profile's activity can be switched between year and role views and is filtered by permissions.
+10. The global search emits no invisible video metadata.
+11. The homepage's live, featured, and normal priorities switch without refresh.
+12. Overlapping lives cannot be saved; a broken YouTube live fails to activate.
+13. Of two concurrent edits, the server blocks the stale save.
+14. Restoring from trash preserves relationships and yields archived status.
+15. The test clock permanently deletes a video record after 30 days, leaving external media untouched.
+16. During an Authentik outage the public cache works; new logins do not.
+17. A clean clone can be started with documented steps given the OOB package.

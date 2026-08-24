@@ -39,8 +39,8 @@ async function latestPublicEvents(
 }
 
 /**
- * `Adás hamarosan` sáv (spec 9.3): a kezdés előtti 24 órában jelenik meg.
- * A sáv nem váltja le a normál vagy kiemelt hero tartalmát.
+ * `Coming up soon` bar (spec 9.3): shown during the 24 hours before the start.
+ * The bar does not replace the normal or highlighted hero content.
  */
 export async function getUpcomingLive(
   executor: Executor,
@@ -75,21 +75,21 @@ export async function getUpcomingLive(
 
 export interface HomepageState {
   priority: 'live' | 'highlight' | 'normal'
-  /** Aktív live esetén a nocookie embed URL. */
+  /** The nocookie embed URL when a live is active. */
   liveEmbedUrl?: string
   liveStream?: typeof liveStreams.$inferSelect
-  /** Kiemelt állapotban a hero videó. */
+  /** The hero video in highlighted state. */
   heroVideo?: typeof videos.$inferSelect
-  /** Live/kiemelt állapotban öt, normálban hat legutóbbi publikus videó. */
+  /** Five latest public videos in live/highlight state, six in normal state. */
   sideVideos: Array<typeof videos.$inferSelect>
   events: Array<typeof events.$inferSelect>
-  /** `Adás hamarosan` sáv adatai, ha van 24 órán belül kezdődő ütemezés. */
+  /** `Coming up soon` bar data, if there is a schedule starting within 24 hours. */
   upcomingLive?: { startsAt: Date; embedUrl: string }
 }
 
 /**
- * Homepage számított prioritás (spec 9.1): aktív live > kiemelt videó > normál.
- * Minden lekérdezés publikált és publikus videókra szűkít az SQL-ben.
+ * Homepage computed priority (spec 9.1): active live > highlighted video > normal.
+ * Every query narrows to published and public videos in SQL.
  */
 export async function getHomepageState(
   executor: Executor,
@@ -120,7 +120,7 @@ export async function getHomepageState(
         .where(and(...PUBLIC_PUBLISHED, eq(videos.id, highlightedId)))
         .limit(1)
       const heroVideo = heroRows.at(0)
-      // Nem publikus vagy archivált videó nem marad kiemelve megjelenítésben sem.
+      // A non-public or archived video must not stay highlighted even for display.
       if (heroVideo !== undefined) {
         return {
           priority: 'highlight',

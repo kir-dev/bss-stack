@@ -60,8 +60,9 @@ async function loadTag(executor: Executor, tagId: string) {
 }
 
 /**
- * Ékezeti hasonlóságra figyelmeztetés (spec 7.1): az ékezet nélkül azonos,
- * de eltérő normalizált nevű meglévő címkék listája. Csak figyelmeztetés, nem blokkol.
+ * Warning for accent similarity (spec 7.1): the list of existing tags whose
+ * normalized names match when accents are folded but otherwise differ.
+ * Only a warning, not a block.
  */
 export async function findAccentSimilarTagNames(
   executor: Executor,
@@ -176,8 +177,9 @@ export async function renameTag(
 }
 
 /**
- * Összevonás (spec 7.1): minden videókapcsolat a célcímkére kerül, a forrás
- * címke törlődik — egy tranzakcióban. Duplikált videó-címke párok elvesznek.
+ * Merge (spec 7.1): every video link is moved to the target tag and the
+ * source tag is deleted — in a single transaction. Duplicate video-tag
+ * pairs are lost.
  */
 export async function mergeTag(
   executor: Executor,
@@ -217,7 +219,7 @@ export async function mergeTag(
   })
 }
 
-/** Használatban lévő címke csak figyelmeztetés és pontos név-beírás után törölhető. */
+/** A tag in use can only be deleted after a warning and exact name confirmation. */
 export async function deleteTag(
   executor: Executor,
   deps: CatalogDeps,
@@ -260,7 +262,7 @@ export interface TagWithUsage {
   videoCount: number
 }
 
-/** Katalóguslista használati számmal (figyelmeztetés és admin UI alapja). */
+/** Catalog list with usage counts (basis for warnings and the admin UI). */
 export async function listTagsWithUsage(
   executor: Executor,
 ): Promise<TagWithUsage[]> {

@@ -1,9 +1,9 @@
-/** A tanfolyam-átirányítás célja (spec 10.2). */
+/** Target of the course redirect (spec 10.2). */
 export const COURSE_REDIRECT_TARGET = 'https://tanfolyam.bsstudio.hu/'
 
 /**
- * A `/courses` útvonalat szerveroldalon kell átirányítani, ugyanabban a
- * böngészőfülben; a záró perjelek nem számítanak.
+ * The `/courses` path must be redirected on the server side, in the same
+ * browser tab; trailing slashes are ignored.
  */
 export function isCoursesPath(pathname: string): boolean {
   return (pathname.replace(/\/+$/, '') || '/') === '/courses'

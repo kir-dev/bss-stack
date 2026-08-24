@@ -1,4 +1,4 @@
-/** Publikus dátumformátum (spec 4.4): `2026. június 6.` — Europe/Budapest szerint. */
+/** Public date format (spec 4.4): `2026. június 6.` — according to Europe/Budapest. */
 export function formatDateHu(date: Date): string {
   const parts = new Intl.DateTimeFormat('hu-HU', {
     timeZone: 'Europe/Budapest',
@@ -11,7 +11,7 @@ export function formatDateHu(date: Date): string {
   return `${value('year')}. ${value('month')} ${Number(value('day'))}.`
 }
 
-/** Admin és audit formátum (spec 4.4): `2026. június 6. 14:32` — Europe/Budapest. */
+/** Admin and audit format (spec 4.4): `2026. június 6. 14:32` — Europe/Budapest. */
 export function formatAdminDateTimeHu(date: Date): string {
   const parts = new Intl.DateTimeFormat('hu-HU', {
     timeZone: 'Europe/Budapest',
@@ -43,8 +43,8 @@ const MONTHS = [
 ]
 
 /**
- * Naptári dátum (időzóna nélküli `YYYY-MM-DD`) megjelenítése.
- * Az UTC mezőket külön kezeljük, hogy eltolás ne keletkezzen.
+ * Displaying a calendar date (timezone-less `YYYY-MM-DD`).
+ * The UTC fields are handled separately so that no offset is introduced.
  */
 export function formatCalendarDateHu(isoDate: string): string {
   const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoDate)
@@ -58,7 +58,7 @@ export function formatCalendarDateHu(isoDate: string): string {
   return `${year}. ${monthName} ${day}.`
 }
 
-/** Eseményintervallum (spec 4.4): `2026. június 6-8.` vagy egynapos esetén sima dátum. */
+/** Event interval (spec 4.4): `2026. június 6-8.` or a plain date for a single-day event. */
 export function formatEventIntervalHu(
   startDate: string,
   endDate: string | null,

@@ -27,7 +27,7 @@ const loadMemberDiagnostics = createServerFn({ method: 'GET' }).handler(
   },
 )
 
-/** Az Authentik admin felületének gyökere az OOB issuer URL-ből. */
+/** The root of the Authentik admin UI, derived from the OOB issuer URL. */
 const loadAuthentikBaseUrl = createServerFn({ method: 'GET' }).handler(
   async (): Promise<string | null> => {
     try {

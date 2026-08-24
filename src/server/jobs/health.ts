@@ -9,17 +9,17 @@ export interface HealthStatus {
 }
 
 /**
- * /health/live: az alkalmazás futását jelzi. Nem nyúl adatbázishoz és
- * nem tartalmaz semmilyen konfigurációt vagy titkot.
+ * /health/live: signals that the application is running. It does not touch
+ * the database and contains no configuration or secrets.
  */
 export function livenessResponse(): Response {
   return jsonHealth({ status: 'ok' }, 200)
 }
 
 /**
- * /health/ready: adatbázis-elérhetőség és migrációk állapota.
- * A válasz csak állapotmezőket tartalmaz, soha nem hibaüzenet-részleteket
- * vagy kapcsolati adatokat (nem szivárogtat titkot).
+ * /health/ready: database reachability and migration status.
+ * The response contains only status fields, never error message details
+ * or connection data (does not leak secrets).
  */
 export async function readinessResponse(
   options: { db?: Database | null } = {},
@@ -38,7 +38,7 @@ export async function readinessResponse(
     await database.execute(sql`select 1`)
     status.database = 'ok'
 
-    // A migrációk állapota a kulcstáblák meglétével ellenőrizhető:
+    // The migration status can be checked via the presence of key tables:
     const requiredTables = [
       'videos',
       'events',
@@ -63,7 +63,7 @@ export async function readinessResponse(
     }
     return jsonHealth({ ...status, status: 'ok', migrations: 'ok' }, 200)
   } catch {
-    // Szándékosan nincs részletes hiba a válaszban.
+    // Deliberately no detailed error in the response.
     return jsonHealth({ ...status, status: 'error' }, 503)
   }
 }

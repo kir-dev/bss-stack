@@ -7,22 +7,22 @@ import { matchesSearch } from '#/lib/text-search.ts'
 export interface SearchSelectOption {
   value: string
   label: string
-  /** Sor végén megjelenő másodlagos információ (pl. esemény dátuma). */
+  /** Secondary info shown at the end of the row (e.g. event date). */
   meta?: string
 }
 
-/** Halkabb feliratstílus a szűrősávokhoz. */
+/** Subtler label style for filter bars. */
 export const FILTER_LABEL_CLASS = 'text-xs text-(--bss-text-secondary)'
 
-/** Ennél több elem esetén jelenik meg a keresősáv a legördülőben. */
+/** The search bar in the dropdown appears above this many items. */
 export const SEARCH_SELECT_THRESHOLD = 8
 
 /**
- * Kereshető egyválasztós lista (combobox) az admin listákhoz: esemény,
- * stábtag, kapcsolódó videó, címke, művelet. A natív `select` helyett azért
- * kell, mert több száz elemnél a legördülőben nem lehet keresni (BSS-028 UI
- * javítás). Rövid, fix listánál (állapot, láthatóság) a keresősáv elmarad,
- * hogy ne legyen felesleges mező, a megjelenés viszont egységes maradjon.
+ * Searchable single-select list (combobox) for admin lists: event, staff
+ * member, related video, tag, action. Needed instead of a native `select`
+ * because with hundreds of items you can't search in the dropdown (BSS-028 UI
+ * fix). For short, fixed lists (status, visibility) the search bar is omitted
+ * to avoid a needless field, while keeping the appearance consistent.
  */
 export function AdminSearchSelect({
   label,
@@ -39,20 +39,20 @@ export function AdminSearchSelect({
   searchThreshold = SEARCH_SELECT_THRESHOLD,
 }: {
   label?: string
-  /** Kiválasztott érték; üres szöveg = nincs kiválasztás. */
+  /** Selected value; empty text = no selection. */
   value: string
   options: ReadonlyArray<SearchSelectOption>
   onChange: (value: string) => void
   placeholder?: string
   searchPlaceholder?: string
-  /** Megadva külön sor kerül a lista élére az üres érték választásához. */
+  /** When set, a separate row is added at the top of the list to choose the empty value. */
   emptyOptionLabel?: string
   hint?: ReactNode
   disabled?: boolean
   triggerClassName?: string
-  /** Szűrősávban halkabb feliratstílust használunk. */
+  /** In filter bars we use a subtler label style. */
   labelClassName?: string
-  /** Ennyi elem felett jelenik meg a keresősáv. */
+  /** The search bar appears above this many items. */
   searchThreshold?: number
 }) {
   const [open, setOpen] = useState(false)
@@ -94,7 +94,7 @@ export function AdminSearchSelect({
     return () => document.removeEventListener('mousedown', onPointerDown)
   }, [open])
 
-  // Keresősáv nélkül a panel kapja a fókuszt, hogy a nyilak működjenek.
+  // Without a search bar, the panel gets focus so the arrow keys work.
   useEffect(() => {
     if (open && !showSearch) {
       panelRef.current?.focus()
@@ -114,7 +114,7 @@ export function AdminSearchSelect({
       return
     }
     if (event.key === 'Enter') {
-      // Szűrőűrlapon belül is: az Enter a listát választja, nem küld be űrlapot.
+      // Works inside filter forms too: Enter selects from the list instead of submitting the form.
       event.preventDefault()
       const option = visible.at(activeIndex)
       if (option !== undefined) {

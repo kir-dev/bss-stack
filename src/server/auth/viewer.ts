@@ -1,7 +1,7 @@
 import type { OobConfig } from '#/server/config/oob-schema.ts'
 import type { AuthSessionRecord } from '#/server/auth/session-store.ts'
 
-/** A nézői szintek sorrendje a specifikáció 3.1 fejezetének megfelelően. */
+/** Order of viewer levels according to chapter 3.1 of the specification. */
 export type ViewerLevel = 'anonymous' | 'schonherz' | 'member' | 'leadership'
 
 const LEVEL_RANK: Record<ViewerLevel, number> = {
@@ -13,7 +13,7 @@ const LEVEL_RANK: Record<ViewerLevel, number> = {
 
 export interface Viewer {
   level: ViewerLevel
-  /** Authentik sub; névtelennél null. */
+  /** Authentik sub; null for anonymous. */
   sub: string | null
   username: string | null
 }
@@ -23,8 +23,8 @@ export function anonymousViewer(): Viewer {
 }
 
 /**
- * A vezetőségi csoport kiegészíti a tagságot, nem helyettesíti:
- * leadership csak a tag csoporttal együtt ad teljes jogot.
+ * The leadership group complements membership, it does not replace it:
+ * leadership only grants full rights together with the member group.
  */
 export function resolveViewerLevel(
   groups: ReadonlyArray<string>,

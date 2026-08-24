@@ -4,12 +4,12 @@ import type { Viewer } from '#/server/auth/viewer.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 
 /**
- * Globális keresés (spec 11): videó, esemény, tag és címke találatok.
- * - A felhasznált zenékben NINCS keresés.
- * - A jogosultsági szűrés az SQL-ben történik: tiltott videó metaadata és
- *   találatszáma sem szivároghat ki.
- * - Kisbetű-, ékezet- és elgépelés-tűrés (`bss_norm` + pg_trgm).
- * - Üres vagy két karakternél rövidebb keresés nem listázza az adatbázist.
+ * Global search (spec 11): video, event, member and tag hits.
+ * - There is NO search over used songs.
+ * - Authorization filtering happens in the SQL: neither a forbidden video's
+ *   metadata nor its hit count may leak out.
+ * - Case-, accent- and typo-tolerant (`bss_norm` + pg_trgm).
+ * - An empty search or one shorter than two characters does not query the database.
  */
 
 export const MIN_QUERY_LENGTH = 2
@@ -55,7 +55,7 @@ export interface TagHit {
   name: string
 }
 
-/** Videóláthatósági feltétel nyers SQL-ként (ugyanaz a szabály, mint visibility.ts). */
+/** Video visibility condition as raw SQL (same rule as visibility.ts). */
 function visibilitySql(viewer: Viewer): string {
   if (viewer.level === 'member' || viewer.level === 'leadership') {
     return 'true'
@@ -67,7 +67,7 @@ function visibilitySql(viewer: Viewer): string {
 }
 
 export interface SearchOptions {
-  /** Csoportonkénti találatlimit; a popover öt, az Összes fül tíz. */
+  /** Hit limit per type; the popover uses five, the All tab ten. */
   limitPerType?: number
 }
 
@@ -94,9 +94,9 @@ export async function search(
 }
 
 // ---------------------------------------------------------------------------
-// Súlyozás (spec 11.2):
-// 100 pontos egyezés > 80 előtag > 70/55 címkék > 50 trigram >
-// 40 eseménycím > 30 vendégek/stáb > 20 leírás/bemutatkozás
+// Weighting (spec 11.2):
+// 100-point exact match > 80 prefix > 70/55 tags > 50 trigram >
+// 40 event title > 30 guests/staff > 20 description/introduction
 // ---------------------------------------------------------------------------
 
 async function searchVideosRaw(
@@ -269,16 +269,16 @@ async function searchTagsRaw(
 }
 
 // ---------------------------------------------------------------------------
-// Részletes videókeresés és -szűrés (a /videos oldal alapja)
+// Detailed video search and filtering (the basis of the /videos page)
 // ---------------------------------------------------------------------------
 
 export type VideoSort = 'published' | 'chronological' | 'mostviewed'
 
 export interface VideoSearchFilters {
   viewer: Viewer
-  /** Szabad szöveg a címre, leírásra, vendégekre és stábnevekre. */
+  /** Free text over title, description, guests and staff names. */
   query?: string
-  /** CímkeNEVEK `ÉS` kapcsolattal: csak az összes címkével rendelkező videó. */
+  /** Tag NAMES joined with `AND`: only videos having all the tags. */
   tagNames?: string[]
   eventId?: string
   recordedFrom?: string
@@ -311,8 +311,8 @@ function orderSql(sort: VideoSort): string {
 }
 
 /**
- * Stabil, szerveroldali lapozású videószűrés. Minden feltétel az SQL-ben
- * érvényesül; a láthatóság a néző szintje szerint szűr.
+ * Stable, server-side paginated video filtering. Every condition is applied
+ * in the SQL; visibility is filtered by the viewer's level.
  */
 export async function searchVideosDetailed(
   executor: Executor,
@@ -334,7 +334,7 @@ export async function searchVideosDetailed(
          where vs2.video_id = v.id and bss_norm(mc2.full_name) like '%' || bss_norm(${query}) || '%'
        ))`)
   }
-  // Címkék ÉS kapcsolata: minden kért címkéhez kell reláció.
+  // Tags joined with AND: a relation must exist for every requested tag.
   for (const tagName of filters.tagNames ?? []) {
     conditions.push(sql`
       exists (

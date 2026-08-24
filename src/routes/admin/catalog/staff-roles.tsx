@@ -99,7 +99,7 @@ function RoleList({
 
   const byId = new Map(roles.map((role) => [role.id, role]))
   const ordered = order.filter((id) => byId.has(id))
-  // Új szerepek, amelyek még nem szerepelnek a sorrendben:
+  // New roles that are not yet in the order:
   for (const role of [...roles].sort(
     (a, b) => a.displayOrder - b.displayOrder,
   )) {

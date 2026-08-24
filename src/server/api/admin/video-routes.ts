@@ -48,9 +48,9 @@ function parseStringArray(value: unknown): string[] {
 }
 
 /**
- * Videó-admin műveletek (BSS-028). Minden végpont legalább tagságot kér;
- * a visszaállítás vezetőségi jog (spec 3.2) — a domain réteg ezt is
- * újraellenőrzi.
+ * Video admin operations (BSS-028). Every endpoint requires at least
+ * membership; restoring is a leadership privilege (spec 3.2) — the domain
+ * layer re-verifies that as well.
  */
 export async function handleAdminVideoRoutes(
   request: Request,
@@ -59,8 +59,8 @@ export async function handleAdminVideoRoutes(
   deps: AdminVideoRouteDeps = {},
 ): Promise<Response> {
   return runAdminHandler(request, deps, async (viewer) => {
-    // Minden kérésnél szerveroldali jogosultságellenőrzés (spec 14):
-    // névtelen → 401 belépési URL-lel, bejelentkezett jogosulatlan → 403.
+    // Server-side permission check on every request (spec 14):
+    // anonymous → 401 with login URL, authenticated unauthorized → 403.
     requireAdmin(viewer, new URL(request.url).pathname)
     const db = deps.db ?? (await getDefaultDb())
     const mediaConfig = mediaConfigOf(deps)
@@ -258,7 +258,7 @@ function optionalNullableId(
   return value
 }
 
-/** Múltbeli `publishedAt` megadható; jövőbelit a domain utasít el. */
+/** A past `publishedAt` can be given; a future one is rejected by the domain. */
 function optionalPublishedAt(value: unknown): Date | null | undefined {
   if (value === undefined) return undefined
   if (value === null) return null
@@ -274,8 +274,8 @@ export function mediaConfigOf(deps: AdminVideoRouteDeps): OobConfig['media'] {
   if (deps.config !== undefined) {
     return deps.config.media
   }
-  // Éles futásnál a cache-elt OOB config adja; hiányában üres engedélylista
-  // áll meg a validátor saját magyar hibaüzenetével.
+  // In production the cached OOB config is used; if missing, an empty allowlist
+  // is set and the validator reports with its own Hungarian error message.
   try {
     return getCachedOobConfig().media
   } catch {

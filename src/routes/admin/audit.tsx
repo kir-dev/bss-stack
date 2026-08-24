@@ -80,12 +80,12 @@ export const Route = createFileRoute('/admin/audit')({
   component: AuditAdminPage,
 })
 
-/** Az index-szignatúrás keresőparaméter szövegként a választóhoz. */
+/** The search parameter with an index signature, passed as text to the select. */
 function asText(value: string | number | undefined): string {
   return value === undefined ? '' : String(value)
 }
 
-/** A naplóban előforduló értékek kereshető listaelemekként. */
+/** Values occurring in the audit log as searchable list options. */
 function nameOptions(names?: string[]): Array<SearchSelectOption> {
   return (names ?? []).map((name) => ({ value: name, label: name }))
 }

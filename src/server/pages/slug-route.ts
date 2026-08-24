@@ -13,13 +13,13 @@ export interface PublicSlugResolution {
 }
 
 /**
- * Publikus slug-route feloldás (BSS-019):
- * - aktuális slugon megtalálható, publikált (videónál a néző számára látható)
- *   entitás → `current`;
- * - régi slug a történetben → átirányítás az új canonical route-ra,
- *   de csak ha az entitás publikált és látható;
- * - piszkozat, archivált, lomtár, véglegesen törölt vagy ismeretlen
- *   → null (a route egységes magyar 404-et ad).
+ * Public slug-route resolution (BSS-019):
+ * - on the current slug the published entity is found (for videos, visible to
+ *   the viewer) → `current`;
+ * - an old slug in the history → redirect to the new canonical route,
+ *   but only if the entity is published and visible;
+ * - draft, archived, trash, permanently deleted or unknown
+ *   → null (the route returns a uniform Hungarian 404).
  */
 export async function resolvePublicSlug(
   executor: Executor,
@@ -38,8 +38,8 @@ export async function resolvePublicSlug(
     }
   }
 
-  // A régi slug átirányításként megmarad (spec 4.2), de nem mutathat
-  // publikusan elérhetetlen tartalomra.
+  // The old slug is preserved as a redirect (spec 4.2), but it must not point
+  // to publicly unreachable content.
   const redirect = await resolveSlugRedirect(
     executor,
     params.entityType,

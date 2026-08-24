@@ -5,10 +5,10 @@ import { atLeast } from '#/server/auth/viewer.ts'
 import type { Viewer } from '#/server/auth/viewer.ts'
 
 /**
- * A videóláthatóság SQL-feltétele a néző szintje szerint.
- * Ez az egyetlen hely, ahol a láthatósági szabály él: minden videólekérdezés
- * ennek a feltételnek a belsejében fut, így tiltott videó metaadata sem
- * kerülhet válaszba (a keresés és a lista ugyanezt használja).
+ * The SQL condition of video visibility according to the viewer's level.
+ * This is the only place where the visibility rule lives: every video query
+ * runs inside this condition, so even a forbidden video's metadata cannot
+ * end up in a response (search and the list use the same).
  */
 export function visibleVideoCondition(viewer: Viewer): SQL {
   if (atLeast(viewer, 'member')) {

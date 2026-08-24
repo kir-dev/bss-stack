@@ -2,9 +2,9 @@ import { atLeast } from '#/server/auth/viewer.ts'
 import type { Viewer } from '#/server/auth/viewer.ts'
 
 /**
- * Adminjogosultsági mátrix a specifikáció 3.2 fejezete alapján.
- * A vezetőségi jog magában foglalja a tagjogot: a leadership szint
- * minden member képességre igaz.
+ * Admin permission matrix based on chapter 3.2 of the specification.
+ * Leadership rights include member rights: the leadership level
+ * satisfies every member capability.
  */
 
 export function isMember(viewer: Viewer): boolean {
@@ -57,7 +57,7 @@ export const can = {
   },
 } as const
 
-/** Az adminfelület bármely eleméhez legalább tagság kell. */
+/** Any part of the admin area requires at least membership. */
 export function isAdminAreaAllowed(viewer: Viewer): boolean {
   return isMember(viewer)
 }

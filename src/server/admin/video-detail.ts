@@ -36,9 +36,9 @@ export interface AdminVideoDetail {
 }
 
 /**
- * A videószerkesztő betöltési adatai (BSS-028). Csak admin hívhatja —
- * a route guardja legalább tagságot igazol; a domain műveletek minden
- * mentésnél újraellenőrzik.
+ * Load data for the video editor (BSS-028). Only admins may call it —
+ * the route guard verifies at least membership; the domain operations
+ * re-verify on every save.
  */
 export async function getAdminVideoDetail(
   executor: Executor,
@@ -103,12 +103,12 @@ export async function getAdminVideoDetail(
 }
 
 export interface AdminVideoEditorOptions {
-  /** Események bármely állapotban (piszkozathoz is rendelhető). */
+  /** Events in any status (can also be assigned to drafts). */
   events: Array<{ id: string; title: string }>
   tags: Array<{ id: string; name: string }>
   staffRoles: Array<{ id: string; name: string }>
   members: Array<{ sub: string; fullName: string }>
-  /** Kapcsolódónak csak publikált videó választható (spec 5.6), önmaga nem. */
+  /** Only published videos can be selected as related (spec 5.6), and not itself. */
   candidateRelated: Array<{ id: string; title: string }>
 }
 
@@ -159,7 +159,7 @@ export async function getAdminVideoEditorOptions(
   }
 }
 
-/** Címke- és stábnevek feloldása a szerkesztő megjelenítéséhez. */
+/** Resolve tag and staff names for displaying in the editor. */
 export async function resolveAdminVideoNames(
   executor: Executor,
   ids: { tagIds: string[]; roleIds: string[]; memberSubs: string[] },

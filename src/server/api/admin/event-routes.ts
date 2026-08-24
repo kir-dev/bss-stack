@@ -35,8 +35,8 @@ function parseVersion(value: unknown): number {
 }
 
 /**
- * Esemény-admin műveletek (BSS-029). A végleges törlés a domain rétegben
- * vezetőségi jogot és címbeírást is újraellenőriz.
+ * Event admin operations (BSS-029). The domain layer re-verifies leadership
+ * privileges and writes an audit entry on hard delete.
  */
 export async function handleAdminEventRoutes(
   request: Request,

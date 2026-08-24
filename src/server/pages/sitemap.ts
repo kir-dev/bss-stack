@@ -3,8 +3,8 @@ import { events, memberCache, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 
 /**
- * Sitemap (BSS-035, spec 16): csak publikus tartalom kerül bele.
- * Korlátozott (schonherz/bss) vagy nem publikált videó soha.
+ * Sitemap (BSS-035, spec 16): only public content goes into it.
+ * Restricted (schonherz/bss) or unpublished videos never.
  */
 
 export interface SitemapEntry {
@@ -22,8 +22,8 @@ export async function getSitemapEntries(
     lastmod: null,
   }))
 
-  // Csak publikált ÉS publikus láthatóságú videó (a korlátozott metaadata
-  // sem szivároghat a sitemapbe, spec 16/14).
+  // Only published videos AND with public visibility (even a restricted video's
+  // metadata must not leak into the sitemap, spec 16/14).
   const videoRows = await executor
     .select({ slug: videos.slug, updatedAt: videos.updatedAt })
     .from(videos)
@@ -50,7 +50,7 @@ export async function getSitemapEntries(
     })
   }
 
-  // Csak sikeresen szinkronizált profilok (a publikus listával azonos szabály).
+  // Only successfully synced profiles (same rule as the public list).
   const memberRows = await executor
     .select({
       username: memberCache.username,

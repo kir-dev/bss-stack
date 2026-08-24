@@ -2,8 +2,8 @@ import type { NodePgQueryResultHKT } from 'drizzle-orm/node-postgres'
 import type { PgAsyncDatabase } from 'drizzle-orm/pg-core'
 
 /**
- * Közös végrehajtó típus: a teljes adatbázis-kapcsolat ÉS a tranzakción belüli
- * tx objektum egyaránt használható select/insert/update hívásokra.
+ * Common executor type: both the full database connection AND the tx object
+ * inside a transaction can be used for select/insert/update calls.
  */
 export type Executor = PgAsyncDatabase<
   NodePgQueryResultHKT,

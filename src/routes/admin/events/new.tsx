@@ -24,7 +24,7 @@ function NewEventPage() {
     setProblems([])
     setErrorMessage(null)
     setLoginUrl(null)
-    // Piszkozathoz csak cím kell (spec 6.1).
+    // A draft only needs a title (spec 6.1).
     const result = await postJson<{ id: string }>('/api/admin/events', {
       title,
     })

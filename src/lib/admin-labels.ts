@@ -1,4 +1,4 @@
-/** Magyar feliratok admin állapotokhoz és láthatóságokhoz (spec 4.1). */
+/** Hungarian labels for admin statuses and visibilities (spec 4.1). */
 
 export const VIDEO_STATUS_LABELS: Record<string, string> = {
   draft: 'Piszkozat',
@@ -29,8 +29,8 @@ export const MEMBERSHIP_STATUS_LABELS: Record<string, string> = {
 }
 
 /**
- * Legördülő elemek a feliratokból, megjelenítési sorrendben. Így a szűrők és
- * a szerkesztő ugyanabból az egy forrásból kapják a magyar feliratokat.
+ * Dropdown items built from the labels, in display order. This way the filters
+ * and the editor get the Hungarian labels from the same single source.
  */
 function toOptions(
   labels: Record<string, string>,

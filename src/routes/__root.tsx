@@ -43,7 +43,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
       },
     ],
   }),
-  // A navbar belépési állapota minden oldalhoz kell: egyszer töltjük.
+  // The navbar's login state is needed on every page: load it once.
   loader: ({ context }) =>
     context.queryClient.ensureQueryData({
       queryKey: ['viewer'],

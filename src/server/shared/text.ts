@@ -1,4 +1,4 @@
-/** A specifikáció 4.3 fejezetében rögzített hosszkorlátok. */
+/** Length limits fixed in chapter 4.3 of the specification. */
 export const TEXT_LIMITS = {
   title: 200,
   slug: 200,
@@ -23,9 +23,9 @@ export class TextValidationError extends Error {
 }
 
 /**
- * Plain text validáció (spec 4.3): HTML/Markdown/rich text nem része a V0-nak.
- * A szöveget változatlanul tároljuk, de ellenőrizzük a hosszot és hogy
- * ne tartalmazzon vezérlőkaraktereket.
+ * Plain text validation (spec 4.3): HTML/Markdown/rich text is not part of V0.
+ * The text is stored unchanged, but we check its length and that it contains
+ * no control characters.
  */
 export function validatePlainText(
   fieldName: string,

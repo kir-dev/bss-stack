@@ -107,11 +107,11 @@ function EventEditor({
   const [message, setMessage] = useState<string | null>(null)
   const [loginUrl, setLoginUrl] = useState<string | null>(null)
   const [conflictMessage, setConflictMessage] = useState<string | null>(null)
-  // Végleges törlés megerősítése: az esemény címét kell beírni (spec 6.4).
+  // Permanent deletion confirmation: the event title must be typed in (spec 6.4).
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [deleteSummary, setDeleteSummary] = useState<string | null>(null)
 
-  // A kezdeti állapotot csak a betöltéskor rögzítjük (a key újracsatolja).
+  // Capture the initial state only at load time (the key re-mounts it).
   const [initialSnapshot] = useState(() => JSON.stringify(form))
   const isDirty = JSON.stringify(form) !== initialSnapshot
 
@@ -124,8 +124,8 @@ function EventEditor({
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty])
 
-  // Az esemény thumbnailjét a szerver piszkozatban sem fogadja el hibás
-  // hostról (spec 6.1), ezért itt írás közben jelezzük.
+  // The server rejects an invalid thumbnail host even in drafts (spec 6.1),
+  // so we surface it here while editing.
   const thumbnailWarning = mediaUrlWarning(
     'Thumbnail URL',
     form.thumbnailUrl,

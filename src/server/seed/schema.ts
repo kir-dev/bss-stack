@@ -4,10 +4,10 @@ import { TEXT_LIMITS } from '#/server/shared/text.ts'
 import { slugify } from '#/server/shared/slug.ts'
 
 /**
- * A seed JSON formátuma (BSS-034, spec 17.1): a scraper kimenete, amelyet
- * az idempotens seed importer tölt be. Személyes adat (email, bemutatkozás)
- * és médiafájl nem lehet benne; a személyek a lokális Authentik bootstrap
- * tesztprofiljainak felhasználónevére hivatkoznak.
+ * The format of the seed JSON (BSS-034, spec 17.1): the output of the scraper,
+ * loaded by the idempotent seed importer. It must not contain personal data
+ * (email, introduction) or media files; people are referenced by the usernames
+ * of the local Authentik bootstrap test profiles.
  */
 export interface SeedEvent {
   key: string
@@ -51,7 +51,7 @@ export interface SeedFile {
   videos: SeedVideo[]
 }
 
-/** A seedbe tiltott mezők (spec 17.1: email és profilbemutatkozás soha). */
+/** Fields forbidden in the seed (spec 17.1: email and profile introduction never). */
 const FORBIDDEN_KEYS = new Set([
   'email',
   'emailaddress',
@@ -257,7 +257,7 @@ function validateEvent(
   )
 
   if (status === 'published' && startDate === null) {
-    // A publikálási szabály (spec 6.1) itt is él: publikáláshoz kezdődátum kell.
+    // The publishing rule (spec 6.1) applies here too: a start date is required for publishing.
     problems.push(`${path}: publikált eseménynél a startDate kötelező.`)
   }
 
@@ -478,8 +478,8 @@ function validateVideo(
 }
 
 /**
- * A scraper kimenetének szerkezeti és tartalmi ellenőrzése hálózati hívás
- * nélkül. A hibák magyarul, helymegjelöléssel sorolódnak fel.
+ * Structural and content validation of the scraper output, without network
+ * calls. The errors are listed in Hungarian, with location placeholders.
  */
 export function validateSeedJson(
   raw: unknown,

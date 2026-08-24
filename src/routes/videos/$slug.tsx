@@ -28,7 +28,7 @@ const loadVideoDetail = createServerFn({ method: 'GET' })
         canonical: `${origin}/videos/${detail.slug}`,
       }
     }
-    // Aktuális slugon nincs publikus videó: régi slug átirányítás kipróbálása.
+    // No public video at the current slug: try an old slug redirect.
     const resolution = await resolvePublicSlug(db, {
       entityType: 'video',
       slug,

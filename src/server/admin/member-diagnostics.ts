@@ -3,8 +3,8 @@ import { memberCache, memberSyncRuns } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 
 /**
- * Rejtett tagdiagnosztika (BSS-032, spec 8.2): a vezetőség lássa az
- * Authentik-cache állapotát helyi profilszerkesztés nélkül.
+ * Hidden member diagnostics (BSS-032, spec 8.2): leadership can see the
+ * Authentik cache state without local profile editing.
  */
 
 export interface DiagnosticsProfile {
@@ -18,7 +18,7 @@ export interface DiagnosticsProfile {
   lastSyncError: string | null
   joinedSemesterRaw: string | null
   lastSeenAt: Date
-  /** A legutóbbi sikeres futásnál régebben látott tag valószínűleg eltűnt. */
+  /** A member last seen before the most recent successful run has likely vanished. */
   likelyVanished: boolean
 }
 
@@ -64,8 +64,8 @@ export async function getMemberDiagnostics(
       .limit(1),
   ])
 
-  // Az utolsó sikeres futást követően nem látott profilok feltehetően
-  // eltűntek az Authentikből (utolsó ismert rekordjuk megmarad).
+  // Profiles not seen since the last successful run have presumably
+  // vanished from Authentik (their last known record is retained).
   const lastOkFinishedAt = lastOkRun.at(0)?.finishedAt ?? null
   let likelyVanished = 0
   if (lastOkFinishedAt !== null) {

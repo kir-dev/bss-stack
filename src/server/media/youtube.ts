@@ -1,25 +1,26 @@
 import { normalizeYoutubeVideoId } from '#/lib/youtube-url.ts'
 import type { OobConfig } from '#/server/config/oob-schema.ts'
 
-// A tisztán szintaktikai értelmezés a kliensnek is kell, ezért `src/lib`-ben
-// él; a meglévő szerveroldali importok kedvéért innen is elérhető.
+// The purely syntactic interpretation is needed by the client too, so it
+// lives in `src/lib`; for the sake of existing server-side imports it is
+// also reachable from here.
 export { normalizeYoutubeVideoId }
 
 export interface YoutubeCheckResult {
   ok: boolean
-  /** Normalizált YouTube videóazonosító; érvénytelen URL esetén null. */
+  /** Normalized YouTube video ID; null for an invalid URL. */
   videoId: string | null
   problems: string[]
 }
 
-/** Embed URL készítése a normalizált azonosítóból (megjelenítéshez, nocookie). */
+/** Build an embed URL from the normalized ID (for display, nocookie). */
 export function buildYoutubeNocookieEmbedUrl(videoId: string): string {
   return `https://www.youtube-nocookie.com/embed/${videoId}`
 }
 
 /**
- * oEmbed ellenőrzés (mentéskor és aktiváláskor): a videóazonosítóhoz
- * lekérdezzük az oEmbed végpontot; csak 200 válasz elfogadott.
+ * oEmbed check (on save and on activation): the video ID is looked up
+ * against the oEmbed endpoint; only a 200 response is accepted.
  */
 export async function validateYoutubeVideo(
   rawUrl: string,

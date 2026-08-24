@@ -47,7 +47,7 @@ async function databaseOf(deps: AdminHomepageRouteDeps): Promise<Database> {
   return deps.db ?? (await getDefaultDb())
 }
 
-/** Csak publikált + publikus videó választható kiemelésnek vagy Rólunkra. */
+/** Only published + public videos can be selected as highlight or for About. */
 async function assertSelectableVideos(
   database: Database,
   ids: readonly string[],
@@ -71,8 +71,8 @@ async function assertSelectableVideos(
 }
 
 /**
- * Vezetőségi homepage-beállítások (BSS-031): kiemelés, live ütemezések és
- * Rólunk-videók. A tag egyetlen műveletet sem hívhat.
+ * Leadership homepage settings (BSS-031): highlight, live schedules and
+ * About videos. Members cannot invoke any operation.
  */
 export async function handleAdminHighlightRoute(
   request: Request,
@@ -90,7 +90,7 @@ export async function handleAdminHighlightRoute(
         throw validation(['Érvénytelen videóazonosító.'])
       }
       videoId = body['videoId']
-      // Korai magyar hibaüzenet; a domain tranzakcióban újra ellenőrzi.
+      // Early Hungarian error message; the domain re-checks in a transaction.
       await assertSelectableVideos(await databaseOf(deps), [videoId])
     }
     await setHighlightedVideo(await databaseOf(deps), {
@@ -120,14 +120,14 @@ export async function handleAdminLiveRoutes(
     const database = await databaseOf(deps)
 
     if (action === undefined) {
-      // Új ütemezés létrehozása.
+      // Create a new schedule.
       const body = await readJsonBody(request)
       const youtubeUrl =
         typeof body['youtubeUrl'] === 'string' ? body['youtubeUrl'] : ''
       const startsAt = parseDate(body['startsAt'], 'Kezdési idő')
       const endsAt = parseDate(body['endsAt'], 'Befejezési idő')
-      // Korai YouTube-ellenőrzés magyar hibaüzenettel; a domain mentéskor
-      // újra ellenőrzi (oEmbed).
+      // Early YouTube validation with a Hungarian error message; the domain
+      // re-checks it on save (oEmbed).
       const youtubeCheck = await validateYoutubeVideo(
         youtubeUrl,
         {
@@ -202,7 +202,7 @@ export async function handleAdminAboutRoute(
         throw validation(['Érvénytelen videóazonosító a listában.'])
       }
     }
-    // Korai magyar hibaüzenet érvénytelen elemekre is.
+    // Early Hungarian error message, also for invalid entries.
     await assertSelectableVideos(await databaseOf(deps), orderedVideoIds)
 
     await setAboutVideos(await databaseOf(deps), {

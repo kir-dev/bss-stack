@@ -4,8 +4,8 @@ import { getAboutPageVideos } from '#/server/homepage/about.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 
 /**
- * Rólunk szöveg (spec 10.1): verziókezelt plain text tartalom,
- * módosítása kódváltozást igényel.
+ * About page text (spec 10.1): versioned plain text content;
+ * changing it requires a code change.
  */
 const ABOUT_TEXT_VERSION = 1
 

@@ -1,11 +1,11 @@
 /**
- * Kliensoldali média-URL ellenőrzés a mentés előtti figyelmeztetéshez
- * (spec 5.4). A tényleges kikényszerítés szerveroldalon marad
- * (`src/server/media/validator.ts`); ez csak korai visszajelzés a
- * szerkesztőben, hogy ne csak mentés után derüljön ki a hibás host.
+ * Client-side media URL validation for pre-save warnings
+ * (spec 5.4). Actual enforcement stays server-side
+ * (`src/server/media/validator.ts`); this is only early feedback in
+ * the editor so that a bad host doesn't surface only after saving.
  */
 
-/** Ha az OOB config nem elérhető a kliensnek, a specifikált host a tartalék. */
+/** If the OOB config is not available to the client, this host is the fallback. */
 export const DEFAULT_MEDIA_HOSTS = ['v.bsstudio.hu'] as const
 
 function parseUrl(rawUrl: string): URL | null {
@@ -17,8 +17,9 @@ function parseUrl(rawUrl: string): URL | null {
 }
 
 /**
- * Magyar figyelmeztetés a mezőhöz, vagy `null`, ha az URL rendben van.
- * Az üres érték nem hiba: a videó URL nélkül is menthető piszkozatként.
+ * Validation warning for the field, or `null` if the URL is fine.
+ * An empty value is not an error: the video can be saved as a draft
+ * even without a URL.
  */
 export function mediaUrlWarning(
   label: string,
@@ -43,7 +44,7 @@ export function mediaUrlWarning(
   return null
 }
 
-/** A szerkesztő mindkét média mezőjének ellenőrzése egy listában. */
+/** Validation of both media fields in the editor, returned as a list. */
 export function mediaUrlWarnings(
   fields: { videoUrl: string; thumbnailUrl: string },
   allowedHosts: readonly string[],

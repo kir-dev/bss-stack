@@ -103,8 +103,8 @@ function validateDateField(
 }
 
 /**
- * Mezők validálása részbeni frissítéshez. A hibás média-URL piszkozatban
- * menthető (spec 5.4) — itt csak a plain text és hosszszabályok érvényesek.
+ * Validate fields for a partial update. An invalid media URL can be saved in
+ * a draft (spec 5.4) — here only the plain text and length rules apply.
  */
 function validatedChanges(input: VideoInput): Record<string, unknown> {
   const changes: Record<string, unknown> = {}
@@ -162,7 +162,7 @@ function validatedChanges(input: VideoInput): Record<string, unknown> {
   return changes
 }
 
-/** Eseménydátum-eltérés figyelmeztetés (nem blokkol, spec 5.2). */
+/** Event date-range mismatch warning (non-blocking, spec 5.2). */
 function eventRangeWarning(
   event: typeof events.$inferSelect,
   recordedAt: string,
@@ -194,10 +194,10 @@ async function loadEventOrNull(executor: Executor, eventId: string | null) {
 }
 
 /**
- * Esemény-hozzárendelés dátumszabályai (spec 5.2):
- * - egynapos esemény kitölti az ÜRES `recordedAt`-ot csendben;
- * - meglévő `recordedAt`-ot soha nem ír felül;
- * - esemény leválasztásakor a `recordedAt` megmarad.
+ * Date rules for event assignment (spec 5.2):
+ * - a one-day event silently fills in the EMPTY `recordedAt`;
+ * - an existing `recordedAt` is never overwritten;
+ * - when detaching an event, the `recordedAt` is preserved.
  */
 async function applyEventAssignment(
   tx: Executor,
@@ -209,7 +209,7 @@ async function applyEventAssignment(
     if (newEventId !== null) {
       throw new TextValidationError(['Az esemény nem található.'])
     }
-    // Leválasztás: a `recordedAt` megmarad.
+    // Detach: the `recordedAt` is preserved.
     return { recordedAt: currentRecordedAt, warnings: [] }
   }
 
@@ -220,7 +220,7 @@ async function applyEventAssignment(
     event.endDate === null &&
     recordedAt === null
   ) {
-    // Egynapos esemény: csendes automatikus kitöltés.
+    // One-day event: silent automatic fill-in.
     recordedAt = event.startDate
   }
   if (
@@ -250,8 +250,8 @@ export async function createVideoDraft(
     const slugBase = input.slug ?? title
     const slug = await findFreeSlug(tx, 'video', slugify(slugBase))
 
-    // A piszkozat többi mezője is megadható már létrehozáskor (hibás média-URL
-    // is menthető — a publikálás ellenőrzi).
+    // The other draft fields can also be given at creation time (even an
+    // invalid media URL can be saved — publishing validates it).
     const changes = validatedChanges({ ...input, title })
 
     const inserted = await tx
@@ -328,7 +328,7 @@ export async function updateVideo(
       )
       changes.eventId = input.eventId
       if (explicitRecordedAt === undefined) {
-        // Csendes kitöltés csak üres mezőnél; meglévő értéket soha nem ír felül.
+        // Silent fill-in only for an empty field; an existing value is never overwritten.
         changes.recordedAt = assignment.recordedAt
         warnings.push(
           ...assignment.warnings.filter((w) => w.includes('időtartamán')),
@@ -341,7 +341,7 @@ export async function updateVideo(
         }
       }
     } else if (input.recordedAt !== undefined) {
-      // Önálló dátummódosítás meglévő esemény mellett is figyelmeztet.
+      // A standalone date change also warns when an existing event is attached.
       const event = await loadEventOrNull(tx, locked.eventId)
       const newDate = changes.recordedAt as string | null
       if (event !== null && newDate !== null) {
@@ -389,7 +389,7 @@ export async function updateVideo(
       throw new EntityNotFoundError('video', videoId)
     }
 
-    // Láthatóság-szűkítésnél a kiemelés és a Rólunk-lista ugyanitt érvénytelenít.
+    // When narrowing visibility, the highlight and About list are invalidated here as well.
     if (row.visibility !== 'public') {
       await invalidateHomepageReferences(tx, videoId)
     }
@@ -431,12 +431,12 @@ function publishPreconditions(
 }
 
 /**
- * Publikálás (spec 5.3–5.4):
- * - kötelező cím, MP4 és thumbnail; a médiát hálózati ellenőrzés validálja;
- * - láthatóság alapból `public`;
- * - többnapos eseménynél `recordedAt` kötelező;
- * - `publishedAt`: ha nincs, most kapja; jövőbeli nem lehet;
- * - sikeres állapotváltásnál a homepage-hivatkozások érvényessége rendeződik.
+ * Publishing (spec 5.3–5.4):
+ * - title, MP4 and thumbnail are required; the media is validated by a network check;
+ * - visibility defaults to `public`;
+ * - `recordedAt` is required for multi-day events;
+ * - `publishedAt`: if missing, it gets the current time; it cannot be in the future;
+ * - on a successful status change, the validity of homepage references is settled.
  */
 export async function publishVideo(
   executor: Executor,
@@ -461,7 +461,7 @@ export async function publishVideo(
     throw new TextValidationError(preconditions.problems)
   }
 
-  // Többnapos esemény `recordedAt` követelménye:
+  // Multi-day event `recordedAt` requirement:
   const event = await loadEventOrNull(executor, preloaded.eventId)
   const multiDay = event !== null && event.endDate !== null
   if (
@@ -473,7 +473,7 @@ export async function publishVideo(
     ])
   }
 
-  // Média hálózati ellenőrzés a tranzakción KÍVÜL (spec 5.4).
+  // Media network validation OUTSIDE the transaction (spec 5.4).
   for (const kind of ['video', 'thumbnail'] as const) {
     const url = kind === 'video' ? preloaded.videoUrl : preloaded.thumbnailUrl
     if (url === null) continue
@@ -579,7 +579,7 @@ export async function archiveVideo(
       throw new EntityNotFoundError('video', videoId)
     }
 
-    // Az archivált tartalom kikerül a kiemelésből és a Rólunk-listából.
+    // Archived content is removed from the highlight and the About list.
     await invalidateHomepageReferences(tx, videoId)
 
     await writeAudit(tx, {
@@ -595,7 +595,7 @@ export async function archiveVideo(
   })
 }
 
-/** Lomtárba helyezés: bármely tag, kapcsolatok megmaradnak (spec 13.1). */
+/** Move to trash: any member, relations are preserved (spec 13.1). */
 export async function trashVideo(
   executor: Executor,
   deps: VideoDeps,
@@ -644,8 +644,8 @@ export async function trashVideo(
 }
 
 /**
- * Visszaállítás lomtárból (csak vezetőség, spec 13.1): archivált állapotba kerül,
- * minden címke-, stáb-, esemény- és kapcsolódóvideó-kapcsolata megmarad.
+ * Restore from trash (leadership only, spec 13.1): it goes into the archived
+ * state; all its tag, staff, event and related-video relations are preserved.
  */
 export async function restoreVideoFromTrash(
   executor: Executor,
@@ -699,7 +699,7 @@ export async function restoreVideoFromTrash(
   })
 }
 
-/** Címkék teljes listájának cseréje egy videón (tag csak meglévőt rendelhet). */
+/** Replace the full tag list on a video (only existing tags can be assigned). */
 export async function setVideoTags(
   executor: Executor,
   deps: VideoDeps,
@@ -778,7 +778,7 @@ export interface StaffAssignment {
   memberSub: string
 }
 
-/** Stáblista cseréje egy videón: egy szerep több taggal, egy tag több szereppel. */
+/** Replace the staff list on a video: one role with several members, one member with several roles. */
 export async function setVideoStaff(
   executor: Executor,
   deps: VideoDeps,

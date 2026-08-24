@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 
 /**
- * Natív MP4-lejátszó (spec 5.5): natív vezérlők, poster, preload="metadata",
- * nincs autoplay és külön letöltés gomb. Az első sikeres `play` eseménynél
- * egyszer megszámolja a megtekintést; médiahiba magyar üzenetet és
- * újrapróbálást ad.
+ * Native MP4 player (spec 5.5): native controls, poster, preload="metadata",
+ * no autoplay and a separate download button. Counts one view on the first
+ * successful `play` event; on media error it shows a Hungarian message and
+ * offers a retry.
  */
 export default function VideoDetailPlayer({
   videoId,

@@ -26,7 +26,7 @@ export function videoSortLabel(sort: VideoSort): string {
   return SORT_LABELS[sort]
 }
 
-/** A `/videos` URL-állapotának nyers (string) formája. */
+/** Raw (string) form of the `/videos` URL state. */
 export interface VideoListRawSearch {
   q?: string
   sort?: string
@@ -54,8 +54,8 @@ export interface ParsedVideoListQuery {
 }
 
 /**
- * URL-állapot értelmezése (spec 5.8): ismeretlen rendezés és oldalméret az
- * alapértelmezésre esik vissza; lapozás mindig pozitív egész.
+ * Interpretation of the URL state (spec 5.8): unknown sort and page size fall
+ * back to the defaults; paging is always a positive integer.
  */
 export function parseVideoListSearch(
   raw: VideoListRawSearch,
@@ -118,8 +118,8 @@ export interface VideoListPage {
 }
 
 /**
- * Videólista lekérdezése a néző jogosultsága szerint. Az eseményszűrő slugon
- * érkezik (megosztható URL), a szolgáltatás eseményazonosítót vár.
+ * Video list query according to the viewer's permissions. The event filter
+ * arrives as a slug (shareable URL), the service expects an event identifier.
  */
 export async function getVideoListPage(
   executor: Executor,
@@ -134,7 +134,7 @@ export async function getVideoListPage(
       .where(eq(events.slug, query.eventSlug))
       .limit(1)
     eventId = rows.at(0)?.id
-    // Ismeretlen esemény slugra nincs találat, nem hibázunk.
+    // Unknown event slug yields no results, not an error.
     if (eventId === undefined) {
       return {
         items: [],
@@ -182,11 +182,11 @@ export interface VideoFilterOptions {
   tags: Array<{ name: string }>
   events: Array<{ slug: string; title: string }>
   staffRoles: Array<{ id: string; name: string }>
-  /** Csak olyan tagok, akik legalább egy publikált videó stáblistáján szerepelnek. */
+  /** Only members who appear on the staff list of at least one published video. */
   staffMembers: Array<{ sub: string; fullName: string }>
 }
 
-/** Szűrőlisták a videóoldalhoz (publikus adatok). */
+/** Filter lists for the video page (public data). */
 export async function getVideoFilterOptions(
   executor: Executor,
 ): Promise<VideoFilterOptions> {

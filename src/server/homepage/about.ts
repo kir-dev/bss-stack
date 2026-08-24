@@ -11,8 +11,8 @@ import { writeAudit } from '#/server/shared/write.ts'
 export const ABOUT_VIDEO_LIMIT = 6
 
 /**
- * Rólunk-videólista beállítása (spec 10.1): legfeljebb hat, vezetőség által
- * választott és sorrendezett publikus videó.
+ * Set the About page video list (spec 10.1): at most six public videos,
+ * chosen and ordered by leadership.
  */
 export async function setAboutVideos(
   executor: Executor,
@@ -82,8 +82,8 @@ export async function setAboutVideos(
 }
 
 /**
- * Rólunk-oldal videói: a listából automatikusan kiesik az archivált,
- * lomtári vagy nem publikus videó (SQL-szintű szűrés).
+ * About page videos: archived, trashed or unpublished videos automatically
+ * drop out of the list (SQL-level filtering).
  */
 export async function getAboutPageVideos(
   executor: Executor,

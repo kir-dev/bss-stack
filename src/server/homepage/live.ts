@@ -40,7 +40,7 @@ async function loadStream(executor: Executor, id: string) {
   return rows.at(0) ?? null
 }
 
-/** Átfedés-ellenőrzés alkalmazásoldalon (a DB EXCLUDE korlát is védi). */
+/** Overlap check on the application side (the DB EXCLUDE constraint also protects). */
 async function assertNoOverlap(
   executor: Executor,
   window: { startsAt: Date; endsAt: Date },
@@ -65,15 +65,15 @@ async function assertNoOverlap(
 }
 
 export interface CreateLiveInput {
-  /** Bármely elfogadott YouTube URL-forma; normalizálásra kerül. */
+  /** Any accepted YouTube URL form; gets normalized. */
   youtubeUrl: string
   startsAt: Date
   endsAt: Date
 }
 
 /**
- * Live ütemezése (spec 9.3): kötelező kezdés és befejezés, átfedés tiltva.
- * Mentéskor oEmbed ellenőrzés fut; a hibás azonosító nem menthető.
+ * Schedule a live (spec 9.3): start and end are required, overlap forbidden.
+ * An oEmbed check runs on save; an invalid ID cannot be saved.
  */
 export async function createLiveSchedule(
   executor: Executor,
@@ -139,7 +139,7 @@ function snapshotLive(
   }
 }
 
-/** Ütemezett live időablakának módosítása; befejezett live már nem módosítható. */
+/** Modify a scheduled live's time window; an ended live can no longer be modified. */
 export async function rescheduleLive(
   executor: Executor,
   deps: LiveDeps,
@@ -156,7 +156,7 @@ export async function rescheduleLive(
     throw new Error('A live ütemezés nem található.')
   }
   if (current.status === 'ended') {
-    // Korábbi live csak másolatként ütemezhető újra (spec 9.3).
+    // A past live can only be rescheduled as a copy (spec 9.3).
     throw new Error(
       'Befejezett live nem módosítható; csak másolatként ütemezhető újra.',
     )
@@ -191,8 +191,8 @@ export async function rescheduleLive(
 }
 
 /**
- * `Indítás most` (spec 9.3): aktiváláskor oEmbed ellenőrzés fut; hibánál a
- * hiba rögzítésre kerül és a live ütemezetten marad (a homepage fallbacket mutat).
+ * `Start now` (spec 9.3): an oEmbed check runs on activation; on failure the
+ * error is recorded and the live stays scheduled (the homepage shows the fallback).
  */
 export async function startLiveNow(
   executor: Executor,
@@ -213,7 +213,7 @@ export async function startLiveNow(
   )
   const now = (deps.clock ?? systemClock).now()
   if (!check.ok) {
-    // Fallback engedélyezett: a hiba rögzül, a live ütemezetten marad.
+    // Fallback allowed: the error is recorded and the live stays scheduled.
     const updated = await executor
       .update(liveStreams)
       .set({ activationError: check.problems.join(' '), updatedAt: now })
@@ -269,7 +269,7 @@ export async function startLiveNow(
   return { stream: row, activated: true }
 }
 
-/** `Lezárás most`: a live azonnal befejezett állapotba kerül. */
+/** `End now`: the live immediately goes into the ended state. */
 export async function endLiveNow(
   executor: Executor,
   deps: LiveDeps,
@@ -288,8 +288,8 @@ export async function endLiveNow(
     .set({
       status: 'ended',
       endedAt: now,
-      // Csak futó live esetén rövidül az ablak a lezárási időpontra;
-      // a befejezés nem lehet korábbi a kezdésnél (DB check).
+      // Only a running live has its window shortened to the end time;
+      // the end cannot be earlier than the start (DB check).
       ...(now > current.startsAt && now < current.endsAt
         ? { endsAt: now }
         : {}),
@@ -314,7 +314,7 @@ export async function endLiveNow(
   return row
 }
 
-/** Ütemezett live törlése; aktív vagy befejezett nem törölhető. */
+/** Delete a scheduled live; an active or ended one cannot be deleted. */
 export async function deleteScheduledLive(
   executor: Executor,
   deps: LiveDeps,
@@ -341,8 +341,8 @@ export async function deleteScheduledLive(
 }
 
 /**
- * Háttérfeladat (spec 15): a lejárt ütemezések aktiválása/bezárása.
- * Csak tényleges változásnál ír auditot (`system` szereplővel).
+ * Background job (spec 15): activate/close expired schedules.
+ * Writes an audit entry only on an actual change (with the `system` actor).
  */
 export async function transitionLiveStates(
   executor: Executor,
@@ -423,8 +423,8 @@ export async function transitionLiveStates(
   return { activated, ended }
 }
 
-/** Admin előzmény: minden live legutóbbiekkel előre (publikus archívumba soha). */
-/** Perces feladat a live állapotváltásokra (spec 15): a runner extra feladata. */
+/** Admin history: every live, most recent first (never in the public archive). */
+/** Per-minute job for live state transitions (spec 15): an extra job for the runner. */
 export function createLiveTransitionJob(deps: {
   clock?: Clock
   db: () => Promise<Executor>

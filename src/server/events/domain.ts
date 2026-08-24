@@ -75,7 +75,7 @@ async function loadEvent(executor: Executor, eventId: string) {
   return row
 }
 
-/** Naptári dátum mező ellenőrzése (időzóna nélküli dátum, spec 4.4). */
+/** Validate a calendar date field (date without timezone, spec 4.4). */
 function validateDateField(
   fieldName: string,
   value: string | null | undefined,
@@ -96,8 +96,8 @@ function validateDateField(
 }
 
 /**
- * Mezők validálása a jelenlegi sor mellett: részbeni frissítésnél a
- * befejezés >= kezdés összefüggés az egyesített állapotra érvényes.
+ * Validate fields against the current row: for partial updates the
+ * end >= start relation applies to the merged state.
  */
 function validatedChanges(
   current: Pick<typeof events.$inferSelect, 'startDate' | 'endDate'>,
@@ -152,7 +152,7 @@ function validatedChanges(
   return changes
 }
 
-/** Publikálási feltételek (spec 6.1): cím és kezdődátum kötelező. */
+/** Publish conditions (spec 6.1): title and start date are required. */
 function assertPublishable(row: typeof events.$inferSelect): void {
   const problems: string[] = []
   if (row.title.trim() === '') {
@@ -166,7 +166,7 @@ function assertPublishable(row: typeof events.$inferSelect): void {
   }
 }
 
-/** Publikáláskor a meglévő thumbnail hálózati ellenőrzése (hibás média blokkol). */
+/** Network validation of the existing thumbnail at publish time (bad media blocks). */
 async function assertThumbnailReachable(
   row: typeof events.$inferSelect,
   deps: EventDeps,
@@ -193,7 +193,7 @@ export async function createEvent(
   assertContentEditor(deps.viewer)
 
   return executor.transaction(async (tx) => {
-    // Piszkozathoz csak cím kell (spec 6.1).
+    // A draft only needs a title (spec 6.1).
     const title = validateRequiredText('Cím', input.title, TEXT_LIMITS.title)
     const emptyCurrent = {
       startDate: null as string | null,
@@ -240,7 +240,7 @@ export async function createEvent(
 }
 
 export interface UpdateEventParams extends EventInput {
-  /** Kifejezett slug módosítás; átirányítási előzménnyel. */
+  /** Explicit slug change; with redirect history. */
   slug?: string
 }
 
@@ -300,7 +300,7 @@ export async function updateEvent(
   })
 }
 
-/** Publikálás: piszkózatból vagy archiváltból, minden feltétellel (spec 6.1). */
+/** Publish: from draft or archived, with all conditions (spec 6.1). */
 export async function publishEvent(
   executor: Executor,
   deps: EventDeps,
@@ -384,9 +384,9 @@ async function transitionEventStatus(
 }
 
 /**
- * Végleges eseménytörlés (spec 6.4): vezetőségi jog + címbeírás.
- * Egy tranzakcióban: videók leválasztása (`recordedAt` megmarad), a régi slug
- * történetbe foglalása (újrahasználat tiltva), az esemény törlése, teljes audit.
+ * Permanent event deletion (spec 6.4): leadership rights + title confirmation.
+ * In a single transaction: detach videos (`recordedAt` is preserved), archive
+ * the old slug into history (reuse forbidden), delete the event, full audit.
  */
 export async function permanentlyDeleteEvent(
   executor: Executor,
@@ -412,13 +412,13 @@ export async function permanentlyDeleteEvent(
       .where(eq(videos.eventId, eventId))
     const detachedVideoIds = attached.map((row) => row.id)
 
-    // A videók `recordedAt` értéke megmarad; csak az eseménykapcsolat szűnik meg.
+    // The videos' `recordedAt` values are preserved; only the event link goes away.
     await tx
       .update(videos)
       .set({ eventId: null })
       .where(eq(videos.eventId, eventId))
 
-    // A slug a történetbe kerül: végleges törlés után sem használható fel újra.
+    // The slug goes into history: it cannot be reused even after permanent deletion.
     await tx.insert(slugHistory).values({
       entityType: 'event',
       slug: locked.slug,
@@ -473,7 +473,7 @@ export interface ListEventsOptions {
   offset?: number
 }
 
-/** Eseménylista kezdődátum szerint csökkenő sorrendben (spec 6.3). */
+/** Event list ordered by start date descending (spec 6.3). */
 export async function listEvents(
   executor: Executor,
   options: ListEventsOptions = {},

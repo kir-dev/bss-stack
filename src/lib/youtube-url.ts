@@ -1,13 +1,13 @@
 /**
- * YouTube URL értelmezés. Kliens- és szerveroldalon egyaránt kell (a live
- * ütemezésnél a szerkesztő már írás közben jelzi a hibás URL-t), ezért él
- * itt, a hálózati oEmbed ellenőrzés pedig a szerveroldali modulban.
+ * YouTube URL parsing. Needed on both the client and the server (at live
+ * scheduling the editor already flags a bad URL while typing), which is why
+ * it lives here; the network oEmbed check stays in the server-side module.
  */
 
 /**
- * YouTube URL normalizálás (spec 9.3). Elfogadott formák:
+ * YouTube URL normalization (spec 9.3). Accepted forms:
  * youtube.com/watch?v=ID, youtube.com/live/ID, youtu.be/ID, embed/ID,
- * youtube-nocookie.com változatok. Az eredmény mindig videóazonosító.
+ * and youtube-nocookie.com variants. The result is always a video ID.
  */
 export function normalizeYoutubeVideoId(rawUrl: string): string | null {
   try {
@@ -49,7 +49,7 @@ export function normalizeYoutubeVideoId(rawUrl: string): string | null {
   }
 }
 
-/** Magyar figyelmeztetés a live űrlaphoz, vagy `null`, ha az URL rendben. */
+/** Validation warning for the live form, or `null` if the URL is fine. */
 export function youtubeUrlWarning(rawUrl: string): string | null {
   const trimmed = rawUrl.trim()
   if (trimmed === '') {

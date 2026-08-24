@@ -60,8 +60,8 @@ async function stringBody(
 }
 
 /**
- * Címkekatalógus és stábszerep műveletek (BSS-030). Kizárólag vezetőségi —
- * a tag közvetlen API-hívással sem módosíthatja a katalógusokat.
+ * Tag catalog and staff role operations (BSS-030). Leadership-only —
+ * members must not be able to modify the catalogs even with direct API calls.
  */
 export async function handleAdminTagRoutes(
   request: Request,
@@ -83,7 +83,7 @@ export async function handleAdminTagRoutes(
           })
         }
         case 'similar': {
-          // Ékezeti hasonlóság figyelmeztetés (spec 7.1): GET ?name=...
+          // Accent-similarity warning (spec 7.1): GET ?name=...
           const name = new URL(request.url).searchParams.get('name') ?? ''
           const similar = await findAccentSimilarTagNames(
             database,
@@ -207,7 +207,7 @@ export async function handleAdminStaffRoleRoutes(
   )
 }
 
-/** Közös vezetőségi guard a két katalógushoz. */
+/** Shared leadership guard for the two catalogs. */
 async function runCatalogHandler(
   request: Request,
   deps: AdminCatalogRouteDeps,

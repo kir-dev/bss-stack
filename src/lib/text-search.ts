@@ -1,6 +1,6 @@
 /**
- * Kliensoldali listaszűrés szöveg alapján. Ékezetfüggetlen, hogy a magyar
- * nevek („Schönherz") ékezet nélkül írva is előkerüljenek.
+ * Client-side list filtering based on text. Accent-insensitive, so that
+ * Hungarian names ("Schönherz") are also found when typed without accents.
  */
 
 export function normalizeForSearch(value: string): string {
@@ -12,8 +12,8 @@ export function normalizeForSearch(value: string): string {
 }
 
 /**
- * Igaz, ha a keresés minden szava szerepel a címkében (részszóként is).
- * Üres keresés mindenre illeszkedik.
+ * True if every word of the query appears in the label (also as a partial
+ * word). An empty search matches everything.
  */
 export function matchesSearch(label: string, query: string): boolean {
   const words = normalizeForSearch(query).split(/\s+/).filter(Boolean)

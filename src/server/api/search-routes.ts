@@ -11,9 +11,9 @@ export interface SearchRouteDeps {
 }
 
 /**
- * Globális kereső API (spec 11): csoportonként legfeljebb `limit` találat;
- * a jogosultsági szűrés az SQL-ben történik, tiltott videó metaadata nem
- * kerül válaszba. Üres/rövid kifejezésre üres eredményt ad.
+ * Global search API (spec 11): at most `limit` results per group;
+ * permission filtering happens in SQL, metadata of forbidden videos never
+ * appears in the response. Returns an empty result for empty/short queries.
  */
 export async function handleSearch(
   request: Request,

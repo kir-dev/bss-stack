@@ -94,7 +94,7 @@ function formFromDetail(detail: AdminVideoDetail): EditorForm {
 }
 
 function toDatetimeLocal(date: Date): string {
-  // Europe/Budapest szerinti helyi idő a datetime-local mezőhöz.
+  // Local time in Europe/Budapest for the datetime-local field.
   const formatter = new Intl.DateTimeFormat('sv-SE', {
     timeZone: 'Europe/Budapest',
     year: 'numeric',
@@ -191,7 +191,7 @@ function VideoEditor({
   })
   const isDirty = currentSnapshot !== initialSnapshot
 
-  // Mentetlen változásokkal navigáció előtt megerősítés (spec 5.3).
+  // Confirm before navigating away with unsaved changes (spec 5.3).
   useEffect(() => {
     if (!isDirty) return
     const handler = (event: BeforeUnloadEvent) => {
@@ -205,7 +205,7 @@ function VideoEditor({
     (item) => ({ value: item.id, label: item.title }),
   )
 
-  // Élő ellenőrzés: a nem engedélyezett host már írás közben látszik.
+  // Live validation: a disallowed host is already visible while editing.
   const mediaWarnings = mediaUrlWarnings(
     { videoUrl: form.videoUrl, thumbnailUrl: form.thumbnailUrl },
     mediaAllowedHosts,
@@ -216,8 +216,8 @@ function VideoEditor({
   }
 
   /**
-   * Mentés előtti média-URL ellenőrzés (spec 5.4). A hibás URL piszkozatban
-   * menthető, de csak tudatosan: megerősítést kérünk rá.
+   * Media URL validation before saving (spec 5.4). A broken URL can be saved
+   * in a draft, but only deliberately: we ask for confirmation.
    */
   function confirmMediaWarnings(): boolean {
     if (mediaWarnings.length === 0) {
@@ -310,7 +310,7 @@ function VideoEditor({
     await call('publish', {}, 'Videó publikálva.')
   }
 
-  /** Publikálás előtt a mezők mentése, hogy az állapotváltás a friss adaton menjen. */
+  /** Save the fields before publishing so the status change works on fresh data. */
   async function saveCore(): Promise<boolean> {
     if (!isDirty) return true
     return saveDraft()
@@ -353,7 +353,7 @@ function VideoEditor({
         <span className="rounded bg-(--nav-search-bg) px-2 py-1 text-xs font-bold text-(--bss-text-secondary)">
           {statusLabel} · {visibilityLabel(detail.visibility)} · v{version}
         </span>
-        {/* Publikált videó nyilvános oldala új fülön, hogy a szerkesztés ne vesszen el. */}
+        {/* Public page of a published video in a new tab, so editing isn't lost. */}
         {detail.status === 'published' ? (
           <Link
             to="/videos/$slug"
@@ -821,11 +821,11 @@ const SONG_INPUT_CLASS =
 const SONGS_MAX_LENGTH = 5000
 
 /**
- * „Felhasznált zenék" mező. A tárolt forma soronként `Előadó - Szám címe`
- * (spec 5.2); ha a meglévő tartalom így értelmezhető, két beviteli mezős
- * listát adunk, különben szabad szöveges mező marad, hogy a kézzel írt
- * tartalom ne sérüljön. Szerkezetes módban a kötőjel az elválasztó, ezért
- * a mezőkbe nem írható be.
+ * "Songs used" field. The stored format is one `Artist - Song title` per line
+ * (spec 5.2); if the existing content is parsable that way, we show a
+ * two-input list, otherwise it stays a free-text field so hand-written
+ * content isn't damaged. In structured mode the dash is the separator,
+ * so it cannot be typed into the fields.
  */
 function SongsField({
   value,

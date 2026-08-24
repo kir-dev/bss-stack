@@ -17,9 +17,9 @@ import { EntityNotFoundError, StaleWriteError } from '#/server/shared/write.ts'
 import { TextValidationError } from '#/server/shared/text.ts'
 
 /**
- * Közös admin API alapok: minden végpont minden kérésnél szerveroldalon
- * ellenőrzi a jogosultságot (spec 14), és a domainhibákat magyar
- * JSON-hibaüzenetté fordítja.
+ * Shared admin API foundations: every endpoint verifies permissions
+ * server-side on every request (spec 14), and translates domain errors into
+ * Hungarian JSON error messages.
  */
 
 export function jsonResponse(status: number, payload: unknown): Response {
@@ -29,7 +29,7 @@ export function jsonResponse(status: number, payload: unknown): Response {
   })
 }
 
-/** Domainhiba → géppel olvasható kód + magyar üzenet. */
+/** Domain error → machine-readable code + Hungarian message. */
 export function errorResponse(error: unknown): Response {
   if (error instanceof AuthRequiredError) {
     return jsonResponse(401, {
@@ -118,7 +118,7 @@ export function methodNotAllowed(): Response {
   return jsonResponse(405, { error: 'method_not_allowed' })
 }
 
-/** Azonos eredetű kérés ellenőrzése (CSRF-szerű védelem, mint a view-route). */
+/** Same-origin request check (CSRF-like protection, as in the view route). */
 export function assertSameOrigin(request: Request): void {
   const origin = request.headers.get('origin')
   if (

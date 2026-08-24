@@ -11,16 +11,16 @@ import type { OobConfig } from '#/server/config/oob-schema.ts'
 import type { Clock } from '#/lib/clock.ts'
 
 export interface ViewerState {
-  /** A néző jogosultsági szintje és azonosítói (névtelenül is értelmes). */
+  /** The viewer's authorization level and identifiers (meaningful even when anonymous). */
   viewer: Viewer
-  /** Be van jelentkezve (nem névtelen session). */
+  /** Logged in (not an anonymous session). */
   loggedIn: boolean
 }
 
 /**
- * Nézői állapot feloldása egy kérésből: csak a helyi DB-ben tárolt session-ből,
- * az Authentiket soha nem hívja (spec 8.2 — a publikus kérés nem függhet
- * külső szolgáltatástól). Hibás/lejárt session esetén névtelen nézőt ad.
+ * Resolve the viewer state from a request: only from the session stored in the
+ * local DB, never calls Authentik (spec 8.2 — a public request must not depend
+ * on an external service). Returns an anonymous viewer for an invalid/expired session.
  */
 export async function resolveViewerStateFromRequest(
   request: Request,
@@ -30,8 +30,8 @@ export async function resolveViewerStateFromRequest(
   try {
     config = deps.config ?? getCachedOobConfig()
   } catch {
-    // OOB config nélkül a publikus oldalak névtelenül is működjenek;
-    // a belépés külön hibaoldalt kap az auth-végpontoktól.
+    // Without OOB config the public pages should work even anonymously;
+    // login gets its own error page, separate from the auth endpoints.
     return { viewer: anonymousViewer(), loggedIn: false }
   }
 

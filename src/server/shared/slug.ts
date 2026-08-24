@@ -27,7 +27,7 @@ const HUNGARIAN_ACCENTS: Record<string, string> = {
 }
 
 /**
- * Slug képzés címből (spec 4.2): kisbetűs, ékezet nélküli, kötőjeles.
+ * Slug generation from a title (spec 4.2): lowercase, accent-free, hyphenated.
  */
 export function slugify(title: string): string {
   const folded = title.replace(
@@ -50,8 +50,9 @@ function contentTableFor(entityType: SlugEntityType) {
 }
 
 /**
- * Egyedi slug keresés: a tartalomtábla ÉS a slugtörténet egyaránt tiltja az
- * ütközést — a véglegesen törölt entitások régi slugjai így örökre le vannak foglalva.
+ * Finding a unique slug: both the content table AND the slug history forbid
+ * collisions — the old slugs of permanently deleted entities are therefore
+ * reserved forever.
  */
 export async function findFreeSlug(
   executor: Executor,
@@ -107,8 +108,8 @@ export async function findFreeSlug(
 }
 
 /**
- * Slug módosítása átirányítási előzménnyel: a régi slug a történetbe kerül,
- * az új slug egyedisége a tartalom- és történetellenőrzéssel garantált.
+ * Slug rename with redirect history: the old slug goes into the history,
+ * the uniqueness of the new slug is guaranteed by the content and history checks.
  */
 export async function renameSlugWithHistory(
   executor: Executor,
@@ -140,7 +141,7 @@ export async function renameSlugWithHistory(
   return newSlug
 }
 
-/** Régi slug feloldása entitásazonosítóra (átirányításhoz). */
+/** Resolve an old slug to an entity identifier (for redirects). */
 export async function resolveSlugRedirect(
   executor: Executor,
   entityType: SlugEntityType,

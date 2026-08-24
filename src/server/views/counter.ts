@@ -14,17 +14,17 @@ import type { Clock } from '#/lib/clock.ts'
 export const VIEW_SESSION_COOKIE_NAME = 'bss_view_session'
 
 /**
- * Anonim megtekintés-session token új generálása. A cookie-ban a token van,
- * az adatbázisban csak az SHA-256 kivonata (ugyanaz a minta, mint az auth
- * session-nél) — IP és felhasználói előzmény soha nem tárolódik.
+ * Generate a new anonymous view-session token. The token is in the cookie,
+ * the database only stores its SHA-256 hash (the same pattern as for the
+ * auth session) — IP and user history are never stored.
  */
 export function newViewSessionToken(): string {
   return randomBytes(32).toString('base64url')
 }
 
 /**
- * Böngésző bezárásáig élő cookie (spec 5.5): szándékosan NINCS Max-Age,
- * így nem perzisztens session-cookie keletkezik.
+ * Cookie valid until the browser is closed (spec 5.5): deliberately there is
+ * NO Max-Age, so a non-persistent session cookie is created.
  */
 export function viewSessionCookieSpec(
   token: string,
@@ -34,23 +34,23 @@ export function viewSessionCookieSpec(
 }
 
 export interface ViewRecordResult {
-  /** Az adatbázisban tárolt (kivonatolt) session-azonosító. */
+  /** The (hashed) session identifier stored in the database. */
   sessionId: string
   counted: boolean
 }
 
 /**
- * Egy videó-megtekintés rögzítése. Egy böngésző-session ugyanazt a videót
- * egyszer számolja: `view_sessions` elsődleges kulcs + ON CONFLICT DO NOTHING
- * ad idempotenciát, párhuzamos kérésekkel szemben is. Csak publikált,
- * a néző számára látható videó számolható.
+ * Record a video view. A browser session counts the same video only once:
+ * `view_sessions` primary key + ON CONFLICT DO NOTHING provide idempotency,
+ * even against parallel requests. Only a published video visible to the
+ * viewer can be counted.
  */
 export async function recordVideoView(
   executor: Executor,
   params: {
     videoId: string
     viewer: Viewer
-    /** A kliens meglévő view-session tokenje vagy null (első play). */
+    /** The client's existing view-session token, or null (first play). */
     token: string | null
     clock?: Clock
   },
@@ -102,8 +102,8 @@ export async function recordVideoView(
 }
 
 /**
- * Megtekintésszám lekérdezése: csak adminválaszban jelenhet meg (spec 5.5),
- * ezért legalább tagság kell hozzá.
+ * Query the view count: it may only appear in an admin response (spec 5.5),
+ * therefore at least membership is required.
  */
 export async function getViewCount(
   executor: Executor,

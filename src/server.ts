@@ -15,8 +15,8 @@ import { getDefaultDb } from '#/server/auth/session-store.ts'
 
 const ssrHandler = createStartHandler(defaultStreamHandler)
 
-// Háttérfeladatok (induláskori + óránkénti szinkron) egyszer indulnak.
-// Hiba esetén az alkalmazás tovább fut; a hiba a futások táblájába kerül.
+// Background jobs (startup + hourly sync) start only once.
+// On error the application keeps running; the error goes into the runs table.
 let runnerHandle: BackgroundRunnerHandle | null = null
 
 function ensureBackgroundRunner(): void {
@@ -33,12 +33,12 @@ function isApiPath(pathname: string): boolean {
   return API_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix))
 }
 
-// Fejlesztői módban a Vite modul- és eszközkérései is ezen a handleren
-// futnak keresztül. Ezeket át kell engednünk a Vite middleware-nek: a
-// TanStack Router ugyanis a `$`-kal kezdődő útvonalszegmenseket paraméternek
-// nézi, ezért a `/src/routes/videos/$slug.tsx`-re 307-tel válaszolna a
-// `/src/routes/videos/undefined` címre. Emiatt a route-fa modulgráfja nem
-// töltődik be, a kliens sosem hidratál, és egyetlen gomb sem működik.
+// In development mode, Vite module and asset requests also pass through
+// this handler. We must let them through to the Vite middleware: the
+// TanStack Router treats route segments starting with `$` as parameters,
+// so it would respond with a 307 to `/src/routes/videos/undefined` for
+// `/src/routes/videos/$slug.tsx`. Because of this the route tree's module
+// graph never loads, the client never hydrates, and no button works.
 const DEV_ASSET_PREFIXES = ['/@', '/src/', '/node_modules/'] as const
 
 function isDevAssetPath(pathname: string): boolean {
@@ -48,7 +48,7 @@ function isDevAssetPath(pathname: string): boolean {
   )
 }
 
-/** SSR-válasz (és minden más) biztonsági fejlécekkel való kiegészítése. */
+/** Augmenting the SSR response (and everything else) with security headers. */
 async function runWithSecurityHeaders(request: Request): Promise<Response> {
   const response = await ssrHandler(request)
   const headers = new Headers(response.headers)
@@ -69,7 +69,7 @@ export default {
     const url = new URL(request.url)
     const { pathname } = url
     if (isDevAssetPath(pathname)) {
-      // 404 → a kérés továbbmegy a Vite dev middleware-hez.
+      // 404 → the request continues to the Vite dev middleware.
       return new Response(null, { status: 404 })
     }
     if (isApiPath(pathname)) {

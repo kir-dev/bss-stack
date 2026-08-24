@@ -109,8 +109,8 @@ export async function createStaffRole(
 }
 
 /**
- * Átnevezés: a szerep azonosítója változatlan marad, így a meglévő
- * stábkapcsolatok nem veszhetnek el (spec BSS-012).
+ * Rename: the role's identifier stays unchanged, so existing
+ * staff links cannot be lost (spec BSS-012).
  */
 export async function renameStaffRole(
   executor: Executor,
@@ -156,7 +156,7 @@ export async function renameStaffRole(
   })
 }
 
-/** Összevonás: a stábkapcsolatok átkerülnek a célszerephez, kapcsolatvesztés nélkül. */
+/** Merge: staff links are moved to the target role without any link loss. */
 export async function mergeStaffRole(
   executor: Executor,
   deps: CatalogDeps,
@@ -226,7 +226,7 @@ export async function deleteStaffRole(
   })
 }
 
-/** Sorrendezés: az átadott azonosítósorrend lesz a `displayOrder`. */
+/** Reorder: the given ID order becomes the `displayOrder`. */
 export async function reorderStaffRoles(
   executor: Executor,
   deps: CatalogDeps,

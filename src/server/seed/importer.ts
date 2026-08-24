@@ -16,10 +16,10 @@ import { SYSTEM_ACTOR, writeAudit } from '#/server/shared/write.ts'
 import type { SeedFile } from './schema.ts'
 
 /**
- * Idempotens seed importer (BSS-034, spec 17.1): a seed JSON természetes
- * kulcsok (slug, normalizált név) alapján töltődik be tiszta adatbázisra.
- * Újrafuttatás nem duplikál: változatlan entitásokra nem ír semmit
- * (audit sem készül), a változott mezőket és kapcsolatokat szinkronizálja.
+ * Idempotent seed importer (BSS-034, spec 17.1): the seed JSON is loaded into
+ * a clean database based on natural keys (slug, normalized name).
+ * Re-running does not duplicate: it writes nothing for unchanged entities
+ * (no audit entry either), and synchronizes changed fields and relations.
  */
 
 export class SeedImportError extends Error {
@@ -106,7 +106,7 @@ export async function importSeed(
     let createdVideos = 0
     let updatedVideos = 0
 
-    // --- Események: természetes kulcs a slug ---
+    // --- Events: natural key is the slug ---
     const eventIdByKey = new Map<string, string>()
     for (const seedEvent of params.seed.events) {
       const existingRows = await tx
@@ -180,7 +180,7 @@ export async function importSeed(
       }
     }
 
-    // --- Címkék és stábszerepek: természetes kulcs a normalizált név ---
+    // --- Tags and staff roles: natural key is the normalized name ---
     for (const tagName of params.seed.tags) {
       const normalized = normalizeCatalogName(tagName)
       const rows = await tx
@@ -242,7 +242,7 @@ export async function importSeed(
       }
     }
 
-    // --- Videók: természetes kulcs a slug; kapcsolatok determinisztikusak ---
+    // --- Videos: natural key is the slug; relations are deterministic ---
     for (const seedVideo of params.seed.videos) {
       const existingRows = await tx
         .select()
@@ -267,7 +267,7 @@ export async function importSeed(
         recordedAt: seedVideo.recordedAt,
       }
 
-      // Kívánt kapcsolatkészlet feloldása.
+      // Resolve the desired relation set.
       const problems: string[] = []
       const resolvedTagIds = seedVideo.tags.map((tagName) => {
         const id = tagIdByNormalizedName.get(normalizeCatalogName(tagName))
@@ -368,8 +368,8 @@ export async function importSeed(
         }
       }
 
-      // Kapcsolatok csak akkor íródnak, ha eltérnek a kívánt állapottól
-      // (a create ág `continue`-val kilép, itt existing mindig létezik).
+      // Relations are written only when they differ from the desired state
+      // (the create branch exits with `continue`, so existing always exists here).
       const targetId = existing.id
       const currentTagIds = (
         await tx

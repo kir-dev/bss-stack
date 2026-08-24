@@ -11,7 +11,7 @@ const LEVEL_LABELS: Record<ViewerStateDto['level'], string> = {
   leadership: 'Vezetőség',
 }
 
-/** Monogram a profilkép helyére: legfeljebb két névrész kezdőbetűje. */
+/** Monogram in place of the profile picture: initials of at most two name parts. */
 function initials(name: string): string {
   const letters = name
     .trim()
@@ -44,12 +44,12 @@ function Avatar({
   }
   return (
     <img
-      // A gomb hordozza az akadálymentes nevet, a kép dekoratív.
+      // The button carries the accessible name; the image is decorative.
       alt=""
       src={avatarUrl}
       width={32}
       height={32}
-      // Törött profilkép esetén monogramra esünk vissza.
+      // Fall back to a monogram if the avatar is broken.
       onError={() => setFailed(true)}
       className="h-8 w-8 shrink-0 rounded-full object-cover"
     />
@@ -57,10 +57,10 @@ function Avatar({
 }
 
 /**
- * Belépett néző neve és profilképe a navbarban, kattintásra popoverrel
- * (BSS-019 UI): a menüben a kilépés, és tagtól felfelé az adminfelület.
- * A jogosultságot a szerver dönti el, a menü csak elrejti a nem elérhető
- * pontokat – közvetlen URL-en is a szerver guardja véd (spec 14).
+ * The signed-in viewer's name and avatar in the navbar, with a popover on
+ * click (BSS-019 UI): the menu contains logout and, for members and above,
+ * the admin area. Authorization is decided by the server; the menu only hides
+ * inaccessible items — direct URLs are guarded by the server too (spec 14).
  */
 export default function UserMenu({ viewer }: { viewer: ViewerStateDto }) {
   const [open, setOpen] = useState(false)
@@ -68,7 +68,7 @@ export default function UserMenu({ viewer }: { viewer: ViewerStateDto }) {
   const location = useLocation()
   const name = viewer.displayName ?? viewer.username ?? 'Profil'
 
-  // Útvonalváltásra zárjuk a menüt.
+  // Close the menu on route change.
   useEffect(() => {
     setOpen(false)
   }, [location.href])

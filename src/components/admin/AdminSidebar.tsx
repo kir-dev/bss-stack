@@ -6,7 +6,7 @@ export interface SidebarItem {
   leadershipOnly?: boolean
 }
 
-/** A specifikáció 12.1 fejezete szerinti sidebar-elemek sorrendben. */
+/** Sidebar items in order, per chapter 12.1 of the spec. */
 export const ADMIN_SIDEBAR_ITEMS: SidebarItem[] = [
   { to: '/admin/videos', label: 'Videók' },
   { to: '/admin/events', label: 'Események' },
@@ -23,8 +23,9 @@ export const ADMIN_SIDEBAR_ITEMS: SidebarItem[] = [
 ]
 
 /**
- * Admin sidebar (BSS-027): a tag nem lát vezetőségi menüpontot — de a
- * vezetőségi oldalakat a szerver is külön tiltja közvetlen URL-en is.
+ * Admin sidebar (BSS-027): a member does not see leadership menu items — but
+ * the leadership pages are also separately blocked by the server, even via
+ * direct URLs.
  */
 export function AdminSidebar({ level }: { level: string }) {
   const matchRoute = useMatchRoute()

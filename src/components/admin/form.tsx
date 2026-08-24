@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
-/** Közös admin űrlapmezők (BSS-028). */
+/** Shared admin form fields (BSS-028). */
 
 export function AdminTextField({
   label,
@@ -16,7 +16,7 @@ export function AdminTextField({
   onChange: (value: string) => void
   type?: string
   required?: boolean
-  /** Megadva esetén a mező korlátos, és karakterhátralék-jelzést kap (spec 18). */
+  /** When set, the field is limited and gets a remaining-character indicator (spec 18). */
   maxLength?: number
   hint?: ReactNode
 }) {
@@ -114,7 +114,7 @@ export function AdminSecondaryButton({
   children: ReactNode
   onClick: () => void
   disabled?: boolean
-  /** Megadva esetén normál megerősítést kér (spec 13.1). */
+  /** When set, asks for standard confirmation (spec 13.1). */
   confirm?: string
 }) {
   return (

@@ -15,26 +15,26 @@ export interface HomepageEventCard {
   id: string
   slug: string
   title: string
-  /** Az esemény saját borítóképe, hiányában a legfrissebb publikus videójáé. */
+  /** The event's own cover image, or that of its most recent public video if missing. */
   thumbnailUrl: string | null
   startDate: string | null
 }
 
 export interface HomepageStateDto {
   priority: 'live' | 'highlight' | 'normal'
-  /** Live esetén a YouTube nocookie embed URL. */
+  /** The YouTube nocookie embed URL in live mode. */
   liveEmbedUrl: string | null
   liveTitle: string | null
   hero: HomepageVideoCard | null
   sideVideos: Array<HomepageVideoCard>
   events: Array<HomepageEventCard>
-  /** `Adás hamarosan` sáv: legfeljebb 24 órán belül kezdődő ütemezés. */
+  /** `On air soon` strip: schedule starting within 24 hours at most. */
   upcomingLive: { startsAtIso: string; embedUrl: string } | null
 }
 
 /**
- * A főoldal számított prioritású állapota (spec 9.1), kliensnek szerializálva.
- * A percenkénti újratöltés frissítés nélkül vált a három állapot között.
+ * The homepage state with computed priority (spec 9.1), serialized for the client.
+ * The per-minute reload switches between the three states without refreshing.
  */
 export async function getHomepagePage(
   executor: Executor,
@@ -51,8 +51,8 @@ export async function getHomepagePage(
     thumbnailUrl: video.thumbnailUrl,
   })
 
-  // A főoldal névtelen nézőként fut, ezért a fallback borítókép csak publikus
-  // videóból jöhet – ugyanaz a szabály, mint a publikus eseménylistán.
+  // The homepage runs as an anonymous viewer, so the fallback cover image can
+  // only come from a public video – the same rule as on the public event list.
   const eventThumbs =
     state.events.length === 0
       ? new Map<string, string>()
