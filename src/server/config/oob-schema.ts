@@ -132,12 +132,24 @@ export function validateOobConfig(raw: unknown): OobConfig {
   }
 
   const issuerUrlValue = authentik['issuerUrl']
+  const isPrivateHttpUrl = (url: string): boolean => {
+    try {
+      const parsed = new URL(url)
+      if (parsed.protocol !== 'http:') return false
+      // RFC1918 magánhálózatok + loopback alternatívák (pl. LAN IP-s dev futtatás).
+      return /^(10\.|127\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(
+        parsed.hostname,
+      )
+    } catch {
+      return false
+    }
+  }
   if (
     typeof issuerUrlValue === 'string' &&
     issuerUrlValue.trim() !== '' &&
     !issuerUrlValue.startsWith('https://') &&
     !issuerUrlValue.startsWith('http://localhost') &&
-    !issuerUrlValue.startsWith('http://127.0.0.1')
+    !isPrivateHttpUrl(issuerUrlValue)
   ) {
     problems.push(
       'authentik.issuerUrl: https:// kezdetű URL vagy lokális http cím kell legyen.',

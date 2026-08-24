@@ -18,7 +18,14 @@ export interface LocalSecrets {
   passwords: Record<string, string>
 }
 
-const AUTHENTIK_BASE_URL = 'http://127.0.0.1:9000'
+/**
+ * Publikus alap URL-ek. Lan-eléréshez állítsd pl.:
+ *   BSS_AUTHENTIK_BASE_URL=http://10.128.0.3:9000
+ *   BSS_APP_BASE_URL=http://10.128.0.3:3000
+ */
+const AUTHENTIK_BASE_URL =
+  process.env.BSS_AUTHENTIK_BASE_URL ?? 'http://127.0.0.1:9000'
+const APP_BASE_URL = process.env.BSS_APP_BASE_URL ?? 'http://localhost:3000'
 const OIDC_CLIENT_ID = 'bss-stack-local'
 export const SYNC_SERVICE_USERNAME = 'svc-bss-sync'
 
@@ -343,6 +350,13 @@ export function renderBlueprint(secrets: LocalSecrets): string {
     '          url: http://localhost:3000/api/auth/callback',
     '        - matching_mode: strict',
     '          url: http://127.0.0.1:3000/api/auth/callback',
+    ...(APP_BASE_URL === 'http://localhost:3000' ||
+    APP_BASE_URL === 'http://127.0.0.1:3000'
+      ? []
+      : [
+          '        - matching_mode: strict',
+          `          url: ${APP_BASE_URL}/api/auth/callback`,
+        ]),
     '      grant_types:',
     '        - authorization_code',
     '        - refresh_token',
