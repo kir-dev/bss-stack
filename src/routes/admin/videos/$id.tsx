@@ -1,12 +1,13 @@
-import { createFileRoute, notFound } from '@tanstack/react-router'
+import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   getAdminVideoDetail,
   getAdminVideoEditorOptions,
 } from '#/server/admin/video-detail.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
+import { getCachedOobConfig } from '#/server/config/load.ts'
 import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import {
@@ -21,10 +22,20 @@ import {
   FormMessage,
   LoginRequiredBanner,
   ValidationProblems,
+  WarningList,
 } from '#/components/admin/Alerts.tsx'
+import { AdminSearchSelect } from '#/components/admin/SearchSelect.tsx'
 import { postJson } from '#/lib/admin-api.ts'
 import { videoStatusLabel, visibilityLabel } from '#/lib/admin-labels.ts'
 import { formatAdminDateTimeHu } from '#/lib/format-date.ts'
+import { mediaUrlWarnings } from '#/lib/media-url.ts'
+import {
+  parseSongList,
+  serializeSongList,
+  stripSongDashes,
+} from '#/lib/song-list.ts'
+import type { SearchSelectOption } from '#/components/admin/SearchSelect.tsx'
+import type { SongEntry } from '#/lib/song-list.ts'
 import type { AdminVideoDetail } from '#/server/admin/video-detail.ts'
 
 const loadAdminVideoEditor = createServerFn({ method: 'GET' })
@@ -36,8 +47,21 @@ const loadAdminVideoEditor = createServerFn({ method: 'GET' })
       return null
     }
     const options = await getAdminVideoEditorOptions(db, data.id)
-    return { detail, options }
+    return { detail, options, mediaAllowedHosts: allowedMediaHosts() }
   })
+
+/**
+ * Engedélyezett média-hostok a kliensoldali, mentés előtti figyelmeztetéshez
+ * (spec 5.4). Config nélkül üres lista megy ki, ilyenkor a kliens a
+ * specifikált alap hostra esik vissza; a kikényszerítés szerveroldali.
+ */
+function allowedMediaHosts(): string[] {
+  try {
+    return getCachedOobConfig().media.allowedHosts
+  } catch {
+    return []
+  }
+}
 
 export const Route = createFileRoute('/admin/videos/$id')({
   loader: ({ params, context }) =>
@@ -123,6 +147,7 @@ function AdminVideoEditorPage() {
       key={`${payload.detail.id}-${payload.detail.version}`}
       detail={payload.detail}
       options={payload.options}
+      mediaAllowedHosts={payload.mediaAllowedHosts}
       isLeadership={viewerQuery.data?.level === 'leadership'}
       onReload={() =>
         queryClient.invalidateQueries({ queryKey: ['admin-video-editor', id] })
@@ -134,11 +159,13 @@ function AdminVideoEditorPage() {
 function VideoEditor({
   detail,
   options,
+  mediaAllowedHosts,
   isLeadership,
   onReload,
 }: {
   detail: AdminVideoDetail
   options: Awaited<ReturnType<typeof getAdminVideoEditorOptions>>
+  mediaAllowedHosts: string[]
   isLeadership: boolean
   onReload: () => Promise<unknown>
 }) {
@@ -184,8 +211,31 @@ function VideoEditor({
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty])
 
+  const eventOptions: Array<SearchSelectOption> = options.events.map(
+    (item) => ({ value: item.id, label: item.title }),
+  )
+
+  // Élő ellenőrzés: a nem engedélyezett host már írás közben látszik.
+  const mediaWarnings = mediaUrlWarnings(
+    { videoUrl: form.videoUrl, thumbnailUrl: form.thumbnailUrl },
+    mediaAllowedHosts,
+  )
+
   function patch(partial: Partial<EditorForm>) {
     setForm((prev) => ({ ...prev, ...partial }))
+  }
+
+  /**
+   * Mentés előtti média-URL ellenőrzés (spec 5.4). A hibás URL piszkozatban
+   * menthető, de csak tudatosan: megerősítést kérünk rá.
+   */
+  function confirmMediaWarnings(): boolean {
+    if (mediaWarnings.length === 0) {
+      return true
+    }
+    return window.confirm(
+      `${mediaWarnings.join('\n')}\n\nMented így, a hibás URL-lel?`,
+    )
   }
 
   async function call(
@@ -239,6 +289,9 @@ function VideoEditor({
   }
 
   async function saveDraft(): Promise<boolean> {
+    if (!confirmMediaWarnings()) {
+      return false
+    }
     return call(
       'update',
       {
@@ -310,6 +363,22 @@ function VideoEditor({
         <span className="rounded bg-(--nav-search-bg) px-2 py-1 text-xs font-bold text-(--bss-text-secondary)">
           {statusLabel} · {visibilityLabel(detail.visibility)} · v{version}
         </span>
+        {/* Publikált videó nyilvános oldala új fülön, hogy a szerkesztés ne vesszen el. */}
+        {detail.status === 'published' ? (
+          <Link
+            to="/videos/$slug"
+            params={{ slug: detail.slug }}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm font-bold text-(--orange) underline"
+          >
+            Megnyitás az oldalon ↗
+          </Link>
+        ) : (
+          <span className="text-xs text-(--bss-text-secondary)">
+            A nyilvános oldal csak publikált állapotban érhető el.
+          </span>
+        )}
       </div>
 
       {loginUrl !== null && <LoginRequiredBanner loginUrl={loginUrl} />}
@@ -355,12 +424,9 @@ function VideoEditor({
             maxLength={5000}
             hint="Soronként egy név."
           />
-          <AdminTextArea
-            label="Felhasznált zenék"
+          <SongsField
             value={form.songs}
             onChange={(value) => patch({ songs: value })}
-            maxLength={5000}
-            hint="Soronként egy tétel: Előadó - Szám címe"
           />
         </div>
       </section>
@@ -379,6 +445,7 @@ function VideoEditor({
           onChange={(value) => patch({ thumbnailUrl: value })}
           hint="Hibás URL piszkozatban menthető, publikálni nem lehet vele."
         />
+        <WarningList warnings={mediaWarnings} />
       </section>
 
       <section className="flex flex-col gap-4 rounded border border-(--nav-border-b) p-4">
@@ -393,18 +460,15 @@ function VideoEditor({
             <option value="schonherz">Schönherz</option>
             <option value="bss">BSS-tag</option>
           </AdminSelectField>
-          <AdminSelectField
+          <AdminSearchSelect
             label="Esemény"
             value={form.eventId}
             onChange={(value) => patch({ eventId: value })}
-          >
-            <option value="">Nincs esemény</option>
-            {options.events.map((eventOption) => (
-              <option key={eventOption.id} value={eventOption.id}>
-                {eventOption.title}
-              </option>
-            ))}
-          </AdminSelectField>
+            options={eventOptions}
+            placeholder="Nincs esemény"
+            emptyOptionLabel="Nincs esemény"
+            searchPlaceholder="Esemény keresése…"
+          />
           <AdminTextField
             label="Készült dátuma"
             type="date"
@@ -576,6 +640,15 @@ function StaffSection({
   onSave: () => void
   busy: boolean
 }) {
+  const roleOptions: Array<SearchSelectOption> = roles.map((role) => ({
+    value: role.id,
+    label: role.name,
+  }))
+  const memberOptions: Array<SearchSelectOption> = members.map((member) => ({
+    value: member.sub,
+    label: member.fullName,
+  }))
+
   return (
     <section className="flex flex-col gap-3 rounded border border-(--nav-border-b) p-4">
       <h2 className="font-bold text-(--bss-text)">Stáblista</h2>
@@ -585,8 +658,11 @@ function StaffSection({
         </p>
       )}
       {assignments.map((assignment, index) => (
-        <div key={index} className="flex flex-wrap items-end gap-2">
-          <AdminSelectField
+        <div
+          key={index}
+          className="grid items-end gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+        >
+          <AdminSearchSelect
             label="Szerep"
             value={assignment.roleId}
             onChange={(roleId) =>
@@ -596,14 +672,11 @@ function StaffSection({
                 ),
               )
             }
-          >
-            {roles.map((role) => (
-              <option key={role.id} value={role.id}>
-                {role.name}
-              </option>
-            ))}
-          </AdminSelectField>
-          <AdminSelectField
+            options={roleOptions}
+            placeholder="Válassz szerepet…"
+            searchPlaceholder="Szerep keresése…"
+          />
+          <AdminSearchSelect
             label="Tag"
             value={assignment.memberSub}
             onChange={(memberSub) =>
@@ -613,13 +686,10 @@ function StaffSection({
                 ),
               )
             }
-          >
-            {members.map((member) => (
-              <option key={member.sub} value={member.sub}>
-                {member.fullName}
-              </option>
-            ))}
-          </AdminSelectField>
+            options={memberOptions}
+            placeholder="Válassz tagot…"
+            searchPlaceholder="Tag keresése…"
+          />
           <AdminSecondaryButton
             onClick={() => onChange(assignments.filter((_, i) => i !== index))}
           >
@@ -662,10 +732,10 @@ function RelatedSection({
   onSave: () => void
   busy: boolean
 }) {
-  const addRef = useRef<HTMLSelectElement>(null)
-  const remaining = candidates.filter(
-    (candidate) => !selectedIds.includes(candidate.id),
-  )
+  const [pendingId, setPendingId] = useState('')
+  const remaining: Array<SearchSelectOption> = candidates
+    .filter((candidate) => !selectedIds.includes(candidate.id))
+    .map((candidate) => ({ value: candidate.id, label: candidate.title }))
 
   return (
     <section className="flex flex-col gap-3 rounded border border-(--nav-border-b) p-4">
@@ -729,26 +799,24 @@ function RelatedSection({
           ))}
         </ol>
       )}
-      <div className="flex flex-wrap items-center gap-2">
-        <select
-          ref={addRef}
-          className="h-10 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 text-sm"
-          defaultValue=""
-        >
-          <option value="">Válassz videót…</option>
-          {remaining.map((candidate) => (
-            <option key={candidate.id} value={candidate.id}>
-              {candidate.title}
-            </option>
-          ))}
-        </select>
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="w-full sm:w-80">
+          <AdminSearchSelect
+            value={pendingId}
+            onChange={setPendingId}
+            options={remaining}
+            placeholder="Válassz videót…"
+            searchPlaceholder="Videó keresése cím szerint…"
+          />
+        </div>
         <AdminSecondaryButton
+          disabled={pendingId === ''}
           onClick={() => {
-            const value = addRef.current?.value
-            if (value !== undefined && value !== '') {
-              onChange([...selectedIds, value])
-              if (addRef.current) addRef.current.value = ''
+            if (pendingId === '') {
+              return
             }
+            onChange([...selectedIds, pendingId])
+            setPendingId('')
           }}
         >
           Hozzáadás
@@ -758,5 +826,142 @@ function RelatedSection({
         </AdminPrimaryButton>
       </div>
     </section>
+  )
+}
+
+const SONG_INPUT_CLASS =
+  'h-10 min-w-0 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 outline-none focus:border-(--orange)'
+const SONGS_MAX_LENGTH = 5000
+
+/**
+ * „Felhasznált zenék" mező. A tárolt forma soronként `Előadó - Szám címe`
+ * (spec 5.2); ha a meglévő tartalom így értelmezhető, két beviteli mezős
+ * listát adunk, különben szabad szöveges mező marad, hogy a kézzel írt
+ * tartalom ne sérüljön. Szerkezetes módban a kötőjel az elválasztó, ezért
+ * a mezőkbe nem írható be.
+ */
+function SongsField({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (value: string) => void
+}) {
+  const [entries, setEntries] = useState<Array<SongEntry> | null>(() =>
+    parseSongList(value),
+  )
+  const [dashBlocked, setDashBlocked] = useState(false)
+
+  function commit(next: Array<SongEntry>) {
+    setEntries(next)
+    onChange(serializeSongList(next))
+  }
+
+  function setField(index: number, field: keyof SongEntry, raw: string) {
+    const cleaned = stripSongDashes(raw)
+    setDashBlocked(cleaned !== raw)
+    commit(
+      (entries ?? []).map((entry, i) =>
+        i === index ? { ...entry, [field]: cleaned } : entry,
+      ),
+    )
+  }
+
+  if (entries === null) {
+    const parsable = parseSongList(value) !== null
+    return (
+      <div className="flex flex-col gap-2">
+        <AdminTextArea
+          label="Felhasznált zenék"
+          value={value}
+          onChange={onChange}
+          maxLength={SONGS_MAX_LENGTH}
+          hint="Soronként egy tétel: Előadó - Szám címe"
+        />
+        <div className="flex flex-wrap items-center gap-2">
+          <AdminSecondaryButton
+            disabled={!parsable}
+            onClick={() => {
+              const parsed = parseSongList(value)
+              if (parsed !== null) {
+                setEntries(parsed)
+              }
+            }}
+          >
+            Szerkesztés listaként
+          </AdminSecondaryButton>
+          {!parsable && (
+            <span className="text-xs text-(--bss-text-secondary)">
+              A tartalom nem bontható előadó/cím párokra, ezért csak szabad
+              szövegként szerkeszthető.
+            </span>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex flex-col gap-2 text-sm">
+      <span className="font-bold text-(--bss-text)">
+        Felhasznált zenék
+        <span className="ml-2 text-xs font-normal text-(--bss-text-secondary)">
+          ({SONGS_MAX_LENGTH - value.length} karakter hátra)
+        </span>
+      </span>
+      {entries.length === 0 && (
+        <p className="text-xs text-(--bss-text-secondary)">
+          Még nincs tétel a listában.
+        </p>
+      )}
+      {entries.map((entry, index) => (
+        <div
+          key={index}
+          className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] items-center gap-2"
+        >
+          <input
+            value={entry.artist}
+            onChange={(event) => setField(index, 'artist', event.target.value)}
+            placeholder="Előadó"
+            aria-label={`${index + 1}. tétel előadója`}
+            maxLength={200}
+            className={SONG_INPUT_CLASS}
+          />
+          <input
+            value={entry.title}
+            onChange={(event) => setField(index, 'title', event.target.value)}
+            placeholder="Szám címe"
+            aria-label={`${index + 1}. tétel címe`}
+            maxLength={200}
+            className={SONG_INPUT_CLASS}
+          />
+          <button
+            type="button"
+            aria-label={`${index + 1}. tétel törlése`}
+            onClick={() => commit(entries.filter((_, i) => i !== index))}
+            className="px-2 text-red-500"
+          >
+            ✕
+          </button>
+        </div>
+      ))}
+      <div className="flex flex-wrap gap-2">
+        <AdminSecondaryButton
+          onClick={() => commit([...entries, { artist: '', title: '' }])}
+        >
+          + Tétel hozzáadása
+        </AdminSecondaryButton>
+        <AdminSecondaryButton onClick={() => setEntries(null)}>
+          Szabad szöveges szerkesztés
+        </AdminSecondaryButton>
+      </div>
+      <span
+        className={`text-xs ${dashBlocked ? 'text-(--orange)' : 'text-(--bss-text-secondary)'}`}
+      >
+        {dashBlocked
+          ? 'A kötőjel az elválasztó karakter, ezért a mezőkben nem használható.'
+          : 'Mentéskor soronként „Előadó - Szám címe" alakban tárolódik.'}
+      </span>
+    </div>
   )
 }

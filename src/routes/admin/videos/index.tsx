@@ -16,7 +16,9 @@ import {
 } from '#/server/shared/pagination.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import { ResponsiveTable } from '#/components/admin/ResponsiveTable.tsx'
+import { AdminSearchSelect } from '#/components/admin/SearchSelect.tsx'
 import type { AdminColumn } from '#/components/admin/ResponsiveTable.tsx'
+import type { SearchSelectOption } from '#/components/admin/SearchSelect.tsx'
 import { videoStatusLabel, visibilityLabel } from '#/lib/admin-labels.ts'
 import {
   formatAdminDateTimeHu,
@@ -182,6 +184,20 @@ const videoColumns: Array<AdminColumn<AdminVideoListItem>> = [
         >
           {row.title}
         </Link>
+        {/* Publikált videó nyilvános oldala; piszkozatnál nincs mit megnyitni. */}
+        {row.status === 'published' && (
+          <Link
+            to="/videos/$slug"
+            params={{ slug: row.slug }}
+            target="_blank"
+            rel="noreferrer"
+            title="Megnyitás az oldalon"
+            aria-label={`„${row.title}" megnyitása az oldalon`}
+            className="shrink-0 text-(--bss-text-secondary) hover:text-(--orange)"
+          >
+            ↗
+          </Link>
+        )}
       </span>
     ),
   },
@@ -237,6 +253,10 @@ function VideoFilters({
   onApply: (patch: Partial<Record<string, string | undefined>>) => void
 }) {
   const [q, setQ] = useState(search.q ?? '')
+  const eventOptions: Array<SearchSelectOption> = (options?.events ?? []).map(
+    (event) => ({ value: event.id, label: event.title }),
+  )
+
   return (
     <form
       onSubmit={(event) => {
@@ -285,23 +305,18 @@ function VideoFilters({
           <option value="bss">BSS-tag</option>
         </select>
       </label>
-      <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
-        Esemény
-        <select
+      <div className="w-56">
+        <AdminSearchSelect
+          label="Esemény"
           value={search.event ?? ''}
-          onChange={(event) =>
-            onApply({ event: event.target.value || undefined })
-          }
-          className="h-10 max-w-56 bg-(--nav-search-bg) px-2 outline-none"
-        >
-          <option value="">Mind</option>
-          {options?.events.map((event) => (
-            <option key={event.id} value={event.id}>
-              {event.title}
-            </option>
-          ))}
-        </select>
-      </label>
+          onChange={(value) => onApply({ event: value || undefined })}
+          options={eventOptions}
+          placeholder="Mind"
+          emptyOptionLabel="Mind"
+          searchPlaceholder="Esemény keresése…"
+          labelClassName="text-xs text-(--bss-text-secondary)"
+        />
+      </div>
       <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
         Címke
         <select

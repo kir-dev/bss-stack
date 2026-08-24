@@ -72,3 +72,26 @@ export function FormMessage({ children }: { children: ReactNode }) {
     </p>
   )
 }
+
+/**
+ * Nem blokkoló figyelmeztetés (pl. nem engedélyezett média-host): piszkozatban
+ * menthető, de publikálni nem lehet vele.
+ */
+export function WarningList({ warnings }: { warnings: string[] }) {
+  if (warnings.length === 0) {
+    return null
+  }
+  return (
+    <div
+      role="alert"
+      className="rounded border border-(--orange) bg-(--nav-search-bg) p-3 text-sm"
+    >
+      <p className="font-bold text-(--orange)">Figyelem</p>
+      <ul className="mt-1 list-inside list-disc text-(--bss-text-secondary)">
+        {warnings.map((warning, index) => (
+          <li key={index}>{warning}</li>
+        ))}
+      </ul>
+    </div>
+  )
+}
