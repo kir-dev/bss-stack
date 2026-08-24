@@ -84,36 +84,6 @@ export function AdminTextArea({
   )
 }
 
-export function AdminSelectField({
-  label,
-  value,
-  onChange,
-  children,
-  hint,
-}: {
-  label: string
-  value: string
-  onChange: (value: string) => void
-  children: ReactNode
-  hint?: ReactNode
-}) {
-  return (
-    <label className="flex flex-col gap-1 text-sm">
-      <span className="font-bold text-(--bss-text)">{label}</span>
-      <select
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="h-10 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 outline-none focus:border-(--orange)"
-      >
-        {children}
-      </select>
-      {hint !== undefined && (
-        <span className="text-xs text-(--bss-text-secondary)">{hint}</span>
-      )}
-    </label>
-  )
-}
-
 export function AdminPrimaryButton({
   children,
   onClick,

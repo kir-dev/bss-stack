@@ -15,7 +15,12 @@ import type { AuditListItem } from '#/server/admin/audit-admin.ts'
 import { fetchLeadershipAreaAccess } from '#/server/pages/admin/access-fn.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import { ResponsiveTable } from '#/components/admin/ResponsiveTable.tsx'
+import {
+  AdminSearchSelect,
+  FILTER_LABEL_CLASS,
+} from '#/components/admin/SearchSelect.tsx'
 import type { AdminColumn } from '#/components/admin/ResponsiveTable.tsx'
+import type { SearchSelectOption } from '#/components/admin/SearchSelect.tsx'
 import { formatAdminDateTimeHu } from '#/lib/format-date.ts'
 
 const loadAuditPage = createServerFn({ method: 'GET' })
@@ -75,6 +80,16 @@ export const Route = createFileRoute('/admin/audit')({
   component: AuditAdminPage,
 })
 
+/** Az index-szignatúrás keresőparaméter szövegként a választóhoz. */
+function asText(value: string | number | undefined): string {
+  return value === undefined ? '' : String(value)
+}
+
+/** A naplóban előforduló értékek kereshető listaelemekként. */
+function nameOptions(names?: string[]): Array<SearchSelectOption> {
+  return (names ?? []).map((name) => ({ value: name, label: name }))
+}
+
 function AuditAdminPage() {
   const navigate = Route.useNavigate()
   const search = Route.useSearch()
@@ -123,40 +138,30 @@ function AuditAdminPage() {
           }
           className="h-10 w-56 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 text-sm"
         />
-        <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
-          Művelet
-          <select
-            value={search.action ?? ''}
-            onChange={(event) =>
-              applyPatch({ action: event.target.value || undefined })
-            }
-            className="h-10 bg-(--nav-search-bg) px-2 text-sm"
-          >
-            <option value="">Mind</option>
-            {valuesQuery.data?.actions.map((action) => (
-              <option key={action} value={action}>
-                {action}
-              </option>
-            ))}
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
-          Entitástípus
-          <select
-            value={search.entityType ?? ''}
-            onChange={(event) =>
-              applyPatch({ entityType: event.target.value || undefined })
-            }
-            className="h-10 bg-(--nav-search-bg) px-2 text-sm"
-          >
-            <option value="">Mind</option>
-            {valuesQuery.data?.entityTypes.map((entityType) => (
-              <option key={entityType} value={entityType}>
-                {entityType}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="w-56">
+          <AdminSearchSelect
+            label="Művelet"
+            value={asText(search.action)}
+            onChange={(value) => applyPatch({ action: value || undefined })}
+            options={nameOptions(valuesQuery.data?.actions)}
+            placeholder="Mind"
+            emptyOptionLabel="Mind"
+            searchPlaceholder="Művelet keresése…"
+            labelClassName={FILTER_LABEL_CLASS}
+          />
+        </div>
+        <div className="w-48">
+          <AdminSearchSelect
+            label="Entitástípus"
+            value={asText(search.entityType)}
+            onChange={(value) => applyPatch({ entityType: value || undefined })}
+            options={nameOptions(valuesQuery.data?.entityTypes)}
+            placeholder="Mind"
+            emptyOptionLabel="Mind"
+            searchPlaceholder="Entitástípus keresése…"
+            labelClassName={FILTER_LABEL_CLASS}
+          />
+        </div>
         <input
           placeholder="Entitás azonosító"
           defaultValue={search.entityId ?? ''}

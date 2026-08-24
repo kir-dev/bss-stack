@@ -38,7 +38,7 @@ export function mediaUrlWarning(
   }
   const hosts = allowedHosts.length > 0 ? allowedHosts : DEFAULT_MEDIA_HOSTS
   if (!hosts.includes(url.hostname)) {
-    return `${label}: a(z) „${url.hostname}" host nem engedélyezett, csak ${hosts.join(', ')}. Piszkozatban mentheted, publikálni nem lehet vele.`
+    return `${label}: a(z) „${url.hostname}" host nem engedélyezett, csak ${hosts.join(', ')}.`
   }
   return null
 }

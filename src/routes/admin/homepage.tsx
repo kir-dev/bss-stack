@@ -1,7 +1,7 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useRef, useState } from 'react'
+import { useState } from 'react'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import { getHomepageAdminData } from '#/server/admin/homepage-admin.ts'
 import { fetchLeadershipAreaAccess } from '#/server/pages/admin/access-fn.ts'
@@ -16,8 +16,14 @@ import {
   LoginRequiredBanner,
   ValidationProblems,
 } from '#/components/admin/Alerts.tsx'
+import {
+  AdminSearchSelect,
+  FILTER_LABEL_CLASS,
+} from '#/components/admin/SearchSelect.tsx'
 import { postJson } from '#/lib/admin-api.ts'
 import { formatAdminDateTimeHu } from '#/lib/format-date.ts'
+import { youtubeUrlWarning } from '#/lib/youtube-url.ts'
+import type { SearchSelectOption } from '#/components/admin/SearchSelect.tsx'
 
 const loadHomepageAdmin = createServerFn({ method: 'GET' }).handler(
   async () => {
@@ -77,6 +83,13 @@ function HomepageAdminPage() {
 
 type HomepageAdminPayload = Awaited<ReturnType<typeof getHomepageAdminData>>
 
+/** Videólista a kereshető választóhoz. */
+function videoOptions(
+  videos: HomepageAdminPayload['selectableVideos'],
+): Array<SearchSelectOption> {
+  return videos.map((video) => ({ value: video.id, label: video.title }))
+}
+
 function HighlightSection({
   data,
   onChanged,
@@ -88,7 +101,7 @@ function HighlightSection({
   const [problems, setProblems] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
   const [loginUrl, setLoginUrl] = useState<string | null>(null)
-  const selectRef = useRef<HTMLSelectElement>(null)
+  const [pendingId, setPendingId] = useState('')
 
   async function call(body: Record<string, unknown>, okMessage: string) {
     setBusy(true)
@@ -123,29 +136,24 @@ function HighlightSection({
         </p>
       )}
       <div className="flex flex-wrap items-end gap-2">
-        <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
-          Kiemelendő publikus videó
-          <select
-            ref={selectRef}
-            className="h-10 max-w-md bg-(--nav-search-bg) px-2"
-            defaultValue=""
-          >
-            <option value="">Válassz…</option>
-            {data.selectableVideos.map((video) => (
-              <option key={video.id} value={video.id}>
-                {video.title}
-              </option>
-            ))}
-          </select>
-        </label>
+        <div className="w-full sm:w-96">
+          <AdminSearchSelect
+            label="Kiemelendő publikus videó"
+            value={pendingId}
+            onChange={setPendingId}
+            options={videoOptions(data.selectableVideos)}
+            searchPlaceholder="Videó keresése cím szerint…"
+            labelClassName={FILTER_LABEL_CLASS}
+          />
+        </div>
         <AdminPrimaryButton
-          disabled={busy}
+          disabled={busy || pendingId === ''}
           onClick={() => {
-            const value = selectRef.current?.value
-            if (value !== undefined && value !== '') {
-              void call({ videoId: value }, 'Kiemelés beállítva.')
-              if (selectRef.current) selectRef.current.value = ''
+            if (pendingId === '') {
+              return
             }
+            void call({ videoId: pendingId }, 'Kiemelés beállítva.')
+            setPendingId('')
           }}
         >
           Kiemelés
@@ -238,6 +246,9 @@ function LiveSection({
     })
   }
 
+  // A szerver az oEmbed ellenőrzés előtt ugyanezzel a parserrel dolgozik,
+  // ezért a nem értelmezhető URL-t érdemes már itt jelezni (spec 9.3).
+  const urlWarning = youtubeUrlWarning(youtubeUrl)
   const activeOrScheduled = data.live.filter((live) => live.status !== 'ended')
   const ended = data.live.filter((live) => live.status === 'ended')
 
@@ -260,6 +271,11 @@ function LiveSection({
             required
             hint="watch/live/youtu.be/embed formák; a mentés oEmbed ellenőrzéssel jár."
           />
+          {urlWarning !== null && (
+            <p role="alert" className="mt-1 text-xs text-(--orange)">
+              {urlWarning}
+            </p>
+          )}
         </div>
         <AdminTextField
           label="Kezdési idő"
@@ -277,7 +293,10 @@ function LiveSection({
           hint="Átfedő live nem menthető."
         />
         <div>
-          <AdminPrimaryButton onClick={() => create()} disabled={busy}>
+          <AdminPrimaryButton
+            onClick={() => create()}
+            disabled={busy || urlWarning !== null}
+          >
             Ütemezés
           </AdminPrimaryButton>
         </div>
@@ -383,7 +402,7 @@ function AboutSection({
   const [busy, setBusy] = useState(false)
   const [problems, setProblems] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
-  const addRef = useRef<HTMLSelectElement>(null)
+  const [pendingId, setPendingId] = useState('')
 
   const titlesById = new Map<string, string>()
   for (const video of data.selectableVideos) {
@@ -484,29 +503,28 @@ function AboutSection({
           ))}
         </ol>
       )}
-      <div className="flex flex-wrap items-center gap-2">
-        <select
-          ref={addRef}
-          defaultValue=""
-          className="h-10 max-w-md border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 text-sm"
-        >
-          <option value="">Válassz publikus videót…</option>
-          {data.selectableVideos
-            .filter((video) => !selected.includes(video.id))
-            .map((video) => (
-              <option key={video.id} value={video.id}>
-                {video.title}
-              </option>
-            ))}
-        </select>
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="w-full sm:w-96">
+          <AdminSearchSelect
+            value={pendingId}
+            onChange={setPendingId}
+            options={videoOptions(
+              data.selectableVideos.filter(
+                (video) => !selected.includes(video.id),
+              ),
+            )}
+            placeholder="Válassz publikus videót…"
+            searchPlaceholder="Videó keresése cím szerint…"
+          />
+        </div>
         <AdminSecondaryButton
-          disabled={selected.length >= 6 || busy}
+          disabled={selected.length >= 6 || busy || pendingId === ''}
           onClick={() => {
-            const value = addRef.current?.value
-            if (value !== undefined && value !== '') {
-              setSelected([...selected, value])
-              if (addRef.current) addRef.current.value = ''
+            if (pendingId === '') {
+              return
             }
+            setSelected([...selected, pendingId])
+            setPendingId('')
           }}
         >
           Hozzáadás

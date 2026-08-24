@@ -16,10 +16,18 @@ import {
 } from '#/server/shared/pagination.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import { ResponsiveTable } from '#/components/admin/ResponsiveTable.tsx'
-import { AdminSearchSelect } from '#/components/admin/SearchSelect.tsx'
+import {
+  AdminSearchSelect,
+  FILTER_LABEL_CLASS,
+} from '#/components/admin/SearchSelect.tsx'
 import type { AdminColumn } from '#/components/admin/ResponsiveTable.tsx'
 import type { SearchSelectOption } from '#/components/admin/SearchSelect.tsx'
-import { videoStatusLabel, visibilityLabel } from '#/lib/admin-labels.ts'
+import {
+  VIDEO_STATUS_OPTIONS,
+  VISIBILITY_OPTIONS,
+  videoStatusLabel,
+  visibilityLabel,
+} from '#/lib/admin-labels.ts'
 import {
   formatAdminDateTimeHu,
   formatCalendarDateHu,
@@ -256,6 +264,9 @@ function VideoFilters({
   const eventOptions: Array<SearchSelectOption> = (options?.events ?? []).map(
     (event) => ({ value: event.id, label: event.title }),
   )
+  const tagOptions: Array<SearchSelectOption> = (options?.tags ?? []).map(
+    (tag) => ({ value: tag.id, label: tag.name }),
+  )
 
   return (
     <form
@@ -274,37 +285,28 @@ function VideoFilters({
           className="h-10 w-52 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 outline-none"
         />
       </label>
-      <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
-        Állapot
-        <select
+      <div className="w-40">
+        <AdminSearchSelect
+          label="Állapot"
           value={search.status ?? ''}
-          onChange={(event) =>
-            onApply({ status: event.target.value || undefined })
-          }
-          className="h-10 bg-(--nav-search-bg) px-2 outline-none"
-        >
-          <option value="">Mind</option>
-          <option value="draft">Piszkozat</option>
-          <option value="published">Publikált</option>
-          <option value="archived">Archivált</option>
-          <option value="trash">Lomtár</option>
-        </select>
-      </label>
-      <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
-        Láthatóság
-        <select
+          onChange={(value) => onApply({ status: value || undefined })}
+          options={VIDEO_STATUS_OPTIONS}
+          placeholder="Mind"
+          emptyOptionLabel="Mind"
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
+      <div className="w-40">
+        <AdminSearchSelect
+          label="Láthatóság"
           value={search.visibility ?? ''}
-          onChange={(event) =>
-            onApply({ visibility: event.target.value || undefined })
-          }
-          className="h-10 bg-(--nav-search-bg) px-2 outline-none"
-        >
-          <option value="">Mind</option>
-          <option value="public">Nyilvános</option>
-          <option value="schonherz">Schönherz</option>
-          <option value="bss">BSS-tag</option>
-        </select>
-      </label>
+          onChange={(value) => onApply({ visibility: value || undefined })}
+          options={VISIBILITY_OPTIONS}
+          placeholder="Mind"
+          emptyOptionLabel="Mind"
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
       <div className="w-56">
         <AdminSearchSelect
           label="Esemény"
@@ -314,26 +316,21 @@ function VideoFilters({
           placeholder="Mind"
           emptyOptionLabel="Mind"
           searchPlaceholder="Esemény keresése…"
-          labelClassName="text-xs text-(--bss-text-secondary)"
+          labelClassName={FILTER_LABEL_CLASS}
         />
       </div>
-      <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
-        Címke
-        <select
+      <div className="w-56">
+        <AdminSearchSelect
+          label="Címke"
           value={search.tag ?? ''}
-          onChange={(event) =>
-            onApply({ tag: event.target.value || undefined })
-          }
-          className="h-10 max-w-56 bg-(--nav-search-bg) px-2 outline-none"
-        >
-          <option value="">Mind</option>
-          {options?.tags.map((tag) => (
-            <option key={tag.id} value={tag.id}>
-              {tag.name}
-            </option>
-          ))}
-        </select>
-      </label>
+          onChange={(value) => onApply({ tag: value || undefined })}
+          options={tagOptions}
+          placeholder="Mind"
+          emptyOptionLabel="Mind"
+          searchPlaceholder="Címke keresése…"
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
       <button
         type="submit"
         className="h-10 bg-(--orange) px-4 font-bold text-white"

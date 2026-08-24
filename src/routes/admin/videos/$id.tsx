@@ -7,13 +7,12 @@ import {
   getAdminVideoEditorOptions,
 } from '#/server/admin/video-detail.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
-import { getCachedOobConfig } from '#/server/config/load.ts'
+import { allowedMediaHosts } from '#/server/media/allowed-hosts.ts'
 import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import {
   AdminPrimaryButton,
   AdminSecondaryButton,
-  AdminSelectField,
   AdminTextArea,
   AdminTextField,
 } from '#/components/admin/form.tsx'
@@ -26,7 +25,11 @@ import {
 } from '#/components/admin/Alerts.tsx'
 import { AdminSearchSelect } from '#/components/admin/SearchSelect.tsx'
 import { postJson } from '#/lib/admin-api.ts'
-import { videoStatusLabel, visibilityLabel } from '#/lib/admin-labels.ts'
+import {
+  VISIBILITY_OPTIONS,
+  videoStatusLabel,
+  visibilityLabel,
+} from '#/lib/admin-labels.ts'
 import { formatAdminDateTimeHu } from '#/lib/format-date.ts'
 import { mediaUrlWarnings } from '#/lib/media-url.ts'
 import {
@@ -49,19 +52,6 @@ const loadAdminVideoEditor = createServerFn({ method: 'GET' })
     const options = await getAdminVideoEditorOptions(db, data.id)
     return { detail, options, mediaAllowedHosts: allowedMediaHosts() }
   })
-
-/**
- * Engedélyezett média-hostok a kliensoldali, mentés előtti figyelmeztetéshez
- * (spec 5.4). Config nélkül üres lista megy ki, ilyenkor a kliens a
- * specifikált alap hostra esik vissza; a kikényszerítés szerveroldali.
- */
-function allowedMediaHosts(): string[] {
-  try {
-    return getCachedOobConfig().media.allowedHosts
-  } catch {
-    return []
-  }
-}
 
 export const Route = createFileRoute('/admin/videos/$id')({
   loader: ({ params, context }) =>
@@ -451,15 +441,12 @@ function VideoEditor({
       <section className="flex flex-col gap-4 rounded border border-(--nav-border-b) p-4">
         <h2 className="font-bold text-(--bss-text)">Besorolás</h2>
         <div className="grid gap-4 md:grid-cols-2">
-          <AdminSelectField
+          <AdminSearchSelect
             label="Láthatóság"
             value={form.visibility}
             onChange={(value) => patch({ visibility: value })}
-          >
-            <option value="public">Nyilvános</option>
-            <option value="schonherz">Schönherz</option>
-            <option value="bss">BSS-tag</option>
-          </AdminSelectField>
+            options={VISIBILITY_OPTIONS}
+          />
           <AdminSearchSelect
             label="Esemény"
             value={form.eventId}

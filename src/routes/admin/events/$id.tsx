@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { getAdminEventDetail } from '#/server/admin/event-list.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
+import { allowedMediaHosts } from '#/server/media/allowed-hosts.ts'
 import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import {
@@ -17,16 +18,19 @@ import {
   FormMessage,
   LoginRequiredBanner,
   ValidationProblems,
+  WarningList,
 } from '#/components/admin/Alerts.tsx'
 import { postJson } from '#/lib/admin-api.ts'
 import { eventStatusLabel } from '#/lib/admin-labels.ts'
+import { mediaUrlWarning } from '#/lib/media-url.ts'
 import type { AdminEventDetail } from '#/server/admin/event-list.ts'
 
 const loadAdminEventEditor = createServerFn({ method: 'GET' })
   .validator((input: unknown) => input as { id: string })
   .handler(async ({ data }) => {
     const db = await getDefaultDb()
-    return getAdminEventDetail(db, data.id)
+    const detail = await getAdminEventDetail(db, data.id)
+    return { detail, mediaAllowedHosts: allowedMediaHosts() }
   })
 
 export const Route = createFileRoute('/admin/events/$id')({
@@ -59,7 +63,7 @@ function AdminEventEditorPage() {
       <ErrorState label="Hiba történt az esemény betöltése közben. Próbáld újra később." />
     )
   }
-  const detail = editorQuery.data
+  const detail = editorQuery.data.detail
   if (detail === null) {
     throw notFound()
   }
@@ -68,6 +72,7 @@ function AdminEventEditorPage() {
     <EventEditor
       key={`${detail.id}-${detail.version}`}
       detail={detail}
+      mediaAllowedHosts={editorQuery.data.mediaAllowedHosts}
       isLeadership={viewerQuery.data?.level === 'leadership'}
       onReload={() =>
         queryClient.invalidateQueries({ queryKey: ['admin-event-editor', id] })
@@ -78,10 +83,12 @@ function AdminEventEditorPage() {
 
 function EventEditor({
   detail,
+  mediaAllowedHosts,
   isLeadership,
   onReload,
 }: {
   detail: AdminEventDetail
+  mediaAllowedHosts: string[]
   isLeadership: boolean
   onReload: () => Promise<unknown>
 }) {
@@ -116,6 +123,14 @@ function EventEditor({
     window.addEventListener('beforeunload', handler)
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty])
+
+  // Az esemény thumbnailjét a szerver piszkozatban sem fogadja el hibás
+  // hostról (spec 6.1), ezért itt írás közben jelezzük.
+  const thumbnailWarning = mediaUrlWarning(
+    'Thumbnail URL',
+    form.thumbnailUrl,
+    mediaAllowedHosts,
+  )
 
   function patch(partial: Partial<typeof form>) {
     setForm((prev) => ({ ...prev, ...partial }))
@@ -242,7 +257,10 @@ function EventEditor({
           label="Thumbnail URL"
           value={form.thumbnailUrl}
           onChange={(value) => patch({ thumbnailUrl: value })}
-          hint="Opcionális; hiányában a legfrissebb látható videó thumbnailje jelenik meg."
+          hint="Opcionális; hiányában a legfrissebb látható videó thumbnailje jelenik meg. Csak https://v.bsstudio.hu fogadható el."
+        />
+        <WarningList
+          warnings={thumbnailWarning === null ? [] : [thumbnailWarning]}
         />
         <AdminTextArea
           label="Leírás"

@@ -13,9 +13,13 @@ import {
 } from '#/server/shared/pagination.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import { ResponsiveTable } from '#/components/admin/ResponsiveTable.tsx'
+import {
+  AdminSearchSelect,
+  FILTER_LABEL_CLASS,
+} from '#/components/admin/SearchSelect.tsx'
 import type { AdminColumn } from '#/components/admin/ResponsiveTable.tsx'
 import type { AdminEventListItem } from '#/server/admin/event-list.ts'
-import { eventStatusLabel } from '#/lib/admin-labels.ts'
+import { EVENT_STATUS_OPTIONS, eventStatusLabel } from '#/lib/admin-labels.ts'
 import { formatEventIntervalHu } from '#/lib/format-date.ts'
 
 const loadAdminEventList = createServerFn({ method: 'GET' })
@@ -245,21 +249,17 @@ function EventFilters({
           className="h-10 w-52 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 outline-none"
         />
       </label>
-      <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
-        Állapot
-        <select
+      <div className="w-40">
+        <AdminSearchSelect
+          label="Állapot"
           value={search.status ?? ''}
-          onChange={(event) =>
-            onApply({ status: event.target.value || undefined })
-          }
-          className="h-10 bg-(--nav-search-bg) px-2 outline-none"
-        >
-          <option value="">Mind</option>
-          <option value="draft">Piszkozat</option>
-          <option value="published">Publikált</option>
-          <option value="archived">Archivált</option>
-        </select>
-      </label>
+          onChange={(value) => onApply({ status: value || undefined })}
+          options={EVENT_STATUS_OPTIONS}
+          placeholder="Mind"
+          emptyOptionLabel="Mind"
+          labelClassName={FILTER_LABEL_CLASS}
+        />
+      </div>
       <label className="flex flex-col gap-1 text-xs text-(--bss-text-secondary)">
         Kezdődátum ettől
         <input

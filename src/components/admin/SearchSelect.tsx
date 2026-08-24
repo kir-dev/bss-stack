@@ -11,10 +11,18 @@ export interface SearchSelectOption {
   meta?: string
 }
 
+/** Halkabb feliratstílus a szűrősávokhoz. */
+export const FILTER_LABEL_CLASS = 'text-xs text-(--bss-text-secondary)'
+
+/** Ennél több elem esetén jelenik meg a keresősáv a legördülőben. */
+export const SEARCH_SELECT_THRESHOLD = 8
+
 /**
- * Kereshető egyválasztós lista (combobox) hosszú admin listákhoz: esemény,
- * stábtag, kapcsolódó videó. A natív `select` helyett azért kell, mert több
- * száz elemnél a legördülőben nem lehet keresni (BSS-028 UI javítás).
+ * Kereshető egyválasztós lista (combobox) az admin listákhoz: esemény,
+ * stábtag, kapcsolódó videó, címke, művelet. A natív `select` helyett azért
+ * kell, mert több száz elemnél a legördülőben nem lehet keresni (BSS-028 UI
+ * javítás). Rövid, fix listánál (állapot, láthatóság) a keresősáv elmarad,
+ * hogy ne legyen felesleges mező, a megjelenés viszont egységes maradjon.
  */
 export function AdminSearchSelect({
   label,
@@ -28,6 +36,7 @@ export function AdminSearchSelect({
   disabled = false,
   triggerClassName = '',
   labelClassName = 'font-bold text-(--bss-text)',
+  searchThreshold = SEARCH_SELECT_THRESHOLD,
 }: {
   label?: string
   /** Kiválasztott érték; üres szöveg = nincs kiválasztás. */
@@ -43,13 +52,17 @@ export function AdminSearchSelect({
   triggerClassName?: string
   /** Szűrősávban halkabb feliratstílust használunk. */
   labelClassName?: string
+  /** Ennyi elem felett jelenik meg a keresősáv. */
+  searchThreshold?: number
 }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
   const [activeIndex, setActiveIndex] = useState(0)
   const containerRef = useRef<HTMLDivElement | null>(null)
+  const panelRef = useRef<HTMLDivElement | null>(null)
   const listboxId = useId()
   const labelId = useId()
+  const showSearch = options.length > searchThreshold
 
   const visible = useMemo(() => {
     const filtered = options.filter((option) =>
@@ -80,6 +93,13 @@ export function AdminSearchSelect({
     document.addEventListener('mousedown', onPointerDown)
     return () => document.removeEventListener('mousedown', onPointerDown)
   }, [open])
+
+  // Keresősáv nélkül a panel kapja a fókuszt, hogy a nyilak működjenek.
+  useEffect(() => {
+    if (open && !showSearch) {
+      panelRef.current?.focus()
+    }
+  }, [open, showSearch])
 
   function select(nextValue: string) {
     onChange(nextValue)
@@ -158,19 +178,25 @@ export function AdminSearchSelect({
         </button>
 
         {open && (
-          <div className="absolute top-full left-0 z-50 mt-1 max-h-72 w-full min-w-56 overflow-hidden border border-(--nav-border-b) bg-(--popover-bg) shadow-[0_8px_24px_rgba(0,0,0,0.28)]">
-            <input
-              autoFocus
-              value={query}
-              onChange={(event) => {
-                setQuery(event.target.value)
-                setActiveIndex(0)
-              }}
-              onKeyDown={onKeyDown}
-              placeholder={searchPlaceholder}
-              aria-label={searchPlaceholder}
-              className="h-10 w-full border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 outline-none focus:border-(--orange)"
-            />
+          <div
+            ref={panelRef}
+            tabIndex={-1}
+            onKeyDown={onKeyDown}
+            className="absolute top-full left-0 z-50 mt-1 max-h-72 w-full min-w-56 overflow-hidden border border-(--nav-border-b) bg-(--popover-bg) shadow-[0_8px_24px_rgba(0,0,0,0.28)] outline-none"
+          >
+            {showSearch && (
+              <input
+                autoFocus
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value)
+                  setActiveIndex(0)
+                }}
+                placeholder={searchPlaceholder}
+                aria-label={searchPlaceholder}
+                className="h-10 w-full border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 outline-none focus:border-(--orange)"
+              />
+            )}
             {visible.length === 0 ? (
               <p className="p-3 text-sm text-(--bss-text-secondary)">
                 Nincs találat.

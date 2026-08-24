@@ -7,6 +7,10 @@ import { listTagsWithUsage } from '#/server/catalog/tags.ts'
 import { fetchLeadershipAreaAccess } from '#/server/pages/admin/access-fn.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import {
+  AdminSearchSelect,
+  FILTER_LABEL_CLASS,
+} from '#/components/admin/SearchSelect.tsx'
+import {
   AdminPrimaryButton,
   AdminSecondaryButton,
   AdminTextField,
@@ -266,23 +270,18 @@ function TagRowEditor({
 
       {merging && (
         <div className="mt-2 flex flex-wrap items-end gap-2 text-sm">
-          <label className="flex flex-col gap-1">
-            Célcímke (minden kapcsolat átkerül)
-            <select
+          <div className="w-full sm:w-72">
+            <AdminSearchSelect
+              label="Célcímke (minden kapcsolat átkerül)"
               value={targetId}
-              onChange={(event) => setTargetId(event.target.value)}
-              className="h-10 bg-(--nav-search-bg) px-2"
-            >
-              <option value="">Válassz…</option>
-              {allTags
+              onChange={setTargetId}
+              options={allTags
                 .filter((other) => other.id !== tag.id)
-                .map((other) => (
-                  <option key={other.id} value={other.id}>
-                    {other.name}
-                  </option>
-                ))}
-            </select>
-          </label>
+                .map((other) => ({ value: other.id, label: other.name }))}
+              searchPlaceholder="Címke keresése…"
+              labelClassName={FILTER_LABEL_CLASS}
+            />
+          </div>
           <AdminPrimaryButton
             disabled={busy || targetId === ''}
             onClick={() =>

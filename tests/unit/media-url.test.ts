@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { mediaUrlWarning, mediaUrlWarnings } from '#/lib/media-url.ts'
+import { youtubeUrlWarning } from '#/lib/youtube-url.ts'
 
 const HOSTS = ['v.bsstudio.hu']
 
@@ -64,5 +65,30 @@ describe('média-URL kliensoldali figyelmeztetés', () => {
         HOSTS,
       ),
     ).toEqual([])
+  })
+})
+
+describe('YouTube URL kliensoldali figyelmeztetés', () => {
+  it('az elfogadott formákra nincs figyelmeztetés', () => {
+    for (const url of [
+      'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+      'https://youtu.be/dQw4w9WgXcQ',
+      'https://youtube.com/live/dQw4w9WgXcQ',
+      'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
+    ]) {
+      expect(youtubeUrlWarning(url)).toBeNull()
+    }
+  })
+
+  it('az üres mező nem hiba', () => {
+    expect(youtubeUrlWarning('  ')).toBeNull()
+  })
+
+  it('a nem YouTube vagy hibás URL-t jelzi', () => {
+    expect(youtubeUrlWarning('https://vimeo.com/12345')).not.toBeNull()
+    expect(youtubeUrlWarning('nem url')).not.toBeNull()
+    expect(
+      youtubeUrlWarning('https://youtube.com/playlist?list=abc'),
+    ).not.toBeNull()
   })
 })

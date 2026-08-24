@@ -1,55 +1,15 @@
+import { normalizeYoutubeVideoId } from '#/lib/youtube-url.ts'
 import type { OobConfig } from '#/server/config/oob-schema.ts'
+
+// A tisztán szintaktikai értelmezés a kliensnek is kell, ezért `src/lib`-ben
+// él; a meglévő szerveroldali importok kedvéért innen is elérhető.
+export { normalizeYoutubeVideoId }
 
 export interface YoutubeCheckResult {
   ok: boolean
   /** Normalizált YouTube videóazonosító; érvénytelen URL esetén null. */
   videoId: string | null
   problems: string[]
-}
-
-/**
- * YouTube URL normalizálás (spec 9.3). Elfogadott formák:
- * youtube.com/watch?v=ID, youtube.com/live/ID, youtu.be/ID, embed/ID,
- * youtube-nocookie.com változatok. Az eredmény mindig videóazonosító.
- */
-export function normalizeYoutubeVideoId(rawUrl: string): string | null {
-  try {
-    const url = new URL(rawUrl)
-    const hostname = url.hostname.replace(/^www\./, '')
-    const isYoutube =
-      hostname === 'youtube.com' ||
-      hostname === 'm.youtube.com' ||
-      hostname === 'youtube-nocookie.com'
-    const isShort = hostname === 'youtu.be'
-
-    if (isShort) {
-      const parts = url.pathname.split('/').filter(Boolean)
-      if (parts.length === 0) {
-        return null
-      }
-      return parts[0]
-    }
-    if (!isYoutube) {
-      return null
-    }
-    if (url.pathname === '/watch') {
-      const v = url.searchParams.get('v')
-      if (v !== null && /^[A-Za-z0-9_-]{6,20}$/.test(v)) {
-        return v
-      }
-      return null
-    }
-    const parts = url.pathname.split('/').filter(Boolean)
-    for (const segment of ['live', 'embed', 'shorts']) {
-      if (parts[0] === segment) {
-        const id = parts.at(1)
-        return id !== undefined && /^[A-Za-z0-9_-]{6,20}$/.test(id) ? id : null
-      }
-    }
-    return null
-  } catch {
-    return null
-  }
 }
 
 /** Embed URL készítése a normalizált azonosítóból (megjelenítéshez, nocookie). */
