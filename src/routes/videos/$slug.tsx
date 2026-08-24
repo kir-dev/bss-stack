@@ -67,7 +67,7 @@ function VideoDetailPage() {
   const description = detail.description?.slice(0, 300) ?? detail.title
   return (
     <main className="flex-1">
-      <title>{detail.title} | BSS</title>
+      <title>{`${detail.title} | BSS`}</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={canonical} />
       <meta property="og:title" content={detail.title} />
@@ -80,7 +80,7 @@ function VideoDetailPage() {
 
       <div className="flex w-full justify-center bg-black">
         {detail.videoUrl !== null ? (
-          <div className="w-full max-w-[55dvw]">
+          <div className="w-full max-w-6xl">
             <VideoDetailPlayer
               videoId={detail.id}
               videoUrl={detail.videoUrl}
@@ -93,32 +93,32 @@ function VideoDetailPage() {
         )}
       </div>
 
-      <div className="mx-auto my-5 w-[55dvw] max-w-full">
-        <h1 className="text-5xl font-bold text-(--videos-video-title)">
+      <div className="mx-auto my-6 w-full max-w-5xl px-4 sm:my-8 sm:px-6 lg:px-8">
+        <h1 className="text-3xl leading-tight font-bold text-(--videos-video-title) sm:text-4xl lg:text-5xl">
           {detail.title}
         </h1>
 
-        <dl className="my-5 flex flex-wrap gap-x-8 gap-y-1 text-(--bss-text-secondary)">
+        <dl className="my-5 grid gap-2 text-sm text-(--bss-text-secondary) sm:grid-cols-2 sm:text-base">
           {detail.recordedAt !== null && (
-            <>
+            <div className="flex flex-wrap gap-x-2">
               <dt className="font-semibold text-(--videos-video-title)">
                 Készült:
               </dt>
               <dd>{formatCalendarDateHu(detail.recordedAt)}</dd>
-            </>
+            </div>
           )}
           {detail.publishedAt !== null && (
-            <>
+            <div className="flex flex-wrap gap-x-2">
               <dt className="font-semibold text-(--videos-video-title)">
                 Feltöltve:
               </dt>
               <dd>{formatDateHu(detail.publishedAt)}</dd>
-            </>
+            </div>
           )}
         </dl>
 
         {detail.event !== null && (
-          <p className="my-3">
+          <p className="my-4 leading-relaxed">
             <span className="font-semibold text-(--videos-video-title)">
               Esemény:{' '}
             </span>
@@ -133,7 +133,7 @@ function VideoDetailPage() {
         )}
 
         {detail.description !== null && (
-          <p className="whitespace-pre-line">{detail.description}</p>
+          <p className="whitespace-pre-line leading-7">{detail.description}</p>
         )}
 
         {detail.guests !== null && (
@@ -141,7 +141,7 @@ function VideoDetailPage() {
             <h2 className="font-semibold text-(--videos-video-title)">
               Vendégek
             </h2>
-            <p className="whitespace-pre-line">{detail.guests}</p>
+            <p className="whitespace-pre-line leading-7">{detail.guests}</p>
           </section>
         )}
 
@@ -150,7 +150,7 @@ function VideoDetailPage() {
             <h2 className="font-semibold text-(--videos-video-title)">
               Felhasznált zenék
             </h2>
-            <p className="whitespace-pre-line">{detail.songs}</p>
+            <p className="whitespace-pre-line leading-7">{detail.songs}</p>
           </section>
         )}
 
@@ -196,10 +196,10 @@ function VideoDetailPage() {
 
         {detail.relatedVideos.length > 0 && (
           <section className="mt-10">
-            <h2 className="text-4xl font-bold text-(--videos-video-title)">
+            <h2 className="text-3xl font-bold text-(--videos-video-title) sm:text-4xl">
               További videók
             </h2>
-            <div className="mt-5 grid grid-cols-2 gap-y-[2dvh] sm:grid-cols-3">
+            <div className="mt-5 grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 sm:gap-5 lg:grid-cols-3">
               {detail.relatedVideos.map((related) => (
                 <Link
                   key={related.id}
