@@ -1,0 +1,120 @@
+x-authentik-environment: &authentik-environment
+  AUTHENTIK_POSTGRESQL__HOST: authentik-db
+  AUTHENTIK_POSTGRESQL__NAME: authentik
+  AUTHENTIK_POSTGRESQL__USER: authentik
+  AUTHENTIK_POSTGRESQL__PASSWORD: ${AUTHENTIK_DB_PASSWORD}
+  AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+
+services:
+  app:
+    build:
+      context: .
+      target: runtime
+    restart: unless-stopped
+    container_name: bss-app
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: 3000
+      DATABASE_URL: postgresql://bss:${BSS_DB_PASSWORD}@app-db:5432/bss
+      BSS_OOB_CONFIG: /app/oob/config.json
+    depends_on:
+      app-db:
+        condition: service_healthy
+    ports:
+      - "8070:3000"
+    volumes:
+      - ./oob:/app/oob:ro
+
+  app-db:
+    image: postgres:18.4-alpine
+    restart: unless-stopped
+    container_name: bss-db
+    environment:
+      POSTGRES_DB: bss
+      POSTGRES_USER: bss
+      POSTGRES_PASSWORD: ${BSS_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bss -d bss"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - app_database:/var/lib/postgresql
+
+  # Run manually with:
+  # docker compose --profile tools run --rm db-push
+  db-migrate:
+    build:
+      context: .
+      target: build
+    profiles: ["tools"]
+    command: ["pnpm", "db:migrate"]
+    environment:
+      DATABASE_URL: postgresql://bss:${BSS_DB_PASSWORD}@app-db:5432/bss
+    depends_on:
+      app-db:
+        condition: service_healthy
+
+    volumes:
+      - ./oob:/app/oob
+
+  authentik-db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: authentik
+      POSTGRES_USER: authentik
+      POSTGRES_PASSWORD: ${AUTHENTIK_DB_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U authentik -d authentik"]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    volumes:
+      - authentik_database:/var/lib/postgresql/data
+
+  authentik-server:
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG:-2026.5.4}
+    command: server
+    restart: unless-stopped
+    shm_size: 512mb
+    container_name: bss-authentik
+    environment:
+      <<: *authentik-environment
+    depends_on:
+      authentik-db:
+        condition: service_healthy
+    ports:
+      - "8071:9000"
+      - "8072:9443"
+    volumes:
+      - authentik_data:/data
+      - authentik_templates:/templates
+
+  authentik-worker:
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG:-2026.5.4}
+    command: worker
+    restart: unless-stopped
+    user: root
+    shm_size: 512mb
+    environment:
+      <<: *authentik-environment
+    depends_on:
+      authentik-db:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - authentik_data:/data
+      - authentik_certs:/certs
+      - authentik_templates:/templates
+      - ./oob/authentik/blueprints:/blueprints/custom
+
+
+volumes:
+  app_database:
+  authentik_database:
+  authentik_data:
+  authentik_certs:
+  authentik_templates:
