@@ -418,12 +418,14 @@ function AboutSection({
     data.about.filter((entry) => !entry.valid).map((entry) => entry.videoId),
   )
 
-  async function save() {
+  async function save(nextSelected: string[]) {
+    const previousSelected = selected
+    setSelected(nextSelected)
     setBusy(true)
     setProblems([])
     setMessage(null)
     const result = await postJson('/api/admin/about', {
-      orderedVideoIds: selected,
+      orderedVideoIds: nextSelected,
     })
     setBusy(false)
     if (result.ok) {
@@ -432,6 +434,7 @@ function AboutSection({
       onChanged()
       return
     }
+    setSelected(previousSelected)
     setProblems(result.error.problems ?? [result.error.message])
   }
 
@@ -441,7 +444,7 @@ function AboutSection({
       <p className="text-xs text-(--bss-text-secondary)">
         Legfeljebb hat, sorrendezett publikus videó jelenik meg a Rólunk
         oldalon; az érvénytelenné vált elemek automatikusan kiesnek a
-        megjelenítésből.
+        megjelenítésből. A változtatások automatikusan mentődnek.
       </p>
       {selected.length === 0 ? (
         <p className="text-sm text-(--bss-text-secondary)">
@@ -469,7 +472,7 @@ function AboutSection({
                     next[index],
                     next[index - 1],
                   ]
-                  setSelected(next)
+                  void save(next)
                 }}
                 className="ctrl-btn rounded px-1"
               >
@@ -485,7 +488,7 @@ function AboutSection({
                     next[index],
                     next[index + 1],
                   ]
-                  setSelected(next)
+                  void save(next)
                 }}
                 className="ctrl-btn rounded px-1"
               >
@@ -494,10 +497,11 @@ function AboutSection({
               <button
                 type="button"
                 aria-label="Eltávolítás"
+                disabled={busy}
                 onClick={() =>
-                  setSelected(selected.filter((id) => id !== videoId))
+                  void save(selected.filter((id) => id !== videoId))
                 }
-                className="rounded px-1 text-red-500 hover:bg-red-500/15"
+                className="rounded px-1 text-red-500 hover:bg-red-500/15 disabled:opacity-50"
               >
                 ✕
               </button>
@@ -525,15 +529,12 @@ function AboutSection({
             if (pendingId === '') {
               return
             }
-            setSelected([...selected, pendingId])
+            void save([...selected, pendingId])
             setPendingId('')
           }}
         >
           Hozzáadás
         </AdminSecondaryButton>
-        <AdminPrimaryButton onClick={() => void save()} disabled={busy}>
-          Mentés
-        </AdminPrimaryButton>
       </div>
       {problems.length > 0 && <ValidationProblems problems={problems} />}
       {message !== null && <FormMessage>{message}</FormMessage>}
