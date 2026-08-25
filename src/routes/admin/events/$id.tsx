@@ -1,4 +1,9 @@
-import { createFileRoute, notFound, useNavigate } from '@tanstack/react-router'
+import {
+  createFileRoute,
+  Link,
+  notFound,
+  useNavigate,
+} from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
@@ -210,6 +215,22 @@ function EventEditor({
         <span className="rounded bg-(--nav-search-bg) px-2 py-1 text-xs font-bold text-(--bss-text-secondary)">
           {eventStatusLabel(detail.status)} · v{version}
         </span>
+        {/* Public page of a published event in a new tab, so editing isn't lost. */}
+        {detail.status === 'published' ? (
+          <Link
+            to="/events/$slug"
+            params={{ slug: detail.slug }}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sm font-bold text-(--orange) underline"
+          >
+            Megnyitás az oldalon ↗
+          </Link>
+        ) : (
+          <span className="text-xs text-(--bss-text-secondary)">
+            A nyilvános oldal csak publikált állapotban érhető el.
+          </span>
+        )}
       </div>
 
       {loginUrl !== null && <LoginRequiredBanner loginUrl={loginUrl} />}
