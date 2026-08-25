@@ -30,7 +30,9 @@ function MembersPage() {
 
   return (
     <main className="site-width my-[4dvh]">
-      <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">Tagok</h1>
+      <h1 className="mb-6 text-center text-3xl font-bold text-(--bss-text)">
+        Tagok
+      </h1>
 
       {blocksQuery.isPending && (
         <p
@@ -111,8 +113,10 @@ export function MemberBlock({
   }
   return (
     <section className="mt-8">
-      <h2 className="text-2xl font-bold text-(--bss-text)">{title}</h2>
-      <div className="mt-4 flex flex-wrap gap-4">
+      <h2 className="text-center text-2xl font-bold text-(--bss-text)">
+        {title}
+      </h2>
+      <div className="mt-4 flex flex-wrap justify-center gap-4">
         {members.map((member) => (
           <Link
             key={member.sub}

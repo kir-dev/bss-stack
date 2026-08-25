@@ -84,7 +84,7 @@ function EventDetailPageComponent() {
   const description = detail.description?.slice(0, 300) ?? detail.title
 
   return (
-    <main className="mx-auto my-[4dvh] w-[90dvw]">
+    <main className="site-width my-[4dvh]">
       <title>{detail.title} | BSS</title>
       <meta name="description" content={description} />
       <link rel="canonical" href={canonical} />
