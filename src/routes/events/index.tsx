@@ -56,7 +56,7 @@ export const Route = createFileRoute('/events/')({
 /** Placeholder for the event list: header plus a 16:9 card grid. */
 function EventListSkeleton() {
   return (
-    <main className="mx-auto my-[4dvh] w-[90dvw]">
+    <main className="site-width my-[4dvh]">
       <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">Események</h1>
       <ThumbnailGridSkeleton
         count={12}
@@ -85,7 +85,7 @@ function EventListPageComponent() {
   const perPage = Number(search.perPage ?? String(DEFAULT_EVENT_PAGE_SIZE))
 
   return (
-    <main className="mx-auto my-[4dvh] w-[90dvw]">
+    <main className="site-width my-[4dvh]">
       <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">Események</h1>
 
       {listQuery.isPending && (

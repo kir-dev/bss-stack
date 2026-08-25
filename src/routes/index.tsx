@@ -104,7 +104,7 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
             />
           </div>
         ) : state.hero !== null ? (
-          <div>
+          <div className="max-w-4xl">
             <h2 className="mb-[2dvh] text-3xl font-bold text-(--orange)">
               Kiemelt videónk
             </h2>

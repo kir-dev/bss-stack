@@ -934,10 +934,11 @@ body {
 
 /* --- Shared page width ---------------------------------------------------
  * Keep a compact gutter instead of scaling the empty margins with the
- * viewport. On 16:9 desktop displays this lets grids, tables and media use
- * virtually all of the available width while retaining safe mobile edges. */
+ * viewport. This lets grids, tables and media use the available width while
+ * retaining safe mobile edges and caps ultra-wide layouts at 96rem. */
 @utility site-width {
   width: calc(100% - 2rem);
+  max-width: 96rem;
   margin-inline: auto;
 
   @media (min-width: 40rem) {
