@@ -396,6 +396,7 @@ function AboutSection({
   data: HomepageAdminPayload
   onChanged: () => void
 }) {
+  const queryClient = useQueryClient()
   const [selected, setSelected] = useState<string[]>(
     data.about.map((entry) => entry.videoId),
   )
@@ -427,6 +428,7 @@ function AboutSection({
     setBusy(false)
     if (result.ok) {
       setMessage('Rólunk-videók elmentve.')
+      void queryClient.invalidateQueries({ queryKey: ['about-page'] })
       onChanged()
       return
     }
