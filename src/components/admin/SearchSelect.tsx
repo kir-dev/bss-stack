@@ -24,8 +24,7 @@ export const SEARCH_SELECT_THRESHOLD = 8
  * fix). For short, fixed lists (status, visibility) the search bar is omitted
  * to avoid a needless field, while keeping the appearance consistent.
  */
-export function 
-AdminSearchSelect({
+export function AdminSearchSelect({
   label,
   value,
   options,
@@ -156,7 +155,7 @@ AdminSearchSelect({
             setActiveIndex(0)
             setOpen((current) => !current)
           }}
-          className={`flex h-10 w-full items-center justify-between gap-2 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 text-left outline-none hover:border-(--orange) disabled:opacity-40 ${triggerClassName}`}
+          className={`flex h-10 w-full items-center justify-between gap-2 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 text-left outline-none hover:border-(--orange) active:scale-100 disabled:opacity-40 ${triggerClassName}`}
         >
           <span
             className={`min-w-0 truncate ${
