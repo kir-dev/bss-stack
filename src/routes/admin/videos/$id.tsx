@@ -1,7 +1,7 @@
 import { createFileRoute, Link, notFound } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   getAdminVideoDetail,
   getAdminVideoEditorOptions,
@@ -24,12 +24,9 @@ import {
   WarningList,
 } from '#/components/admin/Alerts.tsx'
 import { AdminSearchSelect } from '#/components/admin/SearchSelect.tsx'
+import { VideoVisibility } from '#/components/admin/VideoVisibility.tsx'
 import { postJson } from '#/lib/admin-api.ts'
-import {
-  VISIBILITY_OPTIONS,
-  videoStatusLabel,
-  visibilityLabel,
-} from '#/lib/admin-labels.ts'
+import { VISIBILITY_OPTIONS, videoStatusLabel } from '#/lib/admin-labels.ts'
 import { formatAdminDateTimeHu } from '#/lib/format-date.ts'
 import { mediaUrlWarnings } from '#/lib/media-url.ts'
 import {
@@ -167,29 +164,30 @@ function VideoEditor({
   >(detail.staffAssignments)
   const [relatedIds, setRelatedIds] = useState<string[]>(detail.relatedVideoIds)
 
+  const [savedFormSnapshot, setSavedFormSnapshot] = useState(() =>
+    JSON.stringify(formFromDetail(detail)),
+  )
+  const [savedTagSnapshot, setSavedTagSnapshot] = useState(() =>
+    JSON.stringify(detail.tagIds),
+  )
+  const [savedStaffSnapshot, setSavedStaffSnapshot] = useState(() =>
+    JSON.stringify(detail.staffAssignments),
+  )
+  const [savedRelatedSnapshot, setSavedRelatedSnapshot] = useState(() =>
+    JSON.stringify(detail.relatedVideoIds),
+  )
+
   const [busy, setBusy] = useState(false)
   const [problems, setProblems] = useState<string[]>([])
   const [message, setMessage] = useState<string | null>(null)
   const [loginUrl, setLoginUrl] = useState<string | null>(null)
   const [conflictMessage, setConflictMessage] = useState<string | null>(null)
 
-  const initialSnapshot = useMemo(
-    () =>
-      JSON.stringify({
-        form: formFromDetail(detail),
-        tagIds: detail.tagIds,
-        staff: detail.staffAssignments,
-        relatedIds: detail.relatedVideoIds,
-      }),
-    [detail],
-  )
-  const currentSnapshot = JSON.stringify({
-    form,
-    tagIds,
-    staff,
-    relatedIds,
-  })
-  const isDirty = currentSnapshot !== initialSnapshot
+  const isDirty =
+    JSON.stringify(form) !== savedFormSnapshot ||
+    JSON.stringify(tagIds) !== savedTagSnapshot ||
+    JSON.stringify(staff) !== savedStaffSnapshot ||
+    JSON.stringify(relatedIds) !== savedRelatedSnapshot
 
   // Confirm before navigating away with unsaved changes (spec 5.3).
   useEffect(() => {
@@ -248,8 +246,18 @@ function VideoEditor({
       if (typeof result.data.version === 'number') {
         setVersion(result.data.version)
       }
-      if (result.data.slug !== undefined && result.data.slug !== form.slug) {
-        patch({ slug: result.data.slug })
+      const savedSlug = result.data.slug ?? form.slug
+      if (savedSlug !== form.slug) {
+        patch({ slug: savedSlug })
+      }
+      if (action === 'update') {
+        setSavedFormSnapshot(JSON.stringify({ ...form, slug: savedSlug }))
+      } else if (action === 'tags') {
+        setSavedTagSnapshot(JSON.stringify(tagIds))
+      } else if (action === 'staff') {
+        setSavedStaffSnapshot(JSON.stringify(staff))
+      } else if (action === 'related') {
+        setSavedRelatedSnapshot(JSON.stringify(relatedIds))
       }
       if (
         Array.isArray(result.data.warnings) &&
@@ -351,7 +359,11 @@ function VideoEditor({
       <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold text-(--bss-text)">{detail.title}</h1>
         <span className="rounded bg-(--nav-search-bg) px-2 py-1 text-xs font-bold text-(--bss-text-secondary)">
-          {statusLabel} · {visibilityLabel(detail.visibility)} · v{version}
+          <span className="inline-flex items-center gap-1.5">
+            <span>{statusLabel} ·</span>
+            <VideoVisibility visibility={detail.visibility} />
+            <span>· v{version}</span>
+          </span>
         </span>
         {/* Public page of a published video in a new tab, so editing isn't lost. */}
         {detail.status === 'published' ? (
@@ -545,7 +557,7 @@ function VideoEditor({
           onClick={() => void saveDraft()}
           disabled={busy || !isDirty}
         >
-          Piszkozat mentése
+          {detail.status === 'published' ? 'Mentés' : 'Piszkozat mentése'}
         </AdminPrimaryButton>
         {!isDirty ? (
           <span className="text-xs text-(--bss-text-secondary)">

@@ -93,6 +93,38 @@ function SearchPage() {
         Keresés{query !== '' ? `: „${query}”` : ''}
       </h1>
 
+      <form
+        action="/search"
+        method="get"
+        role="search"
+        className="mb-6 flex w-full max-w-xl"
+      >
+        <label htmlFor="search-page-query" className="sr-only">
+          Keresés
+        </label>
+        <input
+          key={query}
+          id="search-page-query"
+          name="q"
+          type="search"
+          defaultValue={query}
+          minLength={MIN_QUERY_LENGTH}
+          required
+          enterKeyHint="search"
+          placeholder="Keresés..."
+          className="h-11 min-w-0 flex-1 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-3 outline-none focus:border-(--orange)"
+        />
+        {activeTab !== 'all' && (
+          <input type="hidden" name="tab" value={activeTab} />
+        )}
+        <button
+          type="submit"
+          className="h-11 bg-(--orange) px-4 font-bold text-white"
+        >
+          Keresés
+        </button>
+      </form>
+
       <nav aria-label="Kereső fülek" className="mb-6 flex gap-6">
         {SEARCH_TABS.map((tabEntry) => (
           <Link
