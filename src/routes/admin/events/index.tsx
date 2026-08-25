@@ -175,13 +175,29 @@ const eventColumns: Array<AdminColumn<AdminEventListItem>> = [
     header: 'Cím',
     primary: true,
     render: (row) => (
-      <Link
-        to="/admin/events/$id"
-        params={{ id: row.id }}
-        className="font-bold hover:text-(--orange)"
-      >
-        {row.title}
-      </Link>
+      <span className="flex items-center gap-2">
+        <Link
+          to="/admin/events/$id"
+          params={{ id: row.id }}
+          className="font-bold hover:text-(--orange)"
+        >
+          {row.title}
+        </Link>
+        {/* Public page of a published event; nothing to open for a draft. */}
+        {row.status === 'published' && (
+          <Link
+            to="/events/$slug"
+            params={{ slug: row.slug }}
+            target="_blank"
+            rel="noreferrer"
+            title="Megnyitás az oldalon"
+            aria-label={`„${row.title}" megnyitása az oldalon`}
+            className="shrink-0 text-(--bss-text-secondary) hover:text-(--orange)"
+          >
+            ↗
+          </Link>
+        )}
+      </span>
     ),
   },
   {
