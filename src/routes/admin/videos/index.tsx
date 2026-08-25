@@ -16,6 +16,7 @@ import {
 } from '#/server/shared/pagination.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import { ResponsiveTable } from '#/components/admin/ResponsiveTable.tsx'
+import { VideoVisibility } from '#/components/admin/VideoVisibility.tsx'
 import {
   AdminSearchSelect,
   FILTER_LABEL_CLASS,
@@ -26,7 +27,6 @@ import {
   VIDEO_STATUS_OPTIONS,
   VISIBILITY_OPTIONS,
   videoStatusLabel,
-  visibilityLabel,
 } from '#/lib/admin-labels.ts'
 import {
   formatAdminDateTimeHu,
@@ -217,7 +217,7 @@ const videoColumns: Array<AdminColumn<AdminVideoListItem>> = [
   {
     key: 'visibility',
     header: 'Láthatóság',
-    render: (row) => visibilityLabel(row.visibility),
+    render: (row) => <VideoVisibility visibility={row.visibility} />,
   },
   {
     key: 'event',
