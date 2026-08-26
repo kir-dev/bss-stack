@@ -88,6 +88,9 @@ function RoleList({
       .sort((a, b) => a.displayOrder - b.displayOrder)
       .map((role) => role.id),
   )
+  const [savingOrder, setSavingOrder] = useState(false)
+  const [orderProblems, setOrderProblems] = useState<string[]>([])
+  const [orderLoginUrl, setOrderLoginUrl] = useState<string | null>(null)
 
   if (roles.length === 0) {
     return (
@@ -98,6 +101,9 @@ function RoleList({
   }
 
   const byId = new Map(roles.map((role) => [role.id, role]))
+  const savedOrder = [...roles]
+    .sort((a, b) => a.displayOrder - b.displayOrder)
+    .map((role) => role.id)
   const ordered = order.filter((id) => byId.has(id))
   // New roles that are not yet in the order:
   for (const role of [...roles].sort(
@@ -105,7 +111,7 @@ function RoleList({
   )) {
     if (!ordered.includes(role.id)) ordered.push(role.id)
   }
-  const orderChanged = JSON.stringify(order) !== JSON.stringify(ordered)
+  const orderChanged = JSON.stringify(savedOrder) !== JSON.stringify(ordered)
 
   function move(index: number, delta: number) {
     const next = [...ordered]
@@ -116,9 +122,21 @@ function RoleList({
   }
 
   async function saveOrder() {
-    await postJson('/api/admin/staff-roles/reorder', {
+    setSavingOrder(true)
+    setOrderProblems([])
+    setOrderLoginUrl(null)
+    const result = await postJson('/api/admin/staff-roles/reorder', {
       orderedRoleIds: ordered,
     })
+    setSavingOrder(false)
+    if (!result.ok) {
+      if (result.error.code === 'auth_required' && result.error.loginUrl) {
+        setOrderLoginUrl(result.error.loginUrl)
+        return
+      }
+      setOrderProblems(result.error.problems ?? [result.error.message])
+      return
+    }
     onChanged()
   }
 
@@ -143,9 +161,9 @@ function RoleList({
       <div className="mt-4 flex items-center gap-3">
         <AdminPrimaryButton
           onClick={() => void saveOrder()}
-          disabled={!orderChanged}
+          disabled={!orderChanged || savingOrder}
         >
-          Sorrend mentése
+          {savingOrder ? 'Mentés…' : 'Sorrend mentése'}
         </AdminPrimaryButton>
         {orderChanged && (
           <span className="text-xs text-red-500">
@@ -153,6 +171,21 @@ function RoleList({
           </span>
         )}
       </div>
+      {orderLoginUrl !== null && (
+        <div className="mt-2">
+          <LoginRequiredBanner loginUrl={orderLoginUrl} />
+        </div>
+      )}
+      {orderProblems.length > 0 && (
+        <ul
+          role="alert"
+          className="mt-2 list-inside list-disc text-sm text-red-500"
+        >
+          {orderProblems.map((problem, index) => (
+            <li key={index}>{problem}</li>
+          ))}
+        </ul>
+      )}
     </>
   )
 }
@@ -232,8 +265,15 @@ function RoleRowEditor({
             Összevonás
           </AdminSecondaryButton>
         )}
-        {role.videoCount === 0 ? (
+        <span
+          className="group relative"
+          tabIndex={role.videoCount > 0 ? 0 : undefined}
+          aria-describedby={
+            role.videoCount > 0 ? `delete-tooltip-${role.id}` : undefined
+          }
+        >
           <AdminSecondaryButton
+            disabled={role.videoCount > 0}
             confirm={`Biztosan törlöd „${role.name}" stábszerepet?`}
             onClick={() =>
               void act(`/api/admin/staff-roles/${role.id}/delete`, {})
@@ -241,11 +281,16 @@ function RoleRowEditor({
           >
             Törlés
           </AdminSecondaryButton>
-        ) : (
-          <span className="text-xs text-red-500">
-            Használatban van — nem törölhető, csak összevonható.
-          </span>
-        )}
+          {role.videoCount > 0 && (
+            <span
+              id={`delete-tooltip-${role.id}`}
+              role="tooltip"
+              className="pointer-events-none absolute right-0 bottom-full z-10 mb-2 w-max max-w-64 rounded bg-black/90 px-2 py-1 text-xs text-white opacity-0 shadow transition-opacity group-hover:opacity-100 group-focus:opacity-100"
+            >
+              Használatban van, csak összevonható.
+            </span>
+          )}
+        </span>
       </div>
 
       {renaming && (

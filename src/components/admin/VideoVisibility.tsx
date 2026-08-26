@@ -1,10 +1,8 @@
-import { Eye, EyeOff, Lock } from 'lucide-react'
-import { visibilityLabel } from '#/lib/admin-labels.ts'
+import { visibilityIcon, visibilityLabel } from '#/lib/admin-labels.ts'
 
 export function VideoVisibility({ visibility }: { visibility: string }) {
   const label = visibilityLabel(visibility)
-  const Icon =
-    visibility === 'public' ? Eye : visibility === 'schonherz' ? EyeOff : Lock
+  const Icon = visibilityIcon(visibility)
 
   return (
     <span className="inline-flex items-center gap-1.5" title={label}>

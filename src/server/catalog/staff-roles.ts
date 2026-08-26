@@ -251,7 +251,7 @@ export async function reorderStaffRoles(
     await writeAudit(tx, {
       actor: deps.viewer.sub ?? '',
       entityType: 'staff_role',
-      entityId: orderedRoleIds.join(','),
+      entityId: 'catalog-order',
       action: 'reorder',
       before: null,
       after: { order: [...orderedRoleIds] },

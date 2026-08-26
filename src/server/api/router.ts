@@ -77,6 +77,9 @@ export async function handleApiRequest(request: Request): Promise<Response> {
   if (pathname === '/api/admin/staff-roles') {
     return handleAdminStaffRoleRoutes(request, 'create', undefined)
   }
+  if (pathname === '/api/admin/staff-roles/reorder') {
+    return handleAdminStaffRoleRoutes(request, 'reorder', undefined)
+  }
   const staffRoleMatch =
     /^\/api\/admin\/staff-roles\/([0-9a-f-]+)\/(rename|merge|delete|reorder)$/.exec(
       pathname,

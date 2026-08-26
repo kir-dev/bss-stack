@@ -360,4 +360,24 @@ describe.skipIf(!hasTestDatabase)('BSS-012: stábszerepek', () => {
     expect(ordered).toEqual(['Sorrend C', 'Sorrend A', 'Sorrend B'])
     void c
   })
+
+  it('sok stábszerep sorrendezését is elmenti az auditnaplóval együtt', async () => {
+    const db = await setupDb()
+    const roles = await Promise.all(
+      Array.from({ length: 8 }, (_, index) =>
+        createStaffRole(db, { viewer: leaderViewer }, `Sok szerep ${index}`),
+      ),
+    )
+
+    await reorderStaffRoles(
+      db,
+      { viewer: leaderViewer },
+      roles.map((role) => role.id).reverse(),
+    )
+
+    const ordered = (await listStaffRolesWithUsage(db))
+      .filter((role) => role.name.startsWith('Sok szerep'))
+      .map((role) => role.id)
+    expect(ordered).toEqual(roles.map((role) => role.id).reverse())
+  })
 })

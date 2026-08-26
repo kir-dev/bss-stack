@@ -1,4 +1,6 @@
 /** Hungarian labels for admin statuses and visibilities (spec 4.1). */
+import { Eye, EyeOff, Lock } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 
 export const VIDEO_STATUS_LABELS: Record<string, string> = {
   draft: 'Piszkozat',
@@ -13,10 +15,10 @@ export const EVENT_STATUS_LABELS: Record<string, string> = {
   archived: 'Archivált',
 }
 
-export const VISIBILITY_LABELS: Record<string, string> = {
-  public: 'Nyilvános',
-  schonherz: 'Schönherz',
-  bss: 'BSS-tag',
+export const VISIBILITY_LABELS: Record<string, [LucideIcon, string]> = {
+  public: [Eye, 'Nyilvános'],
+  schonherz: [EyeOff, 'Schönherz'],
+  bss: [Lock, 'BSS-tagok'],
 }
 
 export const MEMBERSHIP_STATUS_LABELS: Record<string, string> = {
@@ -40,7 +42,9 @@ function toOptions(
 
 export const VIDEO_STATUS_OPTIONS = toOptions(VIDEO_STATUS_LABELS)
 export const EVENT_STATUS_OPTIONS = toOptions(EVENT_STATUS_LABELS)
-export const VISIBILITY_OPTIONS = toOptions(VISIBILITY_LABELS)
+export const VISIBILITY_OPTIONS = Object.entries(VISIBILITY_LABELS).map(
+  ([value, [icon, label]]) => ({ value, label, icon }),
+)
 export const MEMBERSHIP_STATUS_OPTIONS = toOptions(MEMBERSHIP_STATUS_LABELS)
 
 export function videoStatusLabel(status: string): string {
@@ -52,5 +56,9 @@ export function eventStatusLabel(status: string): string {
 }
 
 export function visibilityLabel(visibility: string): string {
-  return VISIBILITY_LABELS[visibility] ?? visibility
+  return VISIBILITY_LABELS[visibility][1]
+}
+
+export function visibilityIcon(visibility: string): LucideIcon {
+  return VISIBILITY_LABELS[visibility][0]
 }
