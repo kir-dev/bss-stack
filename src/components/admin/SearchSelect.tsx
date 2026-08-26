@@ -3,12 +3,14 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { matchesSearch } from '#/lib/text-search.ts'
+import type { LucideIcon } from 'lucide-react'
 
 export interface SearchSelectOption {
   value: string
   label: string
   /** Secondary info shown at the end of the row (e.g. event date). */
   meta?: string
+  icon?: LucideIcon
 }
 
 /** Subtler label style for filter bars. */
@@ -75,6 +77,8 @@ export function AdminSearchSelect({
 
   const selectedLabel =
     options.find((option) => option.value === value)?.label ?? null
+
+  const SelectedIcon: LucideIcon | null = options.find((option) => option.value === value)?.icon ?? null
 
   useEffect(() => {
     if (!open) {
@@ -158,10 +162,13 @@ export function AdminSearchSelect({
           className={`flex h-10 w-full items-center justify-between gap-2 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 text-left outline-none hover:border-(--orange) active:scale-100 disabled:opacity-40 ${triggerClassName}`}
         >
           <span
-            className={`min-w-0 truncate ${
+            className={`min-w-0 truncate flex flex-row items-center gap-2 justify-start ${
               selectedLabel === null ? 'text-(--bss-text-secondary)' : ''
             }`}
           >
+            {SelectedIcon && (
+              <SelectedIcon size={16} strokeWidth={2} aria-hidden="true" />
+            )}
             {selectedLabel ?? placeholder}
           </span>
           <svg
@@ -215,12 +222,19 @@ export function AdminSearchSelect({
                       aria-selected={option.value === value}
                       onMouseEnter={() => setActiveIndex(index)}
                       onClick={() => select(option.value)}
-                      className={`flex w-full items-center justify-between gap-2 px-3 py-2 text-left text-sm hover:text-(--orange) ${
+                      className={`flex w-full items-center justify-start gap-2 px-3 py-2 text-left text-sm hover:text-(--orange) ${
                         index === activeIndex
                           ? 'bg-(--nav-search-bg) text-(--orange)'
                           : 'text-(--bss-text-secondary)'
                       } ${option.value === value ? 'font-bold' : ''}`}
                     >
+                      {option.icon !== undefined && (
+                        <option.icon
+                          size={16}
+                          strokeWidth={2}
+                          aria-hidden="true"
+                        />
+                      )}
                       <span className="min-w-0 truncate">{option.label}</span>
                       {option.meta !== undefined && (
                         <span className="ml-2 shrink-0 text-xs opacity-70">

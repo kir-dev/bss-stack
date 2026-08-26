@@ -251,14 +251,14 @@
  * 760x760 tile, exactly 20 x 38px dot pitches, so `repeat` leaves no seam
  * on viewports wider or taller than one tile. */
 html {
+  background: var(--darker-blue);
+}
+
+body {
   background-color: var(--bg);
   background-image: var(--bg-pattern);
   background-repeat: repeat;
   background-position: center top;
-}
-
-body {
-  background-color: transparent;
   /*  margin: 0;*/
   /*  color: var(--sea-ink);*/
   /*  font-family: var(--font-bank-gothic);*/
@@ -913,8 +913,7 @@ body {
 /* --- Filled (orange) button --------------------------------------------- */
 @utility solid-btn {
   &:hover:not(:disabled) {
-    background-color: color-mix(in srgb, var(--orange) 85%, black);
-    box-shadow: 0 6px 16px rgba(255, 145, 0, 0.35);
+    transform: scale(1.02) translateY(-1px);
   }
 
   &:not(:disabled):active {

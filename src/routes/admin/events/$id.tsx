@@ -264,21 +264,19 @@ function EventEditor({
             type="date"
             value={form.startDate}
             onChange={(value) => patch({ startDate: value })}
-            hint="Publikáláshoz kötelező."
           />
           <AdminTextField
             label="Befejezés dátuma"
             type="date"
             value={form.endDate}
             onChange={(value) => patch({ endDate: value })}
-            hint="Nem lehet korábbi a kezdésnél."
           />
         </div>
         <AdminTextField
           label="Thumbnail URL"
           value={form.thumbnailUrl}
           onChange={(value) => patch({ thumbnailUrl: value })}
-          hint="Opcionális; hiányában a legfrissebb látható videó thumbnailje jelenik meg. Csak https://v.bsstudio.hu fogadható el."
+          hint="Opcionális; hiányában a legfrissebb látható videó thumbnailje jelenik meg."
         />
         <WarningList
           warnings={thumbnailWarning === null ? [] : [thumbnailWarning]}
