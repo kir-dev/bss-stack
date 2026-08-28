@@ -167,6 +167,7 @@
   --videos-video-title: var(--orange);
   --members-title: var(--blue);
   --members-card-bg: #161616;
+  --members-data-category: #c7c7c7;
   --members-data: var(--orange);
   --courses-title: var(--orange);
   --events-card-bg: #161616;
@@ -220,6 +221,7 @@
     --videos-video-title: var(--orange);
     --members-title: var(--orange);
     --members-card-bg: #161616;
+    --members-data-category: #c7c7c7;
     --members-data: var(--orange);
     --courses-title: var(--orange);
     --events-card-bg: #161616;

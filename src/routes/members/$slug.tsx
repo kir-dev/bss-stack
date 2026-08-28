@@ -166,9 +166,9 @@ function MemberProfilePage() {
         <meta property="og:image" content={profile.avatarUrl} />
       )}
 
-      <div className="flex flex-col gap-[5dvw] md:flex-row">
+      <div className="flex flex-col gap-6 md:flex-row md:gap-8">
         <img
-          className="m-1 h-[440px] w-auto max-w-[300px] self-start object-contain drop-shadow-[0_5px_10px_rgba(255,145,0,0.45)]"
+          className="h-[440px] w-auto max-w-[300px] self-start object-contain object-top drop-shadow-[0_5px_10px_rgba(255,145,0,0.45)]"
           src={profile.avatarUrl ?? '/default-avatar.png'}
           alt={profile.fullName}
         />
