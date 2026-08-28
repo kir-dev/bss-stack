@@ -92,7 +92,7 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
       <section className="mb-[6dvh] grid grid-cols-1 gap-x-[3dvw] gap-y-[3dvh] md:grid-cols-[1.5fr_1fr]">
         {/* Hero */}
         {state.priority === 'live' && state.liveEmbedUrl !== null ? (
-          <div>
+          <div className="max-w-4xl">
             <h2 className="mb-[2dvh] text-3xl font-bold text-(--orange)">
               Élő adás
             </h2>
@@ -111,7 +111,7 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
             <HeroPlayer video={state.hero} />
           </div>
         ) : (
-          <div>
+          <div className="max-w-4xl">
             <h2 className="mb-[2dvh] text-3xl font-bold text-(--orange)">
               Legutóbbi videóink
             </h2>
