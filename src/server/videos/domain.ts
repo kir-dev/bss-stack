@@ -35,6 +35,8 @@ import {
   slugify,
 } from '#/server/shared/slug.ts'
 import { invalidateHomepageReferences } from './highlight-invalidation.ts'
+import { VIDEO_ENCODING_GROUPS, videoAssetUrls } from '#/lib/video-media.ts'
+import type { VideoEncodingGroup } from '#/lib/video-media.ts'
 
 export type VideoVisibility = 'public' | 'schonherz' | 'bss'
 
@@ -57,8 +59,10 @@ export interface VideoInput {
   description?: string | null
   guests?: string | null
   songs?: string | null
-  videoUrl?: string | null
-  thumbnailUrl?: string | null
+  encodingGroup?: VideoEncodingGroup | null
+  hasHq?: boolean
+  hasLq?: boolean
+  baseFilename?: string | null
   visibility?: VideoVisibility
   recordedAt?: string | null
   eventId?: string | null
@@ -129,19 +133,28 @@ function validatedChanges(input: VideoInput): Record<string, unknown> {
       TEXT_LIMITS.guestsOrSongs,
     )
   }
-  if (input.videoUrl !== undefined) {
-    const trimmed = input.videoUrl?.trim() ?? ''
-    if (trimmed !== '') {
-      validatePlainText('Videó URL', trimmed, TEXT_LIMITS.url)
+  if (input.encodingGroup !== undefined) {
+    if (
+      input.encodingGroup !== null &&
+      !VIDEO_ENCODING_GROUPS.includes(input.encodingGroup)
+    ) {
+      throw new TextValidationError(['Érvénytelen videóprofil.'])
     }
-    changes.videoUrl = trimmed === '' ? null : trimmed
+    changes.encodingGroup = input.encodingGroup
   }
-  if (input.thumbnailUrl !== undefined) {
-    const trimmed = input.thumbnailUrl?.trim() ?? ''
+  if (input.hasHq !== undefined) changes.hasHq = input.hasHq
+  if (input.hasLq !== undefined) changes.hasLq = input.hasLq
+  if (input.baseFilename !== undefined) {
+    const trimmed = input.baseFilename?.trim() ?? ''
     if (trimmed !== '') {
-      validatePlainText('Thumbnail URL', trimmed, TEXT_LIMITS.url)
+      validatePlainText('Alapfájlnév', trimmed, 255)
+      if (/[\\/]/.test(trimmed)) {
+        throw new TextValidationError([
+          'Alapfájlnév: könyvtárnév és perjel nem adható meg.',
+        ])
+      }
     }
-    changes.thumbnailUrl = trimmed === '' ? null : trimmed
+    changes.baseFilename = trimmed === '' ? null : trimmed
   }
   if (input.visibility !== undefined) {
     if (!VISIBILITIES.has(input.visibility)) {
@@ -251,8 +264,11 @@ export async function createVideoDraft(
         description: (changes.description as string | null) ?? null,
         guests: (changes.guests as string | null) ?? null,
         songs: (changes.songs as string | null) ?? null,
-        videoUrl: (changes.videoUrl as string | null) ?? null,
-        thumbnailUrl: (changes.thumbnailUrl as string | null) ?? null,
+        encodingGroup:
+          (changes.encodingGroup as VideoEncodingGroup | null) ?? null,
+        hasHq: (changes.hasHq as boolean | undefined) ?? false,
+        hasLq: (changes.hasLq as boolean | undefined) ?? false,
+        baseFilename: (changes.baseFilename as string | null) ?? null,
         recordedAt: (changes.recordedAt as string | null) ?? null,
         visibility: 'public',
         status: 'draft',
@@ -406,11 +422,14 @@ function publishPreconditions(
 ): PublishPreconditions {
   const problems: string[] = []
   if (row.title.trim() === '') problems.push('Cím: kötelező mező.')
-  if (row.videoUrl === null || row.videoUrl === '') {
-    problems.push('Videó URL: publikáláshoz kötelező.')
+  if (row.encodingGroup === null) {
+    problems.push('Videóprofil: publikáláshoz kötelező.')
   }
-  if (row.thumbnailUrl === null || row.thumbnailUrl === '') {
-    problems.push('Thumbnail URL: publikáláshoz kötelező.')
+  if (!row.hasHq && !row.hasLq) {
+    problems.push('Legalább egy videóminőség kötelező a publikáláshoz.')
+  }
+  if (row.baseFilename === null || row.baseFilename === '') {
+    problems.push('Alapfájlnév: publikáláshoz kötelező.')
   }
 
   return {
@@ -454,8 +473,13 @@ export async function publishVideo(
     ])
   }
 
-  for (const kind of ['video', 'thumbnail'] as const) {
-    const url = kind === 'video' ? preloaded.videoUrl : preloaded.thumbnailUrl
+  const mediaUrls = videoAssetUrls(preloaded)
+  const mediaToValidate = [
+    { kind: 'video' as const, url: mediaUrls.hqUrl },
+    { kind: 'video' as const, url: mediaUrls.lqUrl },
+    { kind: 'thumbnail' as const, url: mediaUrls.thumbnailUrl },
+  ]
+  for (const { kind, url } of mediaToValidate) {
     if (url === null) continue
     const shape = checkMediaUrlShape(url, kind, deps.mediaConfig)
     if (!shape.ok) {
@@ -852,8 +876,10 @@ function snapshotVideo(
     description: row.description,
     guests: row.guests,
     songs: row.songs,
-    videoUrl: row.videoUrl,
-    thumbnailUrl: row.thumbnailUrl,
+    encodingGroup: row.encodingGroup,
+    hasHq: row.hasHq,
+    hasLq: row.hasLq,
+    baseFilename: row.baseFilename,
     visibility: row.visibility,
     status: row.status,
     eventId: row.eventId,

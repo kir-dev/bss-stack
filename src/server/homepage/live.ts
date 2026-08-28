@@ -152,7 +152,6 @@ export async function rescheduleLive(
     throw new Error('A live ütemezés nem található.')
   }
   if (current.status === 'ended') {
-
     throw new Error(
       'Befejezett live nem módosítható; csak másolatként ütemezhető újra.',
     )

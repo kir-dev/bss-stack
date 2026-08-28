@@ -12,6 +12,7 @@ import {
 import type { Executor } from '#/server/shared/db-executor.ts'
 import { visibleVideoCondition } from '#/server/videos/visibility.ts'
 import { getRelatedVideos } from '#/server/videos/related.ts'
+import { videoAssetUrls } from '#/lib/video-media.ts'
 
 export interface VideoDetailStaffEntry {
   roleId: string
@@ -35,6 +36,8 @@ export interface VideoDetail {
   guests: string | null
   songs: string | null
   videoUrl: string | null
+  hqUrl: string | null
+  lqUrl: string | null
   thumbnailUrl: string | null
   recordedAt: string | null
   publishedAt: Date | null
@@ -138,8 +141,7 @@ export async function getVideoDetail(
     description: video.description,
     guests: video.guests,
     songs: video.songs,
-    videoUrl: video.videoUrl,
-    thumbnailUrl: video.thumbnailUrl,
+    ...videoAssetUrls(video),
     recordedAt: video.recordedAt,
     publishedAt: video.publishedAt,
     event: eventRow?.at(0) ?? null,
@@ -149,7 +151,7 @@ export async function getVideoDetail(
       id: item.id,
       slug: item.slug,
       title: item.title,
-      thumbnailUrl: item.thumbnailUrl,
+      thumbnailUrl: videoAssetUrls(item).thumbnailUrl,
     })),
   }
 }

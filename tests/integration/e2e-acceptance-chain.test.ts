@@ -41,8 +41,6 @@ describe.skipIf(!hasTestDatabase)(
         jsonRequest(ctx.memberToken, '/api/admin/videos', {
           title: 'Végponttól végpontig teszt videó',
           description: 'Teljes életciklus ellenőrzése.',
-          videoUrl: 'https://v.bsstudio.hu/media/e2e.mp4',
-          thumbnailUrl: 'https://v.bsstudio.hu/media/e2e.jpg',
         }),
         'create',
         undefined,
@@ -56,8 +54,10 @@ describe.skipIf(!hasTestDatabase)(
         jsonRequest(ctx.memberToken, `/api/admin/videos/${videoId}/update`, {
           version: 1,
           description: 'Teljes életciklus ellenőrzése.',
-          videoUrl: 'https://v.bsstudio.hu/media/e2e.mp4',
-          thumbnailUrl: 'https://v.bsstudio.hu/media/e2e.jpg',
+          encodingGroup: '16a9_HD',
+          hasHq: true,
+          hasLq: true,
+          baseFilename: 'e2e',
         }),
         'update',
         videoId,
@@ -145,8 +145,6 @@ describe.skipIf(!hasTestDatabase)(
       const created = await handleAdminVideoRoutes(
         jsonRequest(ctx.memberToken, '/api/admin/videos', {
           title: 'Csak schönherzes videó',
-          videoUrl: 'https://v.bsstudio.hu/media/sch.mp4',
-          thumbnailUrl: 'https://v.bsstudio.hu/media/sch.jpg',
         }),
         'create',
         undefined,
@@ -156,8 +154,12 @@ describe.skipIf(!hasTestDatabase)(
       const videoId = String(payload['id'])
       await handleAdminVideoRoutes(
         jsonRequest(ctx.memberToken, `/api/admin/videos/${videoId}/update`, {
-          version: Number(payload['version']),
+          version: 1,
           visibility: 'schonherz',
+          encodingGroup: '16a9_SD',
+          hasHq: true,
+          hasLq: true,
+          baseFilename: 'sch-video',
         }),
         'update',
         videoId,
@@ -165,7 +167,7 @@ describe.skipIf(!hasTestDatabase)(
       )
       await handleAdminVideoRoutes(
         jsonRequest(ctx.memberToken, `/api/admin/videos/${videoId}/publish`, {
-          version: Number(payload['version']) + 1,
+          version: 2,
         }),
         'publish',
         videoId,

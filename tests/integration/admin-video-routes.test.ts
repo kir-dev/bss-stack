@@ -134,7 +134,7 @@ describe.skipIf(!hasTestDatabase)(
 )
 
 describe.skipIf(!hasTestDatabase)('BSS-028: piszkozat és publikálás', () => {
-  it('piszkozat csak címmel menthető, hibás média-URL-lel is', async () => {
+  it('piszkozat csak címmel és részleges médiabeállítással is menthető', async () => {
     const ctx = await setupAdminApiTest('bss viddraft')
     const response = await handleAdminVideoRoutes(
       jsonRequest(ctx.memberToken, '/api/admin/videos', {
@@ -150,8 +150,8 @@ describe.skipIf(!hasTestDatabase)('BSS-028: piszkozat és publikálás', () => {
     const saved = await handleAdminVideoRoutes(
       jsonRequest(ctx.memberToken, `/api/admin/videos/${videoId}/update`, {
         version: 1,
-        videoUrl: 'https://masik-host.hu/video.mp4',
-        thumbnailUrl: 'nem-url',
+        encodingGroup: '4a3_SD',
+        baseFilename: 'draft-video',
       }),
       'update',
       videoId,
@@ -159,7 +159,8 @@ describe.skipIf(!hasTestDatabase)('BSS-028: piszkozat és publikálás', () => {
     )
     expect(saved.status).toBe(200)
     const detail = await getAdminVideoDetail(ctx.db, videoId)
-    expect(detail?.videoUrl).toBe('https://masik-host.hu/video.mp4')
+    expect(detail?.encodingGroup).toBe('4a3_SD')
+    expect(detail?.baseFilename).toBe('draft-video')
     expect(detail?.status).toBe('draft')
   })
 
@@ -190,7 +191,7 @@ describe.skipIf(!hasTestDatabase)('BSS-028: piszkozat és publikálás', () => {
     )
     const missingBody = await responseBody(missingResponse)
     expect(missingBody.status).toBe(400)
-    expect(String(JSON.stringify(missingBody.payload))).toContain('Videó URL')
+    expect(String(JSON.stringify(missingBody.payload))).toContain('Videóprofil')
 
     // 2. átirányító média → 400 (mockolt fetch)
     const redirected = await createVideo()
@@ -200,8 +201,10 @@ describe.skipIf(!hasTestDatabase)('BSS-028: piszkozat és publikálás', () => {
         `/api/admin/videos/${redirected}/update`,
         {
           version: 1,
-          videoUrl: 'https://v.bsstudio.hu/media/a.mp4',
-          thumbnailUrl: 'https://v.bsstudio.hu/media/a.jpg',
+          encodingGroup: '16a9_HD',
+          hasHq: true,
+          hasLq: true,
+          baseFilename: 'redirected-video',
         },
       ),
       'update',
@@ -227,8 +230,10 @@ describe.skipIf(!hasTestDatabase)('BSS-028: piszkozat és publikálás', () => {
     await handleAdminVideoRoutes(
       jsonRequest(ctx.leadershipToken, `/api/admin/videos/${ok}/update`, {
         version: 1,
-        videoUrl: 'https://v.bsstudio.hu/media/ok.mp4',
-        thumbnailUrl: 'https://v.bsstudio.hu/media/ok.jpg',
+        encodingGroup: '16a9_HD',
+        hasHq: true,
+        hasLq: true,
+        baseFilename: 'ok-video',
       }),
       'update',
       ok,

@@ -104,8 +104,10 @@ async function seedPublicVideo(
       status: 'published',
       visibility: 'public',
       publishedAt: clock.now(),
-      videoUrl: 'https://v.bsstudio.hu/v.mp4',
-      thumbnailUrl: 'https://v.bsstudio.hu/t.jpg',
+      encodingGroup: '16a9_HD',
+      hasHq: true,
+      hasLq: true,
+      baseFilename: 'homepage-video',
       ...overrides,
     })
     .returning()

@@ -16,8 +16,10 @@ export interface VideoFixture {
   description: string | null
   guests: string | null
   songs: string | null
-  videoUrl: string
-  thumbnailUrl: string
+  encodingGroup: '4a3_SD' | '16a9_SD' | '16a9_HD'
+  hasHq: boolean
+  hasLq: boolean
+  baseFilename: string
   visibility: Visibility
   status: ContentStatus
   createdAt: Date
@@ -41,8 +43,10 @@ export function buildVideo(
     description: null,
     guests: null,
     songs: null,
-    videoUrl: 'https://v.bsstudio.hu/media/video.mp4',
-    thumbnailUrl: 'https://v.bsstudio.hu/media/thumb.jpg',
+    encodingGroup: '16a9_HD',
+    hasHq: true,
+    hasLq: true,
+    baseFilename: `video-${sequence}`,
     visibility: 'public',
     status: 'draft',
     createdAt: new Date('2026-01-01T10:00:00.000Z'),

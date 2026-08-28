@@ -13,6 +13,7 @@ import { resolvePublicSlug } from '#/server/pages/slug-route.ts'
 import VideoDetailPlayer from '#/components/VideoDetailPlayer.tsx'
 import { formatCalendarDateHu, formatDateHu } from '#/lib/format-date.ts'
 import Thumbnail from '#/components/Thumbnail.tsx'
+import { parseVideoStartTime } from '#/lib/video-time.ts'
 
 const loadVideoDetail = createServerFn({ method: 'GET' })
   .validator((slug: string) => slug)
@@ -42,6 +43,9 @@ const loadVideoDetail = createServerFn({ method: 'GET' })
   })
 
 export const Route = createFileRoute('/videos/$slug')({
+  validateSearch: (search: Record<string, unknown>): { t?: number } => ({
+    t: parseVideoStartTime(search['t']),
+  }),
   loader: async ({ params }) => {
     const result = await loadVideoDetail({ data: params.slug })
     if (result.redirectSlug !== null) {
@@ -64,6 +68,7 @@ export const Route = createFileRoute('/videos/$slug')({
 
 function VideoDetailPage() {
   const { detail, canonical } = Route.useLoaderData()
+  const { t: startTime } = Route.useSearch()
   const description = detail.description?.slice(0, 300) ?? detail.title
   return (
     <main className="flex-1">
@@ -84,8 +89,11 @@ function VideoDetailPage() {
             <VideoDetailPlayer
               videoId={detail.id}
               videoUrl={detail.videoUrl}
+              hqUrl={detail.hqUrl}
+              lqUrl={detail.lqUrl}
               posterUrl={detail.thumbnailUrl}
               title={detail.title}
+              startTime={startTime}
             />
           </div>
         ) : (

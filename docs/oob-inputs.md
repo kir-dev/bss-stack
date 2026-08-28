@@ -78,8 +78,10 @@ Futtatási követelményei:
       "description": null,
       "guests": null,
       "songs": null, // soronként „Előadó - Szám címe”
-      "videoUrl": "https://v.bsstudio.hu/...mp4",
-      "thumbnailUrl": "https://v.bsstudio.hu/....jpg",
+      "encodingGroup": "16a9_HD", // 4a3_SD|16a9_SD|16a9_HD
+      "hasHq": true,
+      "hasLq": true,
+      "baseFilename": "galanyito-2025", // könyvtár és kiterjesztés nélkül
       "visibility": "public", // public|schonherz|bss, alap: public
       "status": "published",
       "recordedAt": "2025-05-10",
@@ -96,8 +98,10 @@ Szabályok:
 
 - legfeljebb 50 videó (spec 17.1);
 - `email`, `introduction`/`bemutatkozas` mező bármhol tiltott;
-- média URL csak `https://` és az OOB config `media.allowedHosts` hostjairól;
-- publikált videónál kötelező `videoUrl` és `thumbnailUrl`;
+- az esemény-thumbnail URL-je csak `https://` és az OOB config
+  `media.allowedHosts` hostjairól jöhet;
+- publikált videónál kötelező az `encodingGroup`, a `baseFilename`, valamint
+  legalább az egyik minőségjelző (`hasHq` vagy `hasLq`);
 - publikált eseménynél kötelező `startDate`; `endDate >= startDate`;
 - a `staff[].username` a tagcache-beli felhasználónévre mutat — a betöltés előtt
   futnia kell a tagszinkronnak (alkalmazásindítás vagy kézi szinkron).

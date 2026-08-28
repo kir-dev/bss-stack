@@ -67,8 +67,10 @@ function baseSeed(): Record<string, unknown> {
       {
         key: 'vid-001',
         title: 'Gálanyitó 2025',
-        videoUrl: 'https://v.bsstudio.hu/seed/galanyito.mp4',
-        thumbnailUrl: 'https://v.bsstudio.hu/seed/galanyito.jpg',
+        encodingGroup: '16a9_HD',
+        hasHq: true,
+        hasLq: true,
+        baseFilename: 'galanyito',
         recordedAt: '2025-05-10',
         publishedAt: '2025-06-01T12:00:00Z',
         eventKey: 'gala-2025',
@@ -112,19 +114,19 @@ describe.skipIf(!hasTestDatabase)('BSS-034: seed JSON validáció', () => {
     ).toThrow(/legfeljebb 50 videó/i)
   })
 
-  it('idegen médiahost elutasul', () => {
+  it('érvénytelen videóprofil elutasul', () => {
     const seed = baseSeed()
     const foreignHost = {
       ...seed,
       videos: [
         {
           ...(seed.videos as Array<Record<string, unknown>>)[0],
-          videoUrl: 'https://masik.hu/video.mp4',
+          encodingGroup: 'cinema',
         },
       ],
     }
     expect(() => validateSeedJson(foreignHost, config.media)).toThrow(
-      /hostokról tölthető be/,
+      /érvénytelen érték/,
     )
   })
 
@@ -142,8 +144,9 @@ describe.skipIf(!hasTestDatabase)('BSS-034: seed JSON validáció', () => {
         return (error as Error).message
       }
     })()
-    expect(problems).toContain('videoUrl kötelező')
-    expect(problems).toContain('thumbnailUrl kötelező')
+    expect(problems).toContain('encodingGroup kötelező')
+    expect(problems).toContain('legalább egy minőség kötelező')
+    expect(problems).toContain('baseFilename kötelező')
   })
 
   it('ismeretlen eseménykulcs, címke vagy szerep elutasul', () => {

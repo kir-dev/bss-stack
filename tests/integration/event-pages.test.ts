@@ -51,7 +51,10 @@ async function seedVideo(
       status: 'published',
       visibility: 'public',
       publishedAt: new Date('2026-06-01T10:00:00.000Z'),
-      thumbnailUrl: 'https://v.bsstudio.hu/t.jpg',
+      encodingGroup: '16a9_HD',
+      hasHq: true,
+      hasLq: true,
+      baseFilename: 'event-video',
       ...overrides,
     })
     .returning()
@@ -112,7 +115,8 @@ describe.skipIf(!hasTestDatabase)('BSS-022: eseménylista', () => {
     ])
     expect(result.items[0]).toMatchObject({
       visibleVideoCount: 1,
-      thumbnailUrl: 'https://v.bsstudio.hu/t.jpg',
+      thumbnailUrl:
+        'https://v.bsstudio.hu/bss_vagott_web_16a9_HD/thumbnail/event-video_tn.png',
     })
     expect(result.items[1]?.visibleVideoCount).toBe(1)
 

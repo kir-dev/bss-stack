@@ -22,7 +22,7 @@ services:
       app-db:
         condition: service_healthy
     ports:
-      - "8070:3000"
+      - '8070:3000'
     volumes:
       - ./oob:/app/oob:ro
 
@@ -35,7 +35,7 @@ services:
       POSTGRES_USER: bss
       POSTGRES_PASSWORD: ${BSS_DB_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bss -d bss"]
+      test: ['CMD-SHELL', 'pg_isready -U bss -d bss']
       interval: 10s
       timeout: 5s
       retries: 10
@@ -48,8 +48,8 @@ services:
     build:
       context: .
       target: build
-    profiles: ["tools"]
-    command: ["pnpm", "db:migrate"]
+    profiles: ['tools']
+    command: ['pnpm', 'db:migrate']
     environment:
       DATABASE_URL: postgresql://bss:${BSS_DB_PASSWORD}@app-db:5432/bss
     depends_on:
@@ -67,7 +67,7 @@ services:
       POSTGRES_USER: authentik
       POSTGRES_PASSWORD: ${AUTHENTIK_DB_PASSWORD}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U authentik -d authentik"]
+      test: ['CMD-SHELL', 'pg_isready -U authentik -d authentik']
       interval: 30s
       timeout: 5s
       retries: 5
@@ -87,8 +87,8 @@ services:
       authentik-db:
         condition: service_healthy
     ports:
-      - "8071:9000"
-      - "8072:9443"
+      - '8071:9000'
+      - '8072:9443'
     volumes:
       - authentik_data:/data
       - authentik_templates:/templates
@@ -110,7 +110,6 @@ services:
       - authentik_certs:/certs
       - authentik_templates:/templates
       - ./oob/authentik/blueprints:/blueprints/custom
-
 
 volumes:
   app_database:

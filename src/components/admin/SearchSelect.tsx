@@ -71,7 +71,8 @@ export function AdminSearchSelect({
   const selectedLabel =
     options.find((option) => option.value === value)?.label ?? null
 
-  const SelectedIcon: LucideIcon | null = options.find((option) => option.value === value)?.icon ?? null
+  const SelectedIcon: LucideIcon | null =
+    options.find((option) => option.value === value)?.icon ?? null
 
   useEffect(() => {
     if (!open) {

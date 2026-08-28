@@ -249,8 +249,10 @@ export async function importSeed(
         description: seedVideo.description,
         guests: seedVideo.guests,
         songs: seedVideo.songs,
-        videoUrl: seedVideo.videoUrl,
-        thumbnailUrl: seedVideo.thumbnailUrl,
+        encodingGroup: seedVideo.encodingGroup,
+        hasHq: seedVideo.hasHq,
+        hasLq: seedVideo.hasLq,
+        baseFilename: seedVideo.baseFilename,
         visibility: seedVideo.visibility,
         status: seedVideo.status,
         eventId:

@@ -56,8 +56,10 @@ async function seedVideo(
       status: 'published',
       visibility: 'public',
       publishedAt: new Date('2026-06-01T10:00:00.000Z'),
-      videoUrl: 'https://v.bsstudio.hu/v.mp4',
-      thumbnailUrl: 'https://v.bsstudio.hu/t.jpg',
+      encodingGroup: '16a9_HD',
+      hasHq: true,
+      hasLq: true,
+      baseFilename: 'detail-video',
       ...overrides,
     })
     .returning()

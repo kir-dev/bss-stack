@@ -79,7 +79,6 @@ export async function handleAdminTagRoutes(
           })
         }
         case 'similar': {
-
           const name = new URL(request.url).searchParams.get('name') ?? ''
           const similar = await findAccentSimilarTagNames(
             database,

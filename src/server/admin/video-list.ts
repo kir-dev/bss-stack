@@ -2,6 +2,7 @@ import { and, desc, eq, ilike, or, sql } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
 import { events, memberCache, tags, videoTags, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
+import { videoThumbnailUrl } from '#/lib/video-media.ts'
 
 export const ADMIN_PAGE_SIZES = [10, 25, 50, 100] as const
 export const ADMIN_DEFAULT_PAGE_SIZE = 25
@@ -114,12 +115,13 @@ export async function getAdminVideoList(
 
   const offset = (query.page - 1) * query.perPage
 
-  const items = await executor
+  const rows = await executor
     .select({
       id: videos.id,
       slug: videos.slug,
       title: videos.title,
-      thumbnailUrl: videos.thumbnailUrl,
+      encodingGroup: videos.encodingGroup,
+      baseFilename: videos.baseFilename,
       status: videos.status,
       visibility: videos.visibility,
       eventId: videos.eventId,
@@ -146,7 +148,10 @@ export async function getAdminVideoList(
   const total = countRows.at(0)?.count ?? 0
 
   return {
-    items,
+    items: rows.map((row) => ({
+      ...row,
+      thumbnailUrl: videoThumbnailUrl({ ...row, hasHq: false, hasLq: false }),
+    })),
     total,
     page: query.page,
     perPage: query.perPage,

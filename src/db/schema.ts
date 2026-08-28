@@ -23,6 +23,12 @@ export const visibilityEnum = pgEnum('visibility', [
   'bss',
 ])
 
+export const videoEncodingGroupEnum = pgEnum('video_encoding_group', [
+  '4a3_SD',
+  '16a9_SD',
+  '16a9_HD',
+])
+
 export const contentStatusEnum = pgEnum('content_status', [
   'draft',
   'published',
@@ -176,8 +182,10 @@ export const videos = pgTable(
     description: varchar({ length: 10_000 }),
     guests: varchar({ length: 5000 }),
     songs: varchar({ length: 5000 }),
-    videoUrl: varchar('video_url', { length: 2048 }),
-    thumbnailUrl: varchar('thumbnail_url', { length: 2048 }),
+    encodingGroup: videoEncodingGroupEnum('encoding_group'),
+    hasHq: boolean('has_hq').notNull().default(false),
+    hasLq: boolean('has_lq').notNull().default(false),
+    baseFilename: varchar('base_filename', { length: 255 }),
     visibility: visibilityEnum('visibility').notNull().default('public'),
     status: contentStatusEnum('status').notNull().default('draft'),
     eventId: uuid('event_id').references(() => events.id, {
