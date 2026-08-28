@@ -168,8 +168,8 @@ function MemberProfilePage() {
 
       <div className="flex flex-col gap-[5dvw] md:flex-row">
         <img
-          className="m-1 max-h-[440px] max-w-[300px] object-cover shadow-[0_5px_10px_rgba(255,145,0,0.45)]"
-          src={profile.avatarUrl ?? '/default-avatar.jpg'}
+          className="m-1 h-[440px] w-auto max-w-[300px] self-start object-contain drop-shadow-[0_5px_10px_rgba(255,145,0,0.45)]"
+          src={profile.avatarUrl ?? '/default-avatar.png'}
           alt={profile.fullName}
         />
         <div className="flex flex-col gap-[2dvh] text-xl">
