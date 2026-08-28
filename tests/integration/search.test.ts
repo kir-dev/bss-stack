@@ -59,10 +59,10 @@ async function setupDb(): Promise<NodePgDatabase<Record<string, never>>> {
     },
     {
       sub: 'error-sub',
-      username: 'hibas',
-      fullName: 'Hibás Profil',
+      username: 'torolt',
+      fullName: 'Törölt Profil',
       membershipStatus: 'studio_member',
-      syncStatus: 'error',
+      deletedAt: new Date('2026-07-01T00:00:00Z'),
     },
   ])
   return migrated.db
@@ -181,8 +181,8 @@ describe.skipIf(!hasTestDatabase)('BSS-018: globális keresés', () => {
     expect(memberResult.members).toHaveLength(1)
     expect(memberResult.members[0]?.item.fullName).toBe('Teszt Béla')
 
-    const errorMember = await search(db, anonViewer, 'Hibás Profil')
-    expect(errorMember.members).toHaveLength(0)
+    const deletedMember = await search(db, anonViewer, 'Törölt Profil')
+    expect(deletedMember.members).toHaveLength(0)
   })
 
   it('tiltott videó metaadata és találatszáma sem szivárog jogosulatlan nézőnek', async () => {

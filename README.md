@@ -43,10 +43,13 @@ pnpm check:oob
 #    lásd docs/oob-inputs.md). Idempotens: újrafuttatás nem duplikál.
 pnpm db:seed
 
-# 7. Alkalmazás indítása — induláskor lefut az első tagcache-szinkron is
+# 7. Tagfrissítő webhook kliens (az első tokenhez, bejelentkezés nélkül)
+pnpm webhook:client create "lokális push"
+
+# 8. Alkalmazás indítása
 pnpm dev               # http://localhost:3000
 
-# 8. Minőségi kapu
+# 9. Minőségi kapu
 pnpm typecheck && pnpm lint && pnpm check
 TEST_DATABASE_URL=postgres://bss:bss@127.0.0.1:5582/bss pnpm test
 pnpm build
@@ -56,10 +59,17 @@ Megjegyzések:
 
 - A `pnpm infra:bootstrap` meglévő titkokat nem ír felül; újraindítás nem
   duplikál.
+- A tagadatokat az alkalmazás birtokolja: a `POST /api/webhooks/members`
+  végpontra beküldött frissítések írják őket (lásd
+  [`docs/member-webhook.md`](docs/member-webhook.md)). Authentikből automatikus
+  szinkron nincs — az Authentik már csak a bejelentkezést és a csoportokat adja.
+- A webhook OpenAPI 3.1 leírása generált:
+  [`docs/api/members-webhook.openapi.yaml`](docs/api/members-webhook.openapi.yaml).
+  Kézzel ne szerkeszd — `pnpm openapi:generate` írja újra a szerver
+  mezőspecifikációjából; eltérés esetén a unit teszt elbukik.
 - A seed stáblistája a bootstrap tesztprofiljaihoz kötődik (`tag-dev`,
-  `vezetoseg-dev`, …); ha a tagcache még üres, az importer magyar hibaüzenettel
-  kéri a szinkron lefuttatását (alkalmazásindítás vagy kézi szinkron az
-  `/admin/members` oldalon).
+  `vezetoseg-dev`, …); ha a tagtábla még üres, az importer magyar hibaüzenettel
+  kéri a tagok beküldését.
 - Az Authentik felülete: http://127.0.0.1:9000
 
 ## Tesztfelhasználók
@@ -110,8 +120,9 @@ Jelszavak: `oob/local-secrets.json` (gitignore-olt).
    videó választása, Rólunk-videók rendezése.
 3. Katalógusok: címke létrehozás/összevonás/törlés (használt címke csak név
    beírásával), stábszerepek sorrendezése.
-4. Tagok (`/admin/members`): szinkronállapot, kézi szinkron (csak olvasható
-   profilok).
+4. Tagok (`/admin/members`): webhook végpont URL-je, webhook kliensek
+   létrehozása/titokcseréje/visszavonása, beérkezési napló, csak olvasható
+   profillista.
 5. Auditnapló (`/admin/audit`): minden előző lépés előtte-utána értékkel.
 6. Homepage: a kiemelt videó hero-ként jelenik meg; live aktiválásakor a
    prioritás frissítés nélkül vált (percenkénti ellenőrzés).

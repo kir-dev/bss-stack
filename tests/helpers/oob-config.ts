@@ -1,31 +1,11 @@
-export interface RawSemesterRule {
-  pattern: string
-  semester: string
-}
-
 export interface RawOobConfig {
   authentik: {
     issuerUrl: string
     clientId: string
     clientSecret: string
     scopes: string[]
-    sync: {
-      username: string
-      token: string
-    }
     claims: Record<string, string>
     groups: Record<string, string>
-    attributes: {
-      membershipStatus: {
-        attribute: string
-        values: Record<string, string>
-      }
-      joinedSemester: {
-        attribute: string
-        rules: RawSemesterRule[]
-      }
-      introduction: string
-    }
   }
   youtube: {
     oEmbedEndpoint: string
@@ -44,10 +24,6 @@ export function buildRawOobConfig(
       clientId: 'bss-stack-local',
       clientSecret: 'local-test-secret-not-for-production',
       scopes: ['openid', 'profile', 'email'],
-      sync: {
-        username: 'svc-bss-sync',
-        token: 'local-test-sync-token-not-for-production',
-      },
       claims: {
         sub: 'sub',
         username: 'preferred_username',
@@ -59,27 +35,6 @@ export function buildRawOobConfig(
         schonherz: 'schonherz-dev',
         tag: 'tag-dev',
         vezetoseg: 'vezetoseg-dev',
-      },
-      attributes: {
-        membershipStatus: {
-          attribute: 'bss_status',
-          values: {
-            stúdiós: 'studio_member',
-            stúdiósjelölt: 'studio_candidate',
-            'stúdiósjelölt-jelölt': 'studio_applicant',
-            'aktív öregtag': 'senior_active',
-            'archivált öregtag': 'senior_archived',
-            'dolgozott még velünk': 'contributor',
-          },
-        },
-        joinedSemester: {
-          attribute: 'bss_csatlakozas',
-          rules: [
-            { pattern: '^(\\d{4})\\s+(ősz|őszi)$', semester: 'autumn' },
-            { pattern: '^(\\d{4})\\s+(tavasz|tavaszi)$', semester: 'spring' },
-          ],
-        },
-        introduction: 'bss_bemutatkozas',
       },
     },
     youtube: {

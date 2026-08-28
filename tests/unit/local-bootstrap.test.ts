@@ -68,22 +68,18 @@ describe('lokális Authentik bootstrap', () => {
     const secrets = {
       authentikSecretKey: 'secret-key-value',
       oidcClientSecret: 'client-secret-value',
-      syncApiToken: 'sync-token-value',
       passwords: {},
     }
     const validated = validateOobConfig(renderOobConfig(secrets))
     expect(validated.authentik.clientId).toBe('bss-stack-local')
     expect(validated.authentik.groups.tag).toBe('bss-tag')
-    expect(
-      Object.keys(validated.authentik.attributes.membershipStatus.values),
-    ).toHaveLength(6)
+    expect(validated.authentik.claims.username).toBe('preferred_username')
   })
 
   it('a blueprint tartalmazza a csoportokat, felhasználókat és a providert', () => {
     const secrets = {
       authentikSecretKey: 'secret-key-value',
       oidcClientSecret: 'client-secret-value',
-      syncApiToken: 'sync-token-value',
       passwords: { 'tag-dev': 'jelszo1' },
     }
     const yaml = renderBlueprint(secrets)

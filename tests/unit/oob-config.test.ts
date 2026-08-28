@@ -9,13 +9,8 @@ describe('OOB config validáció', () => {
   it('érvényes konfigurációnál típusos objektumot ad', () => {
     const config = validateOobConfig(buildRawOobConfig())
     expect(config.authentik.clientId).toBe('bss-stack-local')
-    expect(config.authentik.attributes.joinedSemester.rules).toHaveLength(2)
-    expect(
-      config.authentik.attributes.joinedSemester.rules[0].pattern,
-    ).toBeInstanceOf(RegExp)
-    expect(config.authentik.attributes.membershipStatus.values['stúdiós']).toBe(
-      'studio_member',
-    )
+    expect(config.authentik.claims.sub).toBe('sub')
+    expect(config.authentik.groups.tag).toBe('tag-dev')
   })
 
   it('hiányzó szekciókra konkrét hibaüzenetet ad', () => {
@@ -36,35 +31,6 @@ describe('OOB config validáció', () => {
     raw.authentik.clientSecret = ''
 
     expect(() => validateOobConfig(raw)).toThrow(/clientSecret/)
-  })
-
-  it('ismeretlen tagsági státusz célra hibát dob, nem talál ki értéket', () => {
-    const raw = buildRawOobConfig()
-    raw.authentik.attributes.membershipStatus.values = {
-      'kitalalt-status': 'nem_letezo_kulcs',
-    }
-
-    expect(() => validateOobConfig(raw)).toThrow(
-      /ismeretlen célállapot "nem_letezo_kulcs"/,
-    )
-  })
-
-  it('érvénytelen félévszabály regexre hibát dob', () => {
-    const raw = buildRawOobConfig()
-    raw.authentik.attributes.joinedSemester.rules[0].pattern = '([évtelen'
-
-    expect(() => validateOobConfig(raw)).toThrow(
-      /érvénytelen reguláris kifejezés/,
-    )
-  })
-
-  it('ismeretlen félév értékre hibát dob', () => {
-    const raw = buildRawOobConfig()
-    raw.authentik.attributes.joinedSemester.rules[0].semester = 'tel'
-
-    expect(() => validateOobConfig(raw)).toThrow(
-      /csak "spring" vagy "autumn" lehet/,
-    )
   })
 
   it('azonos csoportnevek elfogadatlanok', () => {

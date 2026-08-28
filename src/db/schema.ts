@@ -53,16 +53,15 @@ export const membershipStatusEnum = pgEnum('membership_status', [
 
 export const semesterEnum = pgEnum('semester', ['spring', 'autumn'])
 
-export const memberSyncStatusEnum = pgEnum('member_sync_status', [
+export const webhookDeliveryStatusEnum = pgEnum('webhook_delivery_status', [
   'ok',
-  'error',
+  'rejected',
+  'duplicate',
 ])
 
-export const memberSyncTriggerEnum = pgEnum('member_sync_trigger', [
-  'startup',
-  'hourly',
-  'manual',
-  'test',
+export const webhookDeliveryModeEnum = pgEnum('webhook_delivery_mode', [
+  'operations',
+  'replace',
 ])
 
 export const liveStatusEnum = pgEnum('live_status', [
@@ -101,39 +100,76 @@ export const memberCache = pgTable(
     isLeadership: boolean('is_leadership').notNull().default(false),
     joinedYear: integer('joined_year'),
     joinedSemester: semesterEnum('joined_semester'),
-    joinedSemesterRaw: varchar('joined_semester_raw', { length: 100 }),
     introduction: varchar('introduction', { length: 10_000 }),
-    syncStatus: memberSyncStatusEnum('sync_status').notNull().default('ok'),
-    lastSyncError: text('last_sync_error'),
-    lastSeenAt: timestamp('last_seen_at', { withTimezone: true })
+    createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
+    /** Soft delete: retired members keep their staff credits but leave every listing. */
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
   (table) => [
     uniqueIndex('member_cache_username_key').on(table.username),
     index('member_cache_status_idx').on(table.membershipStatus),
+    index('member_cache_deleted_idx').on(table.deletedAt),
   ],
 )
 
-export const memberSyncRuns = pgTable(
-  'member_sync_runs',
+/**
+ * Webhook clients that may push member data. The secret is stored only as a
+ * scrypt hash; the plaintext is shown once, at creation/rotation time.
+ */
+export const webhookClients = pgTable(
+  'webhook_clients',
   {
-    id: bigserial('id', { mode: 'number' }).primaryKey(),
-    trigger: memberSyncTriggerEnum('trigger').notNull(),
-    status: memberSyncStatusEnum('status').notNull(),
-    startedAt: timestamp('started_at', { withTimezone: true })
+    id: uuid().primaryKey().defaultRandom(),
+    name: varchar('name', { length: 200 }).notNull(),
+    secretHash: text('secret_hash').notNull(),
+    /**
+     * Authentik sub of the leadership member who created it. Deliberately not
+     * a foreign key: leadership comes from the OIDC groups, so an admin may
+     * legitimately have no member_cache row yet (e.g. before the first push).
+     */
+    createdBy: varchar('created_by', { length: 255 }),
+    createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
-    finishedAt: timestamp('finished_at', { withTimezone: true }),
-    totalCount: integer('total_count').notNull().default(0),
-    changedCount: integer('changed_count').notNull().default(0),
-    errorCount: integer('error_count').notNull().default(0),
-    message: text('message'),
+    lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
   },
-  (table) => [index('member_sync_runs_started_idx').on(table.startedAt)],
+  (table) => [uniqueIndex('webhook_clients_name_key').on(table.name)],
+)
+
+/** Receipt log of member pushes; also the idempotency store for delivery ids. */
+export const webhookDeliveries = pgTable(
+  'webhook_deliveries',
+  {
+    id: bigserial('id', { mode: 'number' }).primaryKey(),
+    clientId: uuid('client_id')
+      .notNull()
+      .references(() => webhookClients.id, { onDelete: 'cascade' }),
+    deliveryId: varchar('delivery_id', { length: 200 }),
+    mode: webhookDeliveryModeEnum('mode').notNull().default('operations'),
+    status: webhookDeliveryStatusEnum('status').notNull(),
+    operationCount: integer('operation_count').notNull().default(0),
+    createdCount: integer('created_count').notNull().default(0),
+    updatedCount: integer('updated_count').notNull().default(0),
+    deletedCount: integer('deleted_count').notNull().default(0),
+    restoredCount: integer('restored_count').notNull().default(0),
+    message: text('message'),
+    receivedAt: timestamp('received_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => [
+    index('webhook_deliveries_received_idx').on(table.receivedAt),
+    uniqueIndex('webhook_deliveries_delivery_key').on(
+      table.clientId,
+      table.deliveryId,
+    ),
+  ],
 )
 
 export const events = pgTable(

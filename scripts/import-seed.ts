@@ -7,10 +7,6 @@ import { importSeed } from '#/server/seed/importer.ts'
 import { SeedValidationError, validateSeedJson } from '#/server/seed/schema.ts'
 import { DEFAULT_MEDIA_CONFIG } from '#/server/media/validator.ts'
 
-/**
- * Seed importer CLI (BSS-034): a OOB config `seed.path` mezőjében rögzített
- * JSON-t tölti be idempotensen a DATABASE_URL adatbázisba.
- */
 async function main(): Promise<void> {
   const databaseUrl = process.env.DATABASE_URL
   if (!databaseUrl) {

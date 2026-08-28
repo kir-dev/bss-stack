@@ -9,13 +9,8 @@ Az alkalmazás három bemenete out-of-band, azaz nem a git repóban érkezik. Hi
 - Formája: JSON, a szerkezetét a [`docs/examples/oob-config.example.json`](./examples/oob-config.example.json) mutatja.
 - Tartalma:
   - Authentik OIDC kapcsolat: issuer URL, client id, client secret, scope-ok;
-  - Authentik tagcache-szinkron szolgáltatási fiókja: `authentik.sync.username` és
-    `authentik.sync.token` (az `svc-bss-sync` felhasználó app-password tokene, amelyet
-    a `pnpm infra:bootstrap` generál; a szinkron ezzel client_credentials granttal
-    fér hozzá az Authentik API-hoz a `goauthentik.io/api` scope-pal);
   - claim-leképezés: `sub`, felhasználónév, teljes név, becenév, profilkép URL;
   - csoportleképezés: schönherzes, tag és vezetőség csoport neve;
-  - attribútumleképezés: tagsági státusz nyers érték → belső kulcs, csatlakozási félév értelmezési szabályai, bemutatkozás;
   - médiahost-engedélylista (specifikáció szerint `v.bsstudio.hu`);
   - YouTube oEmbed végpont;
   - seed JSON helye.
@@ -102,8 +97,7 @@ Szabályok:
 - publikált videónál kötelező az `encodingGroup`, a `baseFilename`, valamint
   legalább az egyik minőségjelző (`hasHq` vagy `hasLq`);
 - publikált eseménynél kötelező `startDate`; `endDate >= startDate`;
-- a `staff[].username` a tagcache-beli felhasználónévre mutat — a betöltés előtt
-  futnia kell a tagszinkronnak (alkalmazásindítás vagy kézi szinkron).
+- a `staff[].username` a tagtábla felhasználónevére mutat — a betöltés előtt
 
 ### Betöltés
 

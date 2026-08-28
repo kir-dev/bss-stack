@@ -13,8 +13,6 @@ export const CONFIG_FILE = 'config.json'
 export interface LocalSecrets {
   authentikSecretKey: string
   oidcClientSecret: string
-  /** Tagcache-szinkron szolgáltatási fiók Authentik API tokene. */
-  syncApiToken: string
   passwords: Record<string, string>
 }
 
@@ -27,7 +25,6 @@ const AUTHENTIK_BASE_URL =
   process.env.BSS_AUTHENTIK_BASE_URL ?? 'http://127.0.0.1:9000'
 const APP_BASE_URL = process.env.BSS_APP_BASE_URL ?? 'http://localhost:3000'
 const OIDC_CLIENT_ID = 'bss-stack-local'
-export const SYNC_SERVICE_USERNAME = 'svc-bss-sync'
 
 interface LocalUserSpec {
   username: string
@@ -55,7 +52,7 @@ export const LOCAL_USERS: LocalUserSpec[] = [
     nickname: 'Tagocska',
     groups: ['bss-tag'],
     status: 'stúdiós',
-    joinedSemester: '2023 ősz',
+    joinedSemester: '2023/2024/1',
     introduction: 'Lokális teszt profil egy stúdiós szerepére.',
   },
   {
@@ -64,7 +61,7 @@ export const LOCAL_USERS: LocalUserSpec[] = [
     nickname: 'Vezér',
     groups: ['bss-tag', 'bss-vezetoseg'],
     status: 'stúdiós',
-    joinedSemester: '2021 tavasz',
+    joinedSemester: '2020/2021/2',
     introduction: 'Lokális teszt profil vezetőségi joggal.',
   },
   {
@@ -73,7 +70,7 @@ export const LOCAL_USERS: LocalUserSpec[] = [
     nickname: 'Jelöltke',
     groups: [],
     status: 'stúdiósjelölt',
-    joinedSemester: '2025 ősz',
+    joinedSemester: '2025/2026/1',
     introduction: null,
   },
   {
@@ -82,7 +79,7 @@ export const LOCAL_USERS: LocalUserSpec[] = [
     nickname: 'Jelcsa',
     groups: [],
     status: 'stúdiósjelölt-jelölt',
-    joinedSemester: '2026 ősz',
+    joinedSemester: '2026/2027/1',
     introduction: null,
   },
   {
@@ -91,7 +88,7 @@ export const LOCAL_USERS: LocalUserSpec[] = [
     nickname: 'Öreg',
     groups: [],
     status: 'aktív öregtag',
-    joinedSemester: '2019 ősz',
+    joinedSemester: '2019/2020/1',
     introduction: null,
   },
   {
@@ -100,7 +97,7 @@ export const LOCAL_USERS: LocalUserSpec[] = [
     nickname: 'Archie',
     groups: [],
     status: 'archivált öregtag',
-    joinedSemester: '2018 ősz',
+    joinedSemester: '2018/2019/1',
     introduction: null,
   },
   {
@@ -109,7 +106,7 @@ export const LOCAL_USERS: LocalUserSpec[] = [
     nickname: 'Közreműködő',
     groups: [],
     status: 'dolgozott még velünk',
-    joinedSemester: '2020 tavasz',
+    joinedSemester: '2019/2020/2',
     introduction: null,
   },
 ]
@@ -126,7 +123,6 @@ export function generateLocalSecrets(): LocalSecrets {
   return {
     authentikSecretKey: generateToken(),
     oidcClientSecret: generateToken(),
-    syncApiToken: generateToken(),
     passwords,
   }
 }
@@ -267,36 +263,6 @@ export function renderBlueprint(secrets: LocalSecrets): string {
     '      name: bss-vezetoseg',
     '      is_superuser: false',
     userEntries,
-    '  - model: authentik_core.user',
-    '    id: id-svc-bss-sync',
-    '    identifiers:',
-    `      username: ${SYNC_SERVICE_USERNAME}`,
-    '    attrs:',
-    `      name: BSS tagcache szinkron szolgáltatás`,
-    `      username: ${SYNC_SERVICE_USERNAME}`,
-    '      type: internal',
-    '      # Csak a szinkronhoz szükséges olvasási jogok (a régi is_superuser RBAC alatt nem él)',
-    '      permissions:',
-    '        - authentik_core.view_user',
-    '        - authentik_core.view_group',
-    '  - model: authentik_core.token',
-    '    identifiers:',
-    `      identifier: bss-local-sync-token`,
-    '    attrs:',
-    `      key: "${secrets.syncApiToken}"`,
-    '      intent: app_password',
-    '      expiring: false',
-    '      user: !KeyOf id-svc-bss-sync',
-    '  - model: authentik_providers_oauth2.scopemapping',
-    '    id: id-map-api-scope',
-    '    identifiers:',
-    '      name: bss-local-scope-api',
-    '    attrs:',
-    '      name: bss-local-scope-api',
-    '      scope_name: goauthentik.io/api',
-    '      description: Authentik API hozzáférés a szinkronhoz',
-    '      expression: |',
-    '        return {}',
     '  - model: authentik_providers_oauth2.scopemapping',
     '    id: id-map-profile',
     '    identifiers:',
@@ -368,7 +334,7 @@ export function renderBlueprint(secrets: LocalSecrets): string {
     '        - !KeyOf id-map-email',
     '        - !KeyOf id-map-bss',
     '        - !KeyOf id-map-api-scope',
-    '      # user_id sub: a tagcache szinkron az API pk-jával illeszthető',
+    '      # user_id sub: a webhookon beküldött sub értéke az API pk-ja',
     '      sub_mode: user_id',
     '      access_token_validity: hours=1',
     '      signing_key: !Find [authentik_crypto.certificatekeypair, [name, authentik Self-signed Certificate]]',
@@ -390,10 +356,6 @@ export function renderOobConfig(secrets: LocalSecrets): unknown {
       clientId: OIDC_CLIENT_ID,
       clientSecret: secrets.oidcClientSecret,
       scopes: ['openid', 'profile', 'email', 'bss'],
-      sync: {
-        username: SYNC_SERVICE_USERNAME,
-        token: secrets.syncApiToken,
-      },
       claims: {
         sub: 'sub',
         username: 'preferred_username',
@@ -405,27 +367,6 @@ export function renderOobConfig(secrets: LocalSecrets): unknown {
         schonherz: 'bss-schonherz',
         tag: 'bss-tag',
         vezetoseg: 'bss-vezetoseg',
-      },
-      attributes: {
-        membershipStatus: {
-          attribute: 'bss_status',
-          values: {
-            stúdiós: 'studio_member',
-            stúdiósjelölt: 'studio_candidate',
-            'stúdiósjelölt-jelölt': 'studio_applicant',
-            'aktív öregtag': 'senior_active',
-            'archivált öregtag': 'senior_archived',
-            'dolgozott még velünk': 'contributor',
-          },
-        },
-        joinedSemester: {
-          attribute: 'bss_csatlakozas',
-          rules: [
-            { pattern: '^(\\d{4})\\s+(ősz|őszi)$', semester: 'autumn' },
-            { pattern: '^(\\d{4})\\s+(tavasz|tavaszi)$', semester: 'spring' },
-          ],
-        },
-        introduction: 'bss_bemutatkozas',
       },
     },
     youtube: {
@@ -451,10 +392,6 @@ export function writeLocalFiles(baseDir: string): {
   if (existsSync(secretsPath)) {
     secrets = JSON.parse(readFileSync(secretsPath, 'utf-8')) as LocalSecrets
     // Újabb mezők utólagos kiegészítése régi titokfájlon (idempotens futás).
-    if (!secrets.syncApiToken) {
-      secrets.syncApiToken = generateToken()
-      writeFileSync(secretsPath, `${JSON.stringify(secrets, null, 2)}\n`)
-    }
   } else {
     secrets = generateLocalSecrets()
     writeFileSync(secretsPath, `${JSON.stringify(secrets, null, 2)}\n`)

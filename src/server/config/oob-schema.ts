@@ -17,11 +17,6 @@ export interface OobConfig {
     clientId: string
     clientSecret: string
     scopes: string[]
-    /** Service account used for Tagcache sync (OOB secret). */
-    sync: {
-      username: string
-      token: string
-    }
     claims: {
       sub: string
       username: string
@@ -33,20 +28,6 @@ export interface OobConfig {
       schonherz: string
       tag: string
       vezetoseg: string
-    }
-    attributes: {
-      membershipStatus: {
-        attribute: string
-        values: Record<string, MembershipStatusKey>
-      }
-      joinedSemester: {
-        attribute: string
-        rules: Array<{
-          pattern: RegExp
-          semester: SemesterKey
-        }>
-      }
-      introduction: string
     }
   }
   youtube: {
@@ -115,15 +96,6 @@ export function validateOobConfig(raw: unknown): OobConfig {
   requireString(authentik, 'authentik.clientId', problems)
   requireString(authentik, 'authentik.clientSecret', problems)
 
-  if (!isRecord(authentik['sync'])) {
-    problems.push(
-      'authentik.sync: kötelező szekció hiányzik (tagcache-szinkron szolgáltatási fiókja).',
-    )
-  } else {
-    requireString(authentik.sync, 'authentik.sync.username', problems)
-    requireString(authentik.sync, 'authentik.sync.token', problems)
-  }
-
   const issuerUrlValue = authentik['issuerUrl']
   const isPrivateHttpUrl = (url: string): boolean => {
     try {
@@ -187,100 +159,6 @@ export function validateOobConfig(raw: unknown): OobConfig {
     }
   }
 
-  if (!isRecord(authentik['attributes'])) {
-    problems.push('authentik.attributes: kötelező szekció hiányzik.')
-  } else {
-    const attributes = authentik['attributes']
-
-    if (!isRecord(attributes['membershipStatus'])) {
-      problems.push(
-        'authentik.attributes.membershipStatus: kötelező szekció hiányzik.',
-      )
-    } else {
-      const status = attributes['membershipStatus']
-      requireString(
-        status,
-        'authentik.attributes.membershipStatus.attribute',
-        problems,
-      )
-
-      if (!isRecord(status['values'])) {
-        problems.push(
-          'authentik.attributes.membershipStatus.values: kötelező leképezés hiányzik.',
-        )
-      } else {
-        const values = status['values']
-        const entries = Object.entries(values)
-        if (entries.length === 0) {
-          problems.push(
-            'authentik.attributes.membershipStatus.values: legalább egy nyers státusz leképezése kell.',
-          )
-        }
-        for (const [rawStatus, mapped] of entries) {
-          if (
-            typeof mapped !== 'string' ||
-            !MEMBERSHIP_STATUS_KEYS.includes(mapped as MembershipStatusKey)
-          ) {
-            problems.push(
-              `authentik.attributes.membershipStatus.values["${rawStatus}"]: ismeretlen célállapot "${String(mapped)}". Engedélyezett: ${MEMBERSHIP_STATUS_KEYS.join(', ')}.`,
-            )
-          }
-        }
-      }
-    }
-
-    if (!isRecord(attributes['joinedSemester'])) {
-      problems.push(
-        'authentik.attributes.joinedSemester: kötelező szekció hiányzik.',
-      )
-    } else {
-      const semester = attributes['joinedSemester']
-      requireString(
-        semester,
-        'authentik.attributes.joinedSemester.attribute',
-        problems,
-      )
-
-      if (!Array.isArray(semester['rules']) || semester['rules'].length === 0) {
-        problems.push(
-          'authentik.attributes.joinedSemester.rules: legalább egy értelmezési szabály kell.',
-        )
-      } else {
-        ;(semester['rules'] as unknown[]).forEach((rule, index) => {
-          const path = `authentik.attributes.joinedSemester.rules[${index}]`
-          if (!isRecord(rule)) {
-            problems.push(`${path}: objektum kell legyen (pattern, semester).`)
-            return
-          }
-          if (
-            typeof rule['pattern'] !== 'string' ||
-            rule['pattern'].trim() === ''
-          ) {
-            problems.push(
-              `${path}.pattern: reguláris kifejezés szövegként kötelező.`,
-            )
-          } else {
-            try {
-              const compiled = new RegExp(rule['pattern'])
-              if (compiled.flags.includes('g')) {
-                problems.push(`${path}.pattern: ne használj g flaget.`)
-              }
-            } catch {
-              problems.push(`${path}.pattern: érvénytelen reguláris kifejezés.`)
-            }
-          }
-          if (rule['semester'] !== 'spring' && rule['semester'] !== 'autumn') {
-            problems.push(
-              `${path}.semester: csak "spring" vagy "autumn" lehet, nem "${String(rule['semester'])}".`,
-            )
-          }
-        })
-      }
-    }
-
-    requireString(attributes, 'authentik.attributes.introduction', problems)
-  }
-
   requireString(youtube, 'youtube.oEmbedEndpoint', problems)
   const oEmbedEndpoint = youtube['oEmbedEndpoint']
   if (typeof oEmbedEndpoint === 'string' && oEmbedEndpoint.trim() !== '') {
@@ -304,12 +182,6 @@ export function validateOobConfig(raw: unknown): OobConfig {
 
   const claims = authentik['claims'] as Record<string, unknown>
   const groups = authentik['groups'] as Record<string, unknown>
-  const attributes = authentik['attributes'] as Record<string, unknown>
-  const membershipStatus = attributes['membershipStatus'] as Record<
-    string,
-    unknown
-  >
-  const joinedSemester = attributes['joinedSemester'] as Record<string, unknown>
 
   return {
     authentik: {
@@ -317,38 +189,8 @@ export function validateOobConfig(raw: unknown): OobConfig {
       clientId: authentik['clientId'] as string,
       clientSecret: authentik['clientSecret'] as string,
       scopes: authentik['scopes'] as string[],
-      sync: {
-        username: (authentik['sync'] as Record<string, unknown>)[
-          'username'
-        ] as string,
-        token: (authentik['sync'] as Record<string, unknown>)[
-          'token'
-        ] as string,
-      },
       claims: claims as unknown as OobConfig['authentik']['claims'],
       groups: groups as unknown as OobConfig['authentik']['groups'],
-      attributes: {
-        membershipStatus: {
-          attribute: membershipStatus['attribute'] as string,
-          values: membershipStatus['values'] as Record<
-            string,
-            MembershipStatusKey
-          >,
-        },
-        joinedSemester: {
-          attribute: joinedSemester['attribute'] as string,
-          rules: (
-            joinedSemester['rules'] as Array<{
-              pattern: string
-              semester: SemesterKey
-            }>
-          ).map((rule) => ({
-            pattern: new RegExp(rule.pattern),
-            semester: rule.semester,
-          })),
-        },
-        introduction: attributes['introduction'] as string,
-      },
     },
     youtube: {
       oEmbedEndpoint: youtube['oEmbedEndpoint'] as string,

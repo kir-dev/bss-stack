@@ -18,6 +18,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "tsx scripts/import-seed.ts",
+    "webhook:client": "tsx scripts/webhook-client.ts",
+    "openapi:generate": "tsx scripts/generate-openapi.ts",
     "check:oob": "tsx scripts/check-oob.ts",
     "infra:bootstrap": "tsx scripts/bootstrap-local.ts"
   },

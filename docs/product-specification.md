@@ -23,7 +23,7 @@ V0 is considered complete when it can be demonstrated locally with:
 - member and board-member admin privileges;
 - the full video lifecycle;
 - event management;
-- member synchronization from Authentik;
+- member ingest through the member webhook;
 - global and detailed search;
 - live, featured, and normal homepage priority;
 - the audit log and the 30-day video deletion simulation.
@@ -53,21 +53,21 @@ The Authentik `vezetoseg` group complements membership. It does not replace it.
 
 ### 3.2 Admin rights
 
-| Action                                     | Member | Board member                 |
-| ------------------------------------------ | ------ | ---------------------------- |
-| Create, edit, publish video and event      | Yes    | Yes                          |
-| Archive video and event                    | Yes    | Yes                          |
-| Move video to trash                        | Yes    | Yes                          |
-| View video trash                           | Yes    | Yes                          |
-| Restore video                              | No     | Yes                          |
-| Permanently delete event                   | No     | Yes                          |
-| Assign existing tags to a video            | Yes    | Yes                          |
-| Manage the tag catalog                     | No     | Yes                          |
-| Manage crew roles                          | No     | Yes                          |
-| Manage the credits of one video            | Yes    | Yes                          |
-| Manage live, featured, and About videos    | No     | Yes                          |
-| Member list and Authentik sync diagnostics | No     | Yes, read-only profiles only |
-| View audit log                             | No     | Yes                          |
+| Action                                    | Member | Board member                 |
+| ----------------------------------------- | ------ | ---------------------------- |
+| Create, edit, publish video and event     | Yes    | Yes                          |
+| Archive video and event                   | Yes    | Yes                          |
+| Move video to trash                       | Yes    | Yes                          |
+| View video trash                          | Yes    | Yes                          |
+| Restore video                             | No     | Yes                          |
+| Permanently delete event                  | No     | Yes                          |
+| Assign existing tags to a video           | Yes    | Yes                          |
+| Manage the tag catalog                    | No     | Yes                          |
+| Manage crew roles                         | No     | Yes                          |
+| Manage the credits of one video           | Yes    | Yes                          |
+| Manage live, featured, and About videos   | No     | Yes                          |
+| Member list and webhook client management | No     | Yes, read-only profiles only |
+| View audit log                            | No     | Yes                          |
 
 Every member can see and edit other members' drafts. There is no content ownership by author. The server re-checks authorization for every action.
 
@@ -385,19 +385,29 @@ The OOB config maps:
 - bio;
 - `tag` and `vezetoseg` groups.
 
-The joining semester may arrive as free text. The cache stores the raw value plus the year and the `spring | autumn` value processed according to the config. An unknown format or status causes a sync error. In that case, the profile is not shown on the public list.
+The joining semester may arrive as free text. The store keeps the raw value alongside the year and the `spring | autumn` value. The pushing system supplies both the raw label and the parsed pair; a payload that fails validation is rejected in full, so a half-parsed profile never lands.
 
 The application neither requests, caches, nor displays email addresses or mobile numbers.
 
-### 8.2 Cache and synchronization
+### 8.2 Ownership and ingest
 
-- Sync runs at startup, hourly, and on manual trigger by the board.
-- Public requests do not call Authentik directly.
-- During an Authentik outage, the last cache remains public.
-- New logins are impossible; an existing session lives at most one hour.
-- A member who has disappeared from Authentik keeps their last known, non-editable record.
-- Historical credits and activity are not deleted.
-- The hidden board-only surface shows sync status, errors, and the last run.
+The application owns the member data. There is no automatic Authentik sync;
+Authentik only provides login and group membership.
+
+- Members arrive through `POST /api/webhooks/members`, authenticated with a
+  per-client bearer token (see `docs/member-webhook.md`).
+- Board members create, rotate, revoke, and delete webhook clients on
+  `/admin/members`; the token is shown once and stored only as a scrypt hash.
+- A push either applies in full or not at all: every operation runs in one
+  transaction.
+- `delete` is a soft delete: the member leaves every public surface, but the
+  row and therefore the historical credits and activity survive. A later
+  `upsert` restores them.
+- Public requests never call Authentik. During an Authentik outage the member
+  data stays fully available; only new logins are impossible, and an existing
+  session lives at most one hour.
+- The board-only surface shows the endpoint URL, the clients, the last
+  deliveries, and the read-only profile list.
 
 ### 8.3 Membership statuses
 
@@ -631,7 +641,7 @@ Audit contents:
 
 Only the board sees the log. It is filterable by actor, action, entity, and date. It cannot be deleted or exported and does not offer automatic rollback. Its retention is unlimited.
 
-System actions write audit entries only on actual changes, errors, or deletions. An unchanged hourly sync does not.
+System actions write audit entries only on actual changes, errors, or deletions. A webhook push that changes nothing does not.
 
 ## 14. Authentik and application security
 
@@ -650,7 +660,6 @@ System actions write audit entries only on actual changes, errors, or deletions.
 
 The application server starts:
 
-- the hourly Authentik sync;
 - the daily video-trash deletion job;
 - the live start and end state transitions.
 

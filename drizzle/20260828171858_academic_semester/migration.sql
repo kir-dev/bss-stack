@@ -1,0 +1,1 @@
+ALTER TABLE "member_cache" DROP COLUMN "joined_semester_raw";

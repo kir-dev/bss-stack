@@ -15,6 +15,10 @@ import { EventConfirmationError } from '#/server/events/domain.ts'
 import { LiveOverlapError } from '#/server/homepage/live.ts'
 import { EntityNotFoundError, StaleWriteError } from '#/server/shared/write.ts'
 import { TextValidationError } from '#/server/shared/text.ts'
+import {
+  WebhookClientNameConflictError,
+  WebhookClientNotFoundError,
+} from '#/server/webhooks/clients.ts'
 
 export function jsonResponse(status: number, payload: unknown): Response {
   return new Response(JSON.stringify(payload), {
@@ -52,6 +56,12 @@ export function errorResponse(error: unknown): Response {
   }
   if (error instanceof StaffRoleInUseError) {
     return jsonResponse(409, { error: 'role_in_use', message: error.message })
+  }
+  if (error instanceof WebhookClientNameConflictError) {
+    return jsonResponse(409, { error: 'name_conflict', message: error.message })
+  }
+  if (error instanceof WebhookClientNotFoundError) {
+    return jsonResponse(404, { error: 'not_found', message: error.message })
   }
   if (
     error instanceof TextValidationError ||

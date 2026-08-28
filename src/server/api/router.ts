@@ -14,7 +14,11 @@ import {
   handleAdminHighlightRoute,
   handleAdminLiveRoutes,
 } from '#/server/api/admin/homepage-routes.ts'
-import { handleAdminMemberSyncRoute } from '#/server/api/admin/member-routes.ts'
+import { handleAdminWebhookClientRoutes } from '#/server/api/admin/webhook-client-routes.ts'
+import {
+  handleMemberWebhook,
+  MEMBER_WEBHOOK_PATH,
+} from '#/server/api/webhook-routes.ts'
 
 export const API_PATH_PREFIXES = ['/api/', '/health/']
 
@@ -27,6 +31,9 @@ const ADMIN_VIDEO_ACTION_PATTERN =
 
 const ADMIN_EVENT_ACTION_PATTERN =
   /^\/api\/admin\/events\/([0-9a-f-]+)\/(update|publish|archive|delete_permanent)$/
+
+const WEBHOOK_CLIENT_ACTION_PATTERN =
+  /^\/api\/admin\/webhook-clients\/([0-9a-f-]+)\/(rotate|revoke|delete)$/
 
 const LIVE_ACTION_PATTERN =
   /^\/api\/admin\/live\/([0-9a-f-]+)\/(reschedule|start_now|end_now|delete)$/
@@ -101,12 +108,24 @@ export async function handleApiRequest(request: Request): Promise<Response> {
   if (pathname === '/api/admin/live') {
     return handleAdminLiveRoutes(request, undefined, undefined)
   }
-  if (pathname === '/api/admin/members/sync') {
-    return handleAdminMemberSyncRoute(request)
+  if (pathname === '/api/admin/webhook-clients') {
+    return handleAdminWebhookClientRoutes(request, 'create', undefined)
+  }
+  const webhookClientMatch = WEBHOOK_CLIENT_ACTION_PATTERN.exec(pathname)
+  if (webhookClientMatch !== null) {
+    return handleAdminWebhookClientRoutes(
+      request,
+      webhookClientMatch[2] as 'rotate' | 'revoke' | 'delete',
+      webhookClientMatch[1],
+    )
   }
   const liveMatch = LIVE_ACTION_PATTERN.exec(pathname)
   if (liveMatch !== null) {
     return handleAdminLiveRoutes(request, liveMatch[1], liveMatch[2])
+  }
+
+  if (pathname === MEMBER_WEBHOOK_PATH) {
+    return handleMemberWebhook(request)
   }
 
   switch (pathname) {

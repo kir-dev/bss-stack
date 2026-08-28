@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, ne, sql } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNull, ne, sql } from 'drizzle-orm'
 import {
   events,
   memberCache,
@@ -137,7 +137,7 @@ export async function getAdminVideoEditorOptions(
       executor
         .select({ sub: memberCache.sub, fullName: memberCache.fullName })
         .from(memberCache)
-        .where(eq(memberCache.syncStatus, 'ok'))
+        .where(isNull(memberCache.deletedAt))
         .orderBy(asc(memberCache.fullName))
         .limit(2000),
       executor

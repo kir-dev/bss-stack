@@ -15,33 +15,6 @@
       "schonherz": "TÖLTSD-KI-schönherzes-csoport-neve",
       "tag": "TÖLTSD-KI-tag-csoport-neve",
       "vezetoseg": "TÖLTSD-KI-vezetőség-csoport-neve"
-    },
-    "attributes": {
-      "membershipStatus": {
-        "attribute": "TÖLTSD-KI-tagsági-státusz-attribútum-kulcsa",
-        "values": {
-          "TÖLTSD-KI-nyers-érték": "studio_member",
-          "TÖLTSD-KI-nyers-érték-2": "senior_active"
-        }
-      },
-      "joinedSemester": {
-        "attribute": "TÖLTSD-KI-csatlakozási-félév-attribútum-kulcsa",
-        "rules": [
-          {
-            "pattern": "^(\\d{4})\\s+(ősz|őszi)$",
-            "semester": "autumn"
-          },
-          {
-            "pattern": "^(\\d{4})\\s+(tavasz|tavaszi)$",
-            "semester": "spring"
-          }
-        ]
-      },
-      "introduction": "TÖLTSD-KI-bemutatkozás-attribútum-kulcsa"
-    },
-    "sync": {
-      "username": "svc-bss-sync",
-      "token": "<generált API token - lásd pnpm infra:bootstrap>"
     }
   },
   "youtube": {
