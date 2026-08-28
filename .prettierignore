@@ -7,3 +7,4 @@ dist
 .nitro
 .tanstack
 node_modules
+**/._*

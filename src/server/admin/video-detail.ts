@@ -10,6 +10,8 @@ import {
   videos,
 } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
+import { videoAssetUrls } from '#/lib/video-media.ts'
+import type { VideoEncodingGroup } from '#/lib/video-media.ts'
 
 export interface AdminVideoDetail {
   id: string
@@ -18,6 +20,10 @@ export interface AdminVideoDetail {
   description: string | null
   guests: string | null
   songs: string | null
+  encodingGroup: VideoEncodingGroup | null
+  hasHq: boolean
+  hasLq: boolean
+  baseFilename: string | null
   videoUrl: string | null
   thumbnailUrl: string | null
   visibility: string
@@ -47,8 +53,10 @@ export async function getAdminVideoDetail(
       description: videos.description,
       guests: videos.guests,
       songs: videos.songs,
-      videoUrl: videos.videoUrl,
-      thumbnailUrl: videos.thumbnailUrl,
+      encodingGroup: videos.encodingGroup,
+      hasHq: videos.hasHq,
+      hasLq: videos.hasLq,
+      baseFilename: videos.baseFilename,
       visibility: videos.visibility,
       status: videos.status,
       eventId: videos.eventId,
@@ -88,6 +96,7 @@ export async function getAdminVideoDetail(
 
   return {
     ...row,
+    ...videoAssetUrls(row),
     tagIds: tagRows.map((item) => item.tagId),
     staffAssignments: staffRows.map((item) => ({
       roleId: item.roleId,

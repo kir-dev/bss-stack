@@ -2,6 +2,7 @@ import { and, desc, eq, lte, sql } from 'drizzle-orm'
 import { memberCache, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 import { TRASH_RETENTION_DAYS } from '#/server/videos/purge.ts'
+import { videoThumbnailUrl } from '#/lib/video-media.ts'
 
 export interface TrashListItem {
   id: string
@@ -41,7 +42,8 @@ export async function getTrashPage(
         id: videos.id,
         slug: videos.slug,
         title: videos.title,
-        thumbnailUrl: videos.thumbnailUrl,
+        encodingGroup: videos.encodingGroup,
+        baseFilename: videos.baseFilename,
         trashedAt: videos.trashedAt,
         trashedByName: memberCache.fullName,
         version: videos.version,
@@ -75,6 +77,7 @@ export async function getTrashPage(
   return {
     items: items.map((item) => ({
       ...item,
+      thumbnailUrl: videoThumbnailUrl({ ...item, hasHq: false, hasLq: false }),
       trashedAt: item.trashedAt as unknown as Date,
       remainingDays:
         item.trashedAt !== null ? remainingTrashDays(item.trashedAt, now) : 0,

@@ -7,7 +7,6 @@ import {
   getAdminVideoEditorOptions,
 } from '#/server/admin/video-detail.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
-import { allowedMediaHosts } from '#/server/media/allowed-hosts.ts'
 import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import {
@@ -21,14 +20,13 @@ import {
   FormMessage,
   LoginRequiredBanner,
   ValidationProblems,
-  WarningList,
 } from '#/components/admin/Alerts.tsx'
 import { AdminSearchSelect } from '#/components/admin/SearchSelect.tsx'
 import { VideoVisibility } from '#/components/admin/VideoVisibility.tsx'
 import { postJson } from '#/lib/admin-api.ts'
 import { VISIBILITY_OPTIONS, videoStatusLabel } from '#/lib/admin-labels.ts'
 import { formatAdminDateTimeHu } from '#/lib/format-date.ts'
-import { mediaUrlWarnings } from '#/lib/media-url.ts'
+import { videoAssetUrls } from '#/lib/video-media.ts'
 import {
   parseSongList,
   serializeSongList,
@@ -47,7 +45,7 @@ const loadAdminVideoEditor = createServerFn({ method: 'GET' })
       return null
     }
     const options = await getAdminVideoEditorOptions(db, data.id)
-    return { detail, options, mediaAllowedHosts: allowedMediaHosts() }
+    return { detail, options }
   })
 
 export const Route = createFileRoute('/admin/videos/$id')({
@@ -65,8 +63,10 @@ interface EditorForm {
   description: string
   guests: string
   songs: string
-  videoUrl: string
-  thumbnailUrl: string
+  encodingGroup: string
+  hasHq: boolean
+  hasLq: boolean
+  baseFilename: string
   visibility: string
   eventId: string
   recordedAt: string
@@ -80,8 +80,10 @@ function formFromDetail(detail: AdminVideoDetail): EditorForm {
     description: detail.description ?? '',
     guests: detail.guests ?? '',
     songs: detail.songs ?? '',
-    videoUrl: detail.videoUrl ?? '',
-    thumbnailUrl: detail.thumbnailUrl ?? '',
+    encodingGroup: detail.encodingGroup ?? '',
+    hasHq: detail.hasHq,
+    hasLq: detail.hasLq,
+    baseFilename: detail.baseFilename ?? '',
     visibility: detail.visibility,
     eventId: detail.eventId ?? '',
     recordedAt: detail.recordedAt ?? '',
@@ -134,7 +136,6 @@ function AdminVideoEditorPage() {
       key={`${payload.detail.id}-${payload.detail.version}`}
       detail={payload.detail}
       options={payload.options}
-      mediaAllowedHosts={payload.mediaAllowedHosts}
       isLeadership={viewerQuery.data?.level === 'leadership'}
       onReload={() =>
         queryClient.invalidateQueries({ queryKey: ['admin-video-editor', id] })
@@ -146,13 +147,11 @@ function AdminVideoEditorPage() {
 function VideoEditor({
   detail,
   options,
-  mediaAllowedHosts,
   isLeadership,
   onReload,
 }: {
   detail: AdminVideoDetail
   options: Awaited<ReturnType<typeof getAdminVideoEditorOptions>>
-  mediaAllowedHosts: string[]
   isLeadership: boolean
   onReload: () => Promise<unknown>
 }) {
@@ -202,23 +201,18 @@ function VideoEditor({
     (item) => ({ value: item.id, label: item.title }),
   )
 
-  // Live validation: a disallowed host is already visible while editing.
-  const mediaWarnings = mediaUrlWarnings(
-    { videoUrl: form.videoUrl, thumbnailUrl: form.thumbnailUrl },
-    mediaAllowedHosts,
-  )
+  const mediaUrls = videoAssetUrls({
+    encodingGroup:
+      form.encodingGroup === ''
+        ? null
+        : (form.encodingGroup as '4a3_SD' | '16a9_SD' | '16a9_HD'),
+    hasHq: form.hasHq,
+    hasLq: form.hasLq,
+    baseFilename: form.baseFilename === '' ? null : form.baseFilename,
+  })
 
   function patch(partial: Partial<EditorForm>) {
     setForm((prev) => ({ ...prev, ...partial }))
-  }
-
-  function confirmMediaWarnings(): boolean {
-    if (mediaWarnings.length === 0) {
-      return true
-    }
-    return window.confirm(
-      `${mediaWarnings.join('\n')}\n\nMented így, a hibás URL-lel?`,
-    )
   }
 
   async function call(
@@ -282,9 +276,6 @@ function VideoEditor({
   }
 
   async function saveDraft(): Promise<boolean> {
-    if (!confirmMediaWarnings()) {
-      return false
-    }
     return call(
       'update',
       {
@@ -293,8 +284,10 @@ function VideoEditor({
         description: form.description,
         guests: form.guests,
         songs: form.songs,
-        videoUrl: form.videoUrl,
-        thumbnailUrl: form.thumbnailUrl,
+        encodingGroup: form.encodingGroup,
+        hasHq: form.hasHq,
+        hasLq: form.hasLq,
+        baseFilename: form.baseFilename,
         visibility: form.visibility,
         eventId: form.eventId === '' ? null : form.eventId,
         recordedAt: form.recordedAt === '' ? null : form.recordedAt,
@@ -430,19 +423,54 @@ function VideoEditor({
 
       <section className="flex flex-col gap-4 rounded border border-(--nav-border-b) p-4">
         <h2 className="font-bold text-(--bss-text)">Média</h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          <AdminSearchSelect
+            label="Videóprofil"
+            value={form.encodingGroup}
+            onChange={(value) => patch({ encodingGroup: value })}
+            options={[
+              { value: '16a9_HD', label: '16:9 HD' },
+              { value: '16a9_SD', label: '16:9 SD' },
+              { value: '4a3_SD', label: '4:3 SD' },
+            ]}
+            placeholder="Nincs profil"
+            emptyOptionLabel="Nincs profil"
+          />
+          <fieldset className="flex flex-col gap-2 text-sm">
+            <legend className="font-bold text-(--bss-text)">
+              Elérhető minőségek
+            </legend>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={form.hasHq}
+                onChange={(event) => patch({ hasHq: event.target.checked })}
+              />
+              HQ
+            </label>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={form.hasLq}
+                onChange={(event) => patch({ hasLq: event.target.checked })}
+              />
+              LQ
+            </label>
+          </fieldset>
+        </div>
         <AdminTextField
-          label="MP4 URL"
-          value={form.videoUrl}
-          onChange={(value) => patch({ videoUrl: value })}
-          hint="Csak https://v.bsstudio.hu; publikáláskor hálózati ellenőrzés fut."
+          label="Alapfájlnév"
+          value={form.baseFilename}
+          onChange={(value) => patch({ baseFilename: value })}
+          maxLength={255}
+          hint="Kiterjesztés és könyvtár nélkül, például: galanyito_2025."
         />
-        <AdminTextField
-          label="Thumbnail URL"
-          value={form.thumbnailUrl}
-          onChange={(value) => patch({ thumbnailUrl: value })}
-          hint="Hibás URL piszkozatban menthető, publikálni nem lehet vele."
-        />
-        <WarningList warnings={mediaWarnings} />
+        {mediaUrls.videoUrl !== null && mediaUrls.thumbnailUrl !== null && (
+          <div className="break-all text-xs text-(--bss-text-secondary)">
+            <p>Videó: {mediaUrls.videoUrl}</p>
+            <p>Thumbnail: {mediaUrls.thumbnailUrl}</p>
+          </div>
+        )}
       </section>
 
       <section className="flex flex-col gap-4 rounded border border-(--nav-border-b) p-4">

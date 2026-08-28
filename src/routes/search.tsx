@@ -86,7 +86,6 @@ function SearchPage() {
 
   return (
     <main className="site-width my-[4dvh]">
-
       <meta name="robots" content="noindex, nofollow" />
       <title>Keresés | BSS</title>
       <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">

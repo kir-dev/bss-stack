@@ -23,6 +23,7 @@ export default [
       '.nitro/**',
       '.tanstack/**',
       'node_modules/**',
+      '**/._*',
     ],
   },
 ]

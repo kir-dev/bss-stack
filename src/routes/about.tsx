@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { getAboutPageVideos } from '#/server/homepage/about.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
+import { videoThumbnailUrl } from '#/lib/video-media.ts'
 
 const ABOUT_TEXT_VERSION = 1
 
@@ -17,7 +18,7 @@ const loadAboutPage = createServerFn({ method: 'GET' }).handler(async () => {
     id: video.id,
     slug: video.slug,
     title: video.title,
-    thumbnailUrl: video.thumbnailUrl,
+    thumbnailUrl: videoThumbnailUrl(video),
   }))
 })
 

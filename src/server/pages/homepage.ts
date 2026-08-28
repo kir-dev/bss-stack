@@ -3,6 +3,7 @@ import { getHomepageState, getUpcomingLive } from '#/server/homepage/state.ts'
 import { latestVisibleThumbnailByEvent } from '#/server/pages/event-list.ts'
 import { anonymousViewer } from '#/server/auth/viewer.ts'
 import { systemClock } from '#/lib/clock.ts'
+import { videoAssetUrls } from '#/lib/video-media.ts'
 
 export interface HomepageVideoCard {
   id: string
@@ -13,6 +14,8 @@ export interface HomepageVideoCard {
 
 export interface HomepageHeroVideo extends HomepageVideoCard {
   videoUrl: string | null
+  hqUrl: string | null
+  lqUrl: string | null
 }
 
 export interface HomepageEventCard {
@@ -48,7 +51,7 @@ export async function getHomepagePage(
     id: video.id,
     slug: video.slug,
     title: video.title,
-    thumbnailUrl: video.thumbnailUrl,
+    thumbnailUrl: videoAssetUrls(video).thumbnailUrl,
   })
 
   // The homepage runs as an anonymous viewer, so the fallback cover image can
@@ -80,7 +83,10 @@ export async function getHomepagePage(
         : null,
     hero:
       state.heroVideo !== undefined
-        ? { ...toCard(state.heroVideo), videoUrl: state.heroVideo.videoUrl }
+        ? {
+            ...toCard(state.heroVideo),
+            ...videoAssetUrls(state.heroVideo),
+          }
         : null,
     sideVideos: state.sideVideos.map(toCard),
     events: state.events.map((event) => ({

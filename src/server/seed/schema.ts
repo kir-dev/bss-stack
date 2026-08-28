@@ -2,6 +2,8 @@ import type { OobConfig } from '#/server/config/oob-schema.ts'
 import { checkMediaUrlShape } from '#/server/media/validator.ts'
 import { TEXT_LIMITS } from '#/server/shared/text.ts'
 import { slugify } from '#/server/shared/slug.ts'
+import { VIDEO_ENCODING_GROUPS } from '#/lib/video-media.ts'
+import type { VideoEncodingGroup } from '#/lib/video-media.ts'
 
 export interface SeedEvent {
   key: string
@@ -26,8 +28,10 @@ export interface SeedVideo {
   description: string | null
   guests: string | null
   songs: string | null
-  videoUrl: string | null
-  thumbnailUrl: string | null
+  encodingGroup: VideoEncodingGroup | null
+  hasHq: boolean
+  hasLq: boolean
+  baseFilename: string | null
   visibility: 'public' | 'schonherz' | 'bss'
   status: 'draft' | 'published' | 'archived'
   recordedAt: string | null
@@ -159,6 +163,39 @@ function enumValue<T extends string>(
   return value as T
 }
 
+function optionalEnumValue<T extends string>(
+  source: Record<string, unknown>,
+  key: string,
+  path: string,
+  allowed: readonly T[],
+  problems: string[],
+): T | null {
+  const value = source[key]
+  if (value === undefined || value === null || value === '') return null
+  if (typeof value !== 'string' || !allowed.includes(value as T)) {
+    problems.push(
+      `${path}.${key}: érvénytelen érték "${String(value)}". Engedélyezett: ${allowed.join(', ')}.`,
+    )
+    return null
+  }
+  return value as T
+}
+
+function booleanValue(
+  source: Record<string, unknown>,
+  key: string,
+  path: string,
+  problems: string[],
+): boolean {
+  const value = source[key]
+  if (value === undefined || value === null) return false
+  if (typeof value !== 'boolean') {
+    problems.push(`${path}.${key}: logikai érték kell legyen.`)
+    return false
+  }
+  return value
+}
+
 function dateField(
   source: Record<string, unknown>,
   key: string,
@@ -250,7 +287,6 @@ function validateEvent(
   )
 
   if (status === 'published' && startDate === null) {
-
     problems.push(`${path}: publikált eseménynél a startDate kötelező.`)
   }
 
@@ -272,7 +308,6 @@ function validateVideo(
   eventKeys: ReadonlySet<string>,
   declaredTags: ReadonlySet<string>,
   declaredRoles: ReadonlySet<string>,
-  mediaConfig: OobConfig['media'],
   problems: string[],
 ): SeedVideo | null {
   const path = `videos[${index}]`
@@ -314,22 +349,19 @@ function validateVideo(
     TEXT_LIMITS.guestsOrSongs,
     problems,
   )
-  const videoUrl = mediaUrlField(
+  const encodingGroup = optionalEnumValue(
     raw,
-    'videoUrl',
+    'encodingGroup',
     path,
-    'video',
-    mediaConfig,
+    VIDEO_ENCODING_GROUPS,
     problems,
   )
-  const thumbnailUrl = mediaUrlField(
-    raw,
-    'thumbnailUrl',
-    path,
-    'thumbnail',
-    mediaConfig,
-    problems,
-  )
+  const hasHq = booleanValue(raw, 'hasHq', path, problems)
+  const hasLq = booleanValue(raw, 'hasLq', path, problems)
+  const baseFilename = optionalText(raw, 'baseFilename', path, 255, problems)
+  if (baseFilename !== null && /[\\/]/.test(baseFilename)) {
+    problems.push(`${path}.baseFilename: könyvtárnév és perjel nem adható meg.`)
+  }
   const visibility = enumValue(
     raw,
     'visibility',
@@ -443,11 +475,16 @@ function validateVideo(
   }
 
   if (status === 'published') {
-    if (videoUrl === null) {
-      problems.push(`${path}: publikált videónál a videoUrl kötelező.`)
+    if (encodingGroup === null) {
+      problems.push(`${path}: publikált videónál az encodingGroup kötelező.`)
     }
-    if (thumbnailUrl === null) {
-      problems.push(`${path}: publikált videónál a thumbnailUrl kötelező.`)
+    if (!hasHq && !hasLq) {
+      problems.push(
+        `${path}: publikált videónál legalább egy minőség kötelező.`,
+      )
+    }
+    if (baseFilename === null) {
+      problems.push(`${path}: publikált videónál a baseFilename kötelező.`)
     }
   }
 
@@ -458,8 +495,10 @@ function validateVideo(
     description,
     guests,
     songs,
-    videoUrl,
-    thumbnailUrl,
+    encodingGroup,
+    hasHq,
+    hasLq,
+    baseFilename,
     visibility,
     status,
     recordedAt,
@@ -582,7 +621,6 @@ export function validateSeedJson(
       eventKeys,
       declaredTags,
       declaredRoles,
-      mediaConfig,
       problems,
     )
     if (video === null) return

@@ -34,7 +34,6 @@ export const Route = createFileRoute('/')({
 })
 
 function HomePage() {
-
   const homeQuery = useQuery({
     queryKey: ['homepage'],
     queryFn: loadHomepage,
@@ -111,7 +110,7 @@ function HomepageContent({ state }: { state: HomepageStateDto }) {
             <HeroPlayer video={state.hero} />
           </div>
         ) : (
-          <div className="max-w-4xl">
+          <div className="lg:max-w-3xl md:max-w-md xl:max-w-4xl">
             <h2 className="mb-[2dvh] text-3xl font-bold text-(--orange)">
               Legutóbbi videóink
             </h2>
@@ -271,6 +270,8 @@ function HeroPlayer({ video }: { video: HomepageHeroVideo }) {
       <VideoDetailPlayer
         videoId={video.id}
         videoUrl={video.videoUrl}
+        hqUrl={video.hqUrl}
+        lqUrl={video.lqUrl}
         posterUrl={video.thumbnailUrl}
         title={video.title}
       />

@@ -2,6 +2,8 @@ import { sql } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
 import type { Viewer } from '#/server/auth/viewer.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
+import { videoThumbnailUrl } from '#/lib/video-media.ts'
+import type { VideoEncodingGroup } from '#/lib/video-media.ts'
 
 export const MIN_QUERY_LENGTH = 2
 const TRIGRAM_THRESHOLD = 0.3
@@ -98,7 +100,8 @@ async function searchVideosRaw(
 ): Promise<Array<SearchScoredRow<VideoHit>>> {
   const rows = await executor.execute(sql`
     with q as (select ${query} as text)
-    select v.id, v.slug, v.title, v.published_at as "publishedAt", v.thumbnail_url as "thumbnailUrl",
+    select v.id, v.slug, v.title, v.published_at as "publishedAt",
+      v.encoding_group as "encodingGroup", v.base_filename as "baseFilename",
       greatest(
         case when bss_norm(v.title) = bss_norm(q.text) then 100 else 0 end,
         case when bss_norm(v.title) like bss_norm(q.text) || '%' then 80 else 0 end,
@@ -141,18 +144,20 @@ async function searchVideosRaw(
     order by score desc, v.published_at desc nulls last, v.id
     limit ${limit}
   `)
-  return (rows.rows as unknown as Array<VideoHit & { score: number }>).map(
-    (row) => ({
-      item: {
-        id: row.id,
-        slug: row.slug,
-        title: row.title,
-        publishedAt: row.publishedAt,
-        thumbnailUrl: row.thumbnailUrl,
-      },
-      score: Number(row.score),
-    }),
-  )
+  return (
+    rows.rows as unknown as Array<
+      Omit<VideoHit, 'thumbnailUrl'> & VideoMediaRow & { score: number }
+    >
+  ).map((row) => ({
+    item: {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      publishedAt: row.publishedAt,
+      thumbnailUrl: videoThumbnailUrl({ ...row, hasHq: false, hasLq: false }),
+    },
+    score: Number(row.score),
+  }))
 }
 
 async function searchEventsRaw(
@@ -355,7 +360,8 @@ export async function searchVideosDetailed(
   const offset = filters.offset ?? 0
 
   const rows = await executor.execute(sql`
-    select v.id, v.slug, v.title, v.thumbnail_url as "thumbnailUrl",
+    select v.id, v.slug, v.title, v.encoding_group as "encodingGroup",
+      v.base_filename as "baseFilename",
       v.published_at as "publishedAt", v.recorded_at as "recordedAt", v.view_count as "viewCount",
       count(*) over() as total
     from videos v
@@ -365,11 +371,26 @@ export async function searchVideosDetailed(
   `)
 
   const rawRows = rows.rows as unknown as Array<
-    DetailedVideoHit & { total: number }
+    Omit<DetailedVideoHit, 'thumbnailUrl'> & VideoMediaRow & { total: number }
   >
   const first = rawRows.at(0)
   return {
-    items: rawRows.map(({ total: _total, ...item }) => item),
+    items: rawRows.map(
+      ({ total: _total, encodingGroup, baseFilename, ...item }) => ({
+        ...item,
+        thumbnailUrl: videoThumbnailUrl({
+          encodingGroup,
+          baseFilename,
+          hasHq: false,
+          hasLq: false,
+        }),
+      }),
+    ),
     total: rawRows.length > 0 ? Number(first?.total ?? 0) : 0,
   }
+}
+
+interface VideoMediaRow {
+  encodingGroup: VideoEncodingGroup | null
+  baseFilename: string | null
 }

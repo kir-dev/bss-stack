@@ -110,8 +110,10 @@ async function publishedVideo(
   const draft = await createVideoDraft(db, deps(memberViewer), {
     title: overrides.title ?? 'Publikált videó',
     slug: overrides.slug,
-    videoUrl: 'https://v.bsstudio.hu/media/video.mp4',
-    thumbnailUrl: 'https://v.bsstudio.hu/media/thumb.jpg',
+    encodingGroup: '16a9_HD',
+    hasHq: true,
+    hasLq: true,
+    baseFilename: 'published-video',
   })
   const result = await publishVideo(
     db,
@@ -123,16 +125,16 @@ async function publishedVideo(
 }
 
 describe.skipIf(!hasTestDatabase)('BSS-014: piszkozat és publikálás', () => {
-  it('piszkozat csak címmel menthető; alap láthatóság public; hibás média-URL is maradhat', async () => {
+  it('piszkozat csak címmel menthető; alap láthatósága public', async () => {
     const db = await setupDb()
     const draft = await createVideoDraft(db, deps(memberViewer), {
       title: 'Első piszkozat',
       description: '',
-      videoUrl: 'https://masik-host.hu/video.mp4',
+      baseFilename: 'elso-piszkozat',
     })
     expect(draft.status).toBe('draft')
     expect(draft.visibility).toBe('public')
-    expect(draft.videoUrl).toBe('https://masik-host.hu/video.mp4')
+    expect(draft.baseFilename).toBe('elso-piszkozat')
   })
 
   it('piszkozat cím nélkül nem jön létre', async () => {
@@ -152,35 +154,18 @@ describe.skipIf(!hasTestDatabase)('BSS-014: piszkozat és publikálás', () => {
 
       await expect(
         publishVideo(db, deps(memberViewer), draft.id, draft.version),
-      ).rejects.toThrow(/Videó URL/)
-
-      const withBadMedia = await updateVideo(
-        db,
-        deps(memberViewer),
-        draft.id,
-        draft.version,
-        {
-          videoUrl: 'https://masik-host.hu/video.mp4',
-          thumbnailUrl: 'https://v.bsstudio.hu/t.jpg',
-        },
-      )
-      await expect(
-        publishVideo(
-          db,
-          deps(memberViewer),
-          withBadMedia.row.id,
-          withBadMedia.row.version,
-        ),
-      ).rejects.toThrow(/hostokról/)
+      ).rejects.toThrow(/Videóprofil/)
 
       const complete = await updateVideo(
         db,
         deps(memberViewer),
         draft.id,
-        withBadMedia.row.version,
+        draft.version,
         {
-          videoUrl: 'https://v.bsstudio.hu/media/video.mp4',
-          thumbnailUrl: 'https://v.bsstudio.hu/media/thumb.jpg',
+          encodingGroup: '16a9_HD',
+          hasHq: true,
+          hasLq: true,
+          baseFilename: 'media-test',
         },
       )
       const published = await publishVideo(
@@ -224,8 +209,10 @@ describe.skipIf(!hasTestDatabase)('BSS-014: piszkozat és publikálás', () => {
         draft.version,
         {
           publishedAt: new Date('2026-01-01T08:00:00.000Z'),
-          videoUrl: 'https://v.bsstudio.hu/v.mp4',
-          thumbnailUrl: 'https://v.bsstudio.hu/t.jpg',
+          encodingGroup: '16a9_HD',
+          hasHq: true,
+          hasLq: true,
+          baseFilename: 'dated-video',
         },
       )
       const published = await publishVideo(
@@ -314,8 +301,10 @@ describe.skipIf(!hasTestDatabase)('BSS-014: piszkozat és publikálás', () => {
         draft.id,
         assigned.row.version,
         {
-          videoUrl: 'https://v.bsstudio.hu/v.mp4',
-          thumbnailUrl: 'https://v.bsstudio.hu/t.jpg',
+          encodingGroup: '16a9_HD',
+          hasHq: true,
+          hasLq: true,
+          baseFilename: 'multi-day-video',
         },
       )
 
@@ -410,8 +399,10 @@ describe.skipIf(!hasTestDatabase)(
           tagged.row.id,
           tagged.row.version,
           {
-            videoUrl: 'https://v.bsstudio.hu/media/video.mp4',
-            thumbnailUrl: 'https://v.bsstudio.hu/media/thumb.jpg',
+            encodingGroup: '16a9_HD',
+            hasHq: true,
+            hasLq: true,
+            baseFilename: 'lifecycle-video',
           },
         )
         const published = await publishVideo(

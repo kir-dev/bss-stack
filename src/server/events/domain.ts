@@ -191,7 +191,6 @@ export async function createEvent(
   assertContentEditor(deps.viewer)
 
   return executor.transaction(async (tx) => {
-
     const title = validateRequiredText('Cím', input.title, TEXT_LIMITS.title)
     const emptyCurrent = {
       startDate: null as string | null,

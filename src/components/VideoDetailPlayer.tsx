@@ -1,12 +1,15 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { Volume1, Volume2, VolumeX } from 'lucide-react'
 
 type WebkitFullscreenVideo = HTMLVideoElement & {
   webkitDisplayingFullscreen?: boolean
   webkitEnterFullscreen?: () => void
   webkitExitFullscreen?: () => void
 }
+
+const AUDIO_PREFERENCE_KEY = 'video-player-audio-v1'
 
 function formatTime(value: number) {
   if (!Number.isFinite(value) || value < 0) return '0:00'
@@ -20,22 +23,47 @@ function formatTime(value: number) {
 }
 
 /** Branded MP4 player. A view is counted on the first successful play event. */
+function PlayerIcon({
+  name,
+  className,
+}: Readonly<{ name: string; className: string }>) {
+  return (
+    <span
+      aria-hidden="true"
+      className={`${className} mask-center mask-no-repeat mask-contain bg-current`}
+      style={{ maskImage: `url(/icons/${name}.svg)` }}
+    />
+  )
+}
+
 export default function VideoDetailPlayer({
   videoId,
   videoUrl,
+  hqUrl,
+  lqUrl,
   posterUrl,
   title,
+  startTime,
 }: Readonly<{
   videoId: string
   videoUrl: string
+  hqUrl?: string | null
+  lqUrl?: string | null
   posterUrl?: string | null
   title: string
+  startTime?: number
 }>) {
   const playerRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const countedRef = useRef(false)
   const previousVolumeRef = useRef(1)
   const hudTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const playbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const qualityMenuRef = useRef<HTMLDivElement>(null)
+  const pendingSourceChangeRef = useRef<{
+    currentTime: number
+    shouldResume: boolean
+  } | null>(null)
   const [errorKey, setErrorKey] = useState(0)
   const [failed, setFailed] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
@@ -44,14 +72,83 @@ export default function VideoDetailPlayer({
   const [volume, setVolume] = useState(1)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const [isHudVisible, setIsHudVisible] = useState(true)
+  const [quality, setQuality] = useState<'hq' | 'lq'>(hqUrl ? 'hq' : 'lq')
+  const [isQualityMenuOpen, setIsQualityMenuOpen] = useState(false)
+
+  const qualityOptions = [
+    ...(hqUrl ? [{ value: 'hq' as const, label: 'HQ' }] : []),
+    ...(lqUrl ? [{ value: 'lq' as const, label: 'LQ' }] : []),
+  ]
+  const activeVideoUrl =
+    quality === 'hq'
+      ? (hqUrl ?? lqUrl ?? videoUrl)
+      : (lqUrl ?? hqUrl ?? videoUrl)
+  const VolumeIcon = volume === 0 ? VolumeX : volume < 0.5 ? Volume1 : Volume2
+
+  useEffect(() => {
+    const video = videoRef.current
+    if (!video) return
+
+    try {
+      const storedValue = window.localStorage.getItem(AUDIO_PREFERENCE_KEY)
+      if (storedValue === null) return
+
+      const preference: unknown = JSON.parse(storedValue)
+      if (
+        typeof preference !== 'object' ||
+        preference === null ||
+        !('volume' in preference) ||
+        !('muted' in preference) ||
+        typeof preference.volume !== 'number' ||
+        !Number.isFinite(preference.volume) ||
+        preference.volume < 0 ||
+        preference.volume > 1 ||
+        typeof preference.muted !== 'boolean'
+      ) {
+        return
+      }
+
+      video.volume = preference.volume
+      video.muted = preference.muted
+      if (preference.volume > 0) {
+        previousVolumeRef.current = preference.volume
+      }
+      setVolume(preference.muted ? 0 : preference.volume)
+    } catch {
+      // Playback still works when storage is unavailable or contains bad data.
+    }
+  }, [errorKey])
 
   useEffect(() => {
     setFailed(false)
     setIsPlaying(false)
     setCurrentTime(0)
     setDuration(0)
+    pendingSourceChangeRef.current = null
+    setQuality(hqUrl ? 'hq' : 'lq')
+    setIsQualityMenuOpen(false)
     countedRef.current = false
-  }, [videoId, videoUrl])
+  }, [videoId, videoUrl, hqUrl, lqUrl])
+
+  useEffect(() => {
+    if (!isQualityMenuOpen) return
+
+    const closeOnOutsideClick = (event: MouseEvent) => {
+      if (qualityMenuRef.current?.contains(event.target as Node)) return
+      setIsQualityMenuOpen(false)
+    }
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setIsQualityMenuOpen(false)
+    }
+
+    document.addEventListener('pointerdown', closeOnOutsideClick)
+    document.addEventListener('keydown', closeOnEscape)
+
+    return () => {
+      document.removeEventListener('pointerdown', closeOnOutsideClick)
+      document.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [isQualityMenuOpen])
 
   useEffect(() => {
     const video = videoRef.current
@@ -60,6 +157,21 @@ export default function VideoDetailPlayer({
     const syncDuration = () => {
       if (Number.isFinite(video.duration) && video.duration > 0) {
         setDuration(video.duration)
+      }
+      const pending = pendingSourceChangeRef.current
+      if (
+        pending === null ||
+        !Number.isFinite(video.duration) ||
+        video.duration <= 0
+      ) {
+        return
+      }
+
+      video.currentTime = Math.min(pending.currentTime, video.duration)
+      setCurrentTime(video.currentTime)
+      pendingSourceChangeRef.current = null
+      if (pending.shouldResume) {
+        void video.play().catch(() => setFailed(true))
       }
     }
 
@@ -74,7 +186,24 @@ export default function VideoDetailPlayer({
       video.removeEventListener('durationchange', syncDuration)
       video.removeEventListener('canplay', syncDuration)
     }
-  }, [errorKey, videoUrl])
+  }, [errorKey, activeVideoUrl])
+
+  useEffect(() => {
+    if (startTime === undefined) return
+
+    const video = videoRef.current
+    pendingSourceChangeRef.current = {
+      currentTime: startTime,
+      shouldResume: false,
+    }
+    if (!video || !Number.isFinite(video.duration) || video.duration <= 0) {
+      return
+    }
+
+    video.currentTime = Math.min(startTime, video.duration)
+    setCurrentTime(video.currentTime)
+    pendingSourceChangeRef.current = null
+  }, [videoId, startTime])
 
   useEffect(() => {
     const handleFullscreenChange = () =>
@@ -102,27 +231,40 @@ export default function VideoDetailPlayer({
         handleMobileFullscreenEnd,
       )
     }
-  }, [errorKey, videoUrl])
+  }, [errorKey, activeVideoUrl])
 
   useEffect(() => {
     revealHud()
-  }, [isFullscreen, isPlaying])
+  }, [isFullscreen])
 
   useEffect(
     () => () => {
       if (hudTimerRef.current !== null) clearTimeout(hudTimerRef.current)
+      if (playbackTimerRef.current !== null) {
+        clearTimeout(playbackTimerRef.current)
+      }
     },
     [],
   )
 
   function handlePlay() {
     setIsPlaying(true)
+    setIsHudVisible(false)
+    if (hudTimerRef.current !== null) {
+      clearTimeout(hudTimerRef.current)
+      hudTimerRef.current = null
+    }
     if (countedRef.current) return
 
     countedRef.current = true
     void fetch(`/api/videos/${videoId}/view`, { method: 'POST' }).catch(
       () => {},
     )
+  }
+
+  function handlePause() {
+    setIsPlaying(false)
+    revealHud()
   }
 
   function togglePlayback() {
@@ -133,6 +275,26 @@ export default function VideoDetailPlayer({
     } else {
       video.pause()
     }
+  }
+
+  function handleVideoClick() {
+    playerRef.current?.focus()
+    if (playbackTimerRef.current !== null) {
+      clearTimeout(playbackTimerRef.current)
+    }
+    playbackTimerRef.current = setTimeout(() => {
+      togglePlayback()
+      playbackTimerRef.current = null
+    }, 250)
+  }
+
+  function handleVideoDoubleClick() {
+    playerRef.current?.focus()
+    if (playbackTimerRef.current !== null) {
+      clearTimeout(playbackTimerRef.current)
+      playbackTimerRef.current = null
+    }
+    void toggleFullscreen()
   }
 
   function skip(seconds: number) {
@@ -151,8 +313,7 @@ export default function VideoDetailPlayer({
     const nextVolume = Math.min(Math.max(video.volume + amount, 0), 1)
     video.volume = nextVolume
     video.muted = nextVolume === 0
-    setVolume(nextVolume)
-    if (nextVolume > 0) previousVolumeRef.current = nextVolume
+    syncVolume(video)
   }
 
   function handlePlayerKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
@@ -252,8 +413,7 @@ export default function VideoDetailPlayer({
     const nextVolume = Number(event.target.value)
     video.volume = nextVolume
     video.muted = nextVolume === 0
-    setVolume(nextVolume)
-    if (nextVolume > 0) previousVolumeRef.current = nextVolume
+    syncVolume(video)
   }
 
   function toggleMute() {
@@ -264,11 +424,27 @@ export default function VideoDetailPlayer({
       const restoredVolume = previousVolumeRef.current || 1
       video.muted = false
       video.volume = restoredVolume
-      setVolume(restoredVolume)
     } else {
       previousVolumeRef.current = volume
       video.muted = true
-      setVolume(0)
+    }
+    syncVolume(video)
+  }
+
+  function syncVolume(video: HTMLVideoElement) {
+    const effectiveVolume = video.muted ? 0 : video.volume
+    setVolume(effectiveVolume)
+    if (!video.muted && video.volume > 0) {
+      previousVolumeRef.current = video.volume
+    }
+
+    try {
+      window.localStorage.setItem(
+        AUDIO_PREFERENCE_KEY,
+        JSON.stringify({ volume: video.volume, muted: video.muted }),
+      )
+    } catch {
+      // Storage may be disabled; the in-page volume control still works.
     }
   }
 
@@ -320,11 +496,7 @@ export default function VideoDetailPlayer({
     setIsHudVisible(true)
     if (hudTimerRef.current !== null) clearTimeout(hudTimerRef.current)
 
-    if (
-      document.fullscreenElement === playerRef.current &&
-      videoRef.current !== null &&
-      !videoRef.current.paused
-    ) {
+    if (videoRef.current !== null && !videoRef.current.paused) {
       hudTimerRef.current = setTimeout(() => {
         setIsHudVisible(false)
         hudTimerRef.current = null
@@ -335,6 +507,19 @@ export default function VideoDetailPlayer({
   function retry() {
     setFailed(false)
     setErrorKey((value) => value + 1)
+  }
+
+  function changeQuality(nextQuality: 'hq' | 'lq') {
+    if (nextQuality === quality) return
+    const video = videoRef.current
+    if (video !== null) {
+      pendingSourceChangeRef.current = {
+        currentTime: video.currentTime,
+        shouldResume: !video.paused,
+      }
+    }
+    setFailed(false)
+    setQuality(nextQuality)
   }
 
   if (failed) {
@@ -372,25 +557,20 @@ export default function VideoDetailPlayer({
         key={errorKey}
         ref={videoRef}
         className="h-full w-full cursor-inherit object-contain"
-        src={videoUrl}
+        src={activeVideoUrl}
         poster={posterUrl ?? undefined}
         preload="metadata"
         playsInline
         aria-label={title}
-        onClick={() => {
-          playerRef.current?.focus()
-          togglePlayback()
-        }}
+        onClick={handleVideoClick}
+        onDoubleClick={handleVideoDoubleClick}
         onPlay={handlePlay}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
+        onPause={handlePause}
+        onEnded={handlePause}
         onTimeUpdate={(event) =>
           setCurrentTime(event.currentTarget.currentTime)
         }
-        onVolumeChange={(event) => {
-          const video = event.currentTarget
-          setVolume(video.muted ? 0 : video.volume)
-        }}
+        onVolumeChange={(event) => syncVolume(event.currentTarget)}
         onError={() => setFailed(true)}
       />
 
@@ -402,9 +582,7 @@ export default function VideoDetailPlayer({
           title="Lejátszás (K vagy Szóköz)"
           className="absolute left-1/2 top-1/2 grid size-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 border-white/80 bg-(--blue)/90 text-white shadow-xl transition hover:scale-105 hover:bg-(--orange) focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:size-20"
         >
-          <svg viewBox="0 0 24 24" className="size-8" aria-hidden="true">
-            <path fill="currentColor" d="M8 5v14l11-7z" />
-          </svg>
+          <PlayerIcon name="play" className="size-8" />
         </button>
       )}
 
@@ -436,15 +614,10 @@ export default function VideoDetailPlayer({
               isPlaying ? 'Szünet (K vagy Szóköz)' : 'Lejátszás (K vagy Szóköz)'
             }
           >
-            {isPlaying ? (
-              <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
-                <path fill="currentColor" d="M6 4h4v16H6zm8 0h4v16h-4z" />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
-                <path fill="currentColor" d="M8 5v14l11-7z" />
-              </svg>
-            )}
+            <PlayerIcon
+              name={isPlaying ? 'pause' : 'play'}
+              className="size-5"
+            />
           </button>
 
           <button
@@ -454,21 +627,7 @@ export default function VideoDetailPlayer({
             aria-label={volume === 0 ? 'Hang bekapcsolása' : 'Némítás'}
             title={volume === 0 ? 'Hang bekapcsolása (M)' : 'Némítás (M)'}
           >
-            {volume === 0 ? (
-              <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
-                <path
-                  fill="currentColor"
-                  d="M4 9v6h4l5 4V5L8 9H4m12.6 3 2.7-2.7-1.4-1.4-2.7 2.7-2.7-2.7-1.4 1.4 2.7 2.7-2.7 2.7 1.4 1.4 2.7-2.7 2.7 2.7 1.4-1.4-2.7-2.7Z"
-                />
-              </svg>
-            ) : (
-              <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
-                <path
-                  fill="currentColor"
-                  d="M4 9v6h4l5 4V5L8 9H4m11.5 3a3.5 3.5 0 0 0-2-3.16v6.32a3.5 3.5 0 0 0 2-3.16m-2-6.18v2.06a5 5 0 0 1 0 8.24v2.06a7 7 0 0 0 0-12.36Z"
-                />
-              </svg>
-            )}
+            <VolumeIcon className="size-5" aria-hidden="true" />
           </button>
 
           <input
@@ -486,6 +645,63 @@ export default function VideoDetailPlayer({
             {formatTime(currentTime)} / {formatTime(duration)}
           </span>
 
+          {qualityOptions.length > 1 && (
+            <div ref={qualityMenuRef} className="relative shrink-0">
+              <button
+                type="button"
+                onClick={() => setIsQualityMenuOpen((open) => !open)}
+                aria-haspopup="menu"
+                aria-expanded={isQualityMenuOpen}
+                aria-label="Videóminőség"
+                title="Videóminőség"
+                className={`relative grid size-9 place-items-center rounded-full transition hover:bg-white/15 hover:text-(--orange) focus-visible:outline-2 focus-visible:outline-white ${
+                  isQualityMenuOpen ? 'bg-white/15 text-(--orange)' : ''
+                }`}
+              >
+                <PlayerIcon name="gear" className="size-4" />
+                {quality === 'hq' && (
+                  <span
+                    aria-hidden="true"
+                    className="absolute -right-0.5 -top-0.5 rounded-sm bg-(--orange) px-1 text-[8px] font-bold leading-[1.4] text-black"
+                  >
+                    HQ
+                  </span>
+                )}
+              </button>
+
+              {isQualityMenuOpen && (
+                <div
+                  role="menu"
+                  aria-label="Videóminőség"
+                  className="absolute bottom-full right-0 z-20 mb-2 min-w-32 border border-white/15 bg-black/90 p-1 shadow-lg shadow-black/50 backdrop-blur-sm origin-bottom-right animate-in fade-in zoom-in-95 slide-in-from-bottom-1 duration-150 ease-out"
+                >
+                  {qualityOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="menuitemradio"
+                      aria-checked={quality === option.value}
+                      onClick={() => {
+                        changeQuality(option.value)
+                        setIsQualityMenuOpen(false)
+                      }}
+                      className={`flex w-full items-center justify-between gap-4 px-2 py-1.5 text-left text-xs font-semibold transition hover:bg-white/15 focus-visible:outline-2 focus-visible:outline-white ${
+                        quality === option.value
+                          ? 'text-(--orange)'
+                          : 'text-white/80'
+                      }`}
+                    >
+                      {option.label}
+                      {quality === option.value && (
+                        <PlayerIcon name="check" className="size-3.5" />
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <button
             type="button"
             onClick={() => void toggleFullscreen()}
@@ -499,19 +715,10 @@ export default function VideoDetailPlayer({
                 : 'Teljes képernyő (F)'
             }
           >
-            <svg viewBox="0 0 24 24" className="size-5" aria-hidden="true">
-              {isFullscreen ? (
-                <path
-                  fill="currentColor"
-                  d="M14 14h5v2h-3v3h-2v-5M5 14h5v5H8v-3H5v-2m9-9h2v3h3v2h-5V5M8 5h2v5H5V8h3V5Z"
-                />
-              ) : (
-                <path
-                  fill="currentColor"
-                  d="M5 5h5v2H7v3H5V5m9 0h5v5h-2V7h-3V5m3 9h2v5h-5v-2h3v-3M5 14h2v3h3v2H5v-5Z"
-                />
-              )}
-            </svg>
+            <PlayerIcon
+              name={isFullscreen ? 'fullscreen-exit' : 'fullscreen-enter'}
+              className="size-5"
+            />
           </button>
         </div>
       </div>

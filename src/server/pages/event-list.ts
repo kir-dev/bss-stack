@@ -3,6 +3,7 @@ import type { Viewer } from '#/server/auth/viewer.ts'
 import { events, memberCache, videoStaff, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 import { visibleVideoCondition } from '#/server/videos/visibility.ts'
+import { videoThumbnailUrl } from '#/lib/video-media.ts'
 
 export const EVENT_PAGE_SIZES = [10, 25, 50, 100] as const
 export const DEFAULT_EVENT_PAGE_SIZE = 50
@@ -135,7 +136,8 @@ export async function latestVisibleThumbnailByEvent(
   const rows = await executor
     .selectDistinctOn([videos.eventId], {
       eventId: videos.eventId,
-      thumbnailUrl: videos.thumbnailUrl,
+      encodingGroup: videos.encodingGroup,
+      baseFilename: videos.baseFilename,
     })
     .from(videos)
     .where(
@@ -143,14 +145,20 @@ export async function latestVisibleThumbnailByEvent(
         eq(videos.status, 'published'),
         inArray(videos.eventId, eventIds),
         visibleVideoCondition(viewer),
-        sql`${videos.thumbnailUrl} is not null`,
+        sql`${videos.encodingGroup} is not null`,
+        sql`${videos.baseFilename} is not null`,
       ),
     )
     .orderBy(videos.eventId, desc(videos.publishedAt), desc(videos.id))
   const map = new Map<string, string>()
   for (const row of rows) {
-    if (row.eventId !== null && row.thumbnailUrl !== null) {
-      map.set(row.eventId, row.thumbnailUrl)
+    const thumbnailUrl = videoThumbnailUrl({
+      ...row,
+      hasHq: false,
+      hasLq: false,
+    })
+    if (row.eventId !== null && thumbnailUrl !== null) {
+      map.set(row.eventId, thumbnailUrl)
     }
   }
   return map
@@ -219,7 +227,8 @@ export async function getEventDetail(
         id: videos.id,
         slug: videos.slug,
         title: videos.title,
-        thumbnailUrl: videos.thumbnailUrl,
+        encodingGroup: videos.encodingGroup,
+        baseFilename: videos.baseFilename,
         recordedAt: videos.recordedAt,
       })
       .from(videos)
@@ -256,12 +265,26 @@ export async function getEventDetail(
     description: event.description,
     thumbnailUrl:
       event.thumbnailUrl ??
-      videoRows.find((video) => video.thumbnailUrl !== null)?.thumbnailUrl ??
+      videoRows
+        .map((video) =>
+          videoThumbnailUrl({ ...video, hasHq: false, hasLq: false }),
+        )
+        .find((thumbnailUrl) => thumbnailUrl !== null) ??
       null,
     startDate: event.startDate,
     endDate: event.endDate,
     videos: {
-      items: videoRows,
+      items: videoRows.map((video) => ({
+        id: video.id,
+        slug: video.slug,
+        title: video.title,
+        thumbnailUrl: videoThumbnailUrl({
+          ...video,
+          hasHq: false,
+          hasLq: false,
+        }),
+        recordedAt: video.recordedAt,
+      })),
       total: countRows.at(0)?.count ?? 0,
     },
     staffMembers: staffRows.map((row) => ({

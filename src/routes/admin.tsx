@@ -23,7 +23,6 @@ function AdminLayout() {
 
   return (
     <div className="site-width my-[3dvh] flex flex-col gap-4 md:flex-row">
-
       <meta name="robots" content="noindex, nofollow" />
       <AdminSidebar level={access.viewer.level} />
       <div className="min-w-0 flex-1">

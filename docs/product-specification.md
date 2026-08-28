@@ -2,14 +2,14 @@
 
 ## Document status
 
-| Field              | Value                                                        |
-| ------------------ | ------------------------------------------------------------ |
+| Field              | Value                                                                |
+| ------------------ | -------------------------------------------------------------------- |
 | Status             | V0 specification prepared on the basis of accepted product decisions |
-| Language           | English                                                      |
-| Time zone          | Europe/Budapest                                              |
-| Target environment | Locally runnable environment with documented startup          |
-| Production rollout | Not part of V0                                               |
-| Visual basis       | The public prototype in the repository                       |
+| Language           | English                                                              |
+| Time zone          | Europe/Budapest                                                      |
+| Target environment | Locally runnable environment with documented startup                 |
+| Production rollout | Not part of V0                                                       |
+| Visual basis       | The public prototype in the repository                               |
 
 This document is the single source of truth for the decisions accepted during consultation. If the current prototype, Figma, or the legacy bsstudio.hu site behaves differently, this specification prevails.
 
@@ -42,32 +42,32 @@ The README must list the exact location, format, and verification method of thes
 
 ### 3.1 Viewer levels
 
-| Actor                    | Visible videos               | Admin                        |
-| ------------------------ | ---------------------------- | ---------------------------- |
-| Anonymous visitor        | `public`                     | No                           |
-| Logged-in Schönherz user | `public`, `schonherz`        | No                           |
-| BSS member               | `public`, `schonherz`, `bss` | Yes                          |
-| Board member             | `public`, `schonherz`, `bss` | Yes, with extended rights    |
+| Actor                    | Visible videos               | Admin                     |
+| ------------------------ | ---------------------------- | ------------------------- |
+| Anonymous visitor        | `public`                     | No                        |
+| Logged-in Schönherz user | `public`, `schonherz`        | No                        |
+| BSS member               | `public`, `schonherz`, `bss` | Yes                       |
+| Board member             | `public`, `schonherz`, `bss` | Yes, with extended rights |
 
 The Authentik `vezetoseg` group complements membership. It does not replace it.
 
 ### 3.2 Admin rights
 
-| Action                                                  | Member | Board member                    |
-| ------------------------------------------------------- | ------ | ------------------------------- |
-| Create, edit, publish video and event                   | Yes    | Yes                             |
-| Archive video and event                                 | Yes    | Yes                             |
-| Move video to trash                                     | Yes    | Yes                             |
-| View video trash                                        | Yes    | Yes                             |
-| Restore video                                           | No     | Yes                             |
-| Permanently delete event                                | No     | Yes                             |
-| Assign existing tags to a video                         | Yes    | Yes                             |
-| Manage the tag catalog                                  | No     | Yes                             |
-| Manage crew roles                                       | No     | Yes                             |
-| Manage the credits of one video                         | Yes    | Yes                             |
-| Manage live, featured, and About videos                 | No     | Yes                             |
-| Member list and Authentik sync diagnostics              | No     | Yes, read-only profiles only    |
-| View audit log                                          | No     | Yes                             |
+| Action                                     | Member | Board member                 |
+| ------------------------------------------ | ------ | ---------------------------- |
+| Create, edit, publish video and event      | Yes    | Yes                          |
+| Archive video and event                    | Yes    | Yes                          |
+| Move video to trash                        | Yes    | Yes                          |
+| View video trash                           | Yes    | Yes                          |
+| Restore video                              | No     | Yes                          |
+| Permanently delete event                   | No     | Yes                          |
+| Assign existing tags to a video            | Yes    | Yes                          |
+| Manage the tag catalog                     | No     | Yes                          |
+| Manage crew roles                          | No     | Yes                          |
+| Manage the credits of one video            | Yes    | Yes                          |
+| Manage live, featured, and About videos    | No     | Yes                          |
+| Member list and Authentik sync diagnostics | No     | Yes, read-only profiles only |
+| View audit log                             | No     | Yes                          |
 
 Every member can see and edit other members' drafts. There is no content ownership by author. The server re-checks authorization for every action.
 
@@ -109,14 +109,14 @@ The default visibility of a new video is `public`. Events and member profiles ar
 
 All descriptions are plain text with line break support. HTML, Markdown, and rich text are not part of V0.
 
-| Field                            | Maximum length |
-| -------------------------------- | --------------: |
-| Title                            |      200 chars  |
-| Slug                             |      200 chars  |
-| Tag and crew role                |       64 chars  |
-| Description and bio              |   10,000 chars  |
-| Guests and music used            |    5,000 chars  |
-| URL                              |    2,048 chars  |
+| Field                 | Maximum length |
+| --------------------- | -------------: |
+| Title                 |      200 chars |
+| Slug                  |      200 chars |
+| Tag and crew role     |       64 chars |
+| Description and bio   |   10,000 chars |
+| Guests and music used |    5,000 chars |
+| URL                   |    2,048 chars |
 
 Client and server must enforce the same limits.
 
@@ -141,8 +141,9 @@ The fields of a video:
 - description;
 - guests, free text;
 - music used, free text;
-- MP4 URL;
-- thumbnail URL;
+- encoding group (`4a3_SD`, `16a9_SD`, or `16a9_HD`);
+- HQ and LQ availability flags;
+- base filename;
 - visibility and status;
 - `createdAt`, `updatedAt`, `publishedAt`, `recordedAt`;
 - view count;
@@ -180,8 +181,9 @@ Only the title is required to save a draft.
 Required for publishing:
 
 - title;
-- valid MP4 URL;
-- valid thumbnail URL;
+- encoding group;
+- at least one available quality;
+- base filename;
 - visibility;
 - non-future `publishedAt`;
 - `recordedAt` for multi-day events.
@@ -190,16 +192,34 @@ On save, the admin form offers selectable actions: `Save draft` and `Publish`. T
 
 ### 5.4 Media URLs
 
-The application does not upload files, does not transcode, and does not delete anything from the media server. It only stores remote URLs.
+The application does not upload, transcode, or delete media files. For each video it stores the encoding group, base filename, and two availability flags named `hasHq` and `hasLq`. Both qualities may be available. It derives media URLs from these fields and prefers HQ for normal playback.
 
-For videos and thumbnails:
+The supported encoding groups are:
+
+| Group     | Aspect ratio | Storage directory        | HQ filename        |
+| --------- | ------------ | ------------------------ | ------------------ |
+| `4a3_SD`  | 4:3          | `bss_vagott_web_4a3_SD`  | `<name>_hq_SD.mp4` |
+| `16a9_SD` | 16:9         | `bss_vagott_web_16a9_SD` | `<name>_hq_SD.mp4` |
+| `16a9_HD` | 16:9         | `bss_vagott_web_16a9_HD` | `<name>_hq_HD.mp4` |
+
+Within each storage directory, the application uses these paths:
+
+- LQ video: `low_quality/<name>_lq.mp4`;
+- HQ video: `high_quality/<name>_hq_SD.mp4` or `high_quality/<name>_hq_HD.mp4`;
+- thumbnail: `thumbnail/<name>_tn.png`;
+- keyframe: `keyframe/<name>_lq.png`;
+- mobile playback: the LQ video.
+
+`hq` selects the best encoding in the chosen group. It does not imply HD.
+
+Before publishing, the server checks the derived video and thumbnail URLs:
 
 - only the `https://v.bsstudio.hu` host is allowed;
 - the server sends a `HEAD` request with a 5-second connection timeout and a 15-second total timeout;
 - only a `200` response without redirection is accepted;
 - videos require `video/mp4` and thumbnails require `image/*` content types;
 - `3xx`, `4xx`, timeout, and `5xx` do not allow publishing;
-- an invalid or not-yet-verifiable URL can be saved as a draft;
+- incomplete media fields can be saved as a draft;
 - on `405` or `501`, a one-byte Range GET may be used as a fallback check.
 
 Visibility only protects page metadata. The external MP4 URL is public, so anyone holding the link can access the file bypassing the application.
@@ -207,6 +227,8 @@ Visibility only protects page metadata. The external MP4 URL is public, so anyon
 ### 5.5 Player and view count
 
 - Native video controls.
+- When both encodings exist, the player offers an HQ/LQ selector and keeps the
+  playback position when switching.
 - The thumbnail serves as the poster.
 - `preload="metadata"`.
 - No autoplay.
@@ -678,7 +700,7 @@ Sample content:
 
 - 50 videos;
 - their events and tags;
-- titles, descriptions, music, dates, MP4 URLs, and thumbnail URLs;
+- titles, descriptions, music, dates, encoding groups, quality availability, and base filenames;
 - crew roles and relationships;
 - persons consistently replaced with pseudonyms.
 

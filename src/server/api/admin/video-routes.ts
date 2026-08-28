@@ -54,7 +54,6 @@ export async function handleAdminVideoRoutes(
   deps: AdminVideoRouteDeps = {},
 ): Promise<Response> {
   return runAdminHandler(request, deps, async (viewer) => {
-
     // anonymous → 401 with login URL, authenticated unauthorized → 403.
     requireAdmin(viewer, new URL(request.url).pathname)
     const db = deps.db ?? (await getDefaultDb())
@@ -91,8 +90,10 @@ export async function handleAdminVideoRoutes(
             description: optionalNullableString(body['description']),
             guests: optionalNullableString(body['guests']),
             songs: optionalNullableString(body['songs']),
-            videoUrl: optionalNullableString(body['videoUrl']),
-            thumbnailUrl: optionalNullableString(body['thumbnailUrl']),
+            encodingGroup: optionalEncodingGroup(body['encodingGroup']),
+            hasHq: optionalBoolean(body['hasHq'], 'hasHq'),
+            hasLq: optionalBoolean(body['hasLq'], 'hasLq'),
+            baseFilename: optionalNullableString(body['baseFilename']),
             visibility: optionalVisibility(body['visibility']),
             recordedAt: optionalNullableString(body['recordedAt']),
             eventId: optionalNullableId(body['eventId'], 'eventId'),
@@ -239,6 +240,23 @@ function optionalVisibility(
     return value
   }
   return undefined
+}
+
+function optionalEncodingGroup(
+  value: unknown,
+): '4a3_SD' | '16a9_SD' | '16a9_HD' | null | undefined {
+  if (value === undefined) return undefined
+  if (value === null || value === '') return null
+  if (value === '4a3_SD' || value === '16a9_SD' || value === '16a9_HD') {
+    return value
+  }
+  throw badRequest('Érvénytelen videóprofil.')
+}
+
+function optionalBoolean(value: unknown, field: string): boolean | undefined {
+  if (value === undefined) return undefined
+  if (typeof value === 'boolean') return value
+  throw badRequest(`A ${field} mező logikai érték kell legyen.`)
 }
 
 function optionalNullableId(

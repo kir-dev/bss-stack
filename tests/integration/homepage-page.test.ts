@@ -56,7 +56,10 @@ async function seedVideo(
       status: 'published',
       visibility: 'public',
       publishedAt: new Date(clock.now().getTime() - sequence * 60_000),
-      thumbnailUrl: `https://v.bsstudio.hu/t${sequence}.jpg`,
+      encodingGroup: '16a9_HD',
+      hasHq: true,
+      hasLq: true,
+      baseFilename: `homepage-${sequence}`,
     })
     .returning()
   const row = rows.at(0)

@@ -86,8 +86,10 @@ async function insertPublished(
     .values({
       status: 'published',
       publishedAt: clock.now(),
-      videoUrl: 'https://v.bsstudio.hu/v.mp4',
-      thumbnailUrl: 'https://v.bsstudio.hu/t.jpg',
+      encodingGroup: '16a9_HD',
+      hasHq: true,
+      hasLq: true,
+      baseFilename: 'related-video',
       ...overrides,
     })
     .returning()
