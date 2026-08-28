@@ -41,11 +41,8 @@
     },
     "sync": {
       "username": "svc-bss-sync",
-      "token": "<generált API token – lásd pnpm infra:bootstrap>"
+      "token": "<generált API token - lásd pnpm infra:bootstrap>"
     }
-  },
-  "media": {
-    "allowedHosts": ["v.bsstudio.hu"]
   },
   "youtube": {
     "oEmbedEndpoint": "https://www.youtube.com/oembed"

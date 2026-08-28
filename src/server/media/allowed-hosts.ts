@@ -1,9 +1,5 @@
-import { getCachedOobConfig } from '#/server/config/load.ts'
+import { DEFAULT_MEDIA_HOSTS } from '#/lib/media-url.ts'
 
 export function allowedMediaHosts(): string[] {
-  try {
-    return getCachedOobConfig().media.allowedHosts
-  } catch {
-    return []
-  }
+  return [...DEFAULT_MEDIA_HOSTS]
 }

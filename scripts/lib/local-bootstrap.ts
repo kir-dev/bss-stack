@@ -428,9 +428,6 @@ export function renderOobConfig(secrets: LocalSecrets): unknown {
         introduction: 'bss_bemutatkozas',
       },
     },
-    media: {
-      allowedHosts: ['v.bsstudio.hu'],
-    },
     youtube: {
       oEmbedEndpoint: 'https://www.youtube.com/oEmbed',
     },

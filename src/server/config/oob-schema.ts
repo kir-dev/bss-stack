@@ -49,9 +49,6 @@ export interface OobConfig {
       introduction: string
     }
   }
-  media: {
-    allowedHosts: string[]
-  }
   youtube: {
     oEmbedEndpoint: string
   }
@@ -99,9 +96,6 @@ export function validateOobConfig(raw: unknown): OobConfig {
   if (!isRecord(raw.authentik)) {
     problems.push('authentik: kötelező szekció hiányzik.')
   }
-  if (!isRecord(raw.media)) {
-    problems.push('media: kötelező szekció hiányzik.')
-  }
   if (!isRecord(raw.youtube)) {
     problems.push('youtube: kötelező szekció hiányzik.')
   }
@@ -114,7 +108,6 @@ export function validateOobConfig(raw: unknown): OobConfig {
   }
 
   const authentik = raw.authentik as Record<string, unknown>
-  const media = raw.media as Record<string, unknown>
   const youtube = raw.youtube as Record<string, unknown>
   const seed = raw.seed as Record<string, unknown>
 
@@ -288,23 +281,6 @@ export function validateOobConfig(raw: unknown): OobConfig {
     requireString(attributes, 'authentik.attributes.introduction', problems)
   }
 
-  if (
-    !Array.isArray(media['allowedHosts']) ||
-    media['allowedHosts'].length === 0
-  ) {
-    problems.push(
-      'media.allowedHosts: kötelező nem üres lista (specifikáció szerint v.bsstudio.hu).',
-    )
-  } else {
-    for (const host of media['allowedHosts']) {
-      if (typeof host !== 'string' || !/^[a-z0-9.-]+$/.test(host)) {
-        problems.push(
-          `media.allowedHosts: érvénytelen hostnév: "${String(host)}".`,
-        )
-      }
-    }
-  }
-
   requireString(youtube, 'youtube.oEmbedEndpoint', problems)
   const oEmbedEndpoint = youtube['oEmbedEndpoint']
   if (typeof oEmbedEndpoint === 'string' && oEmbedEndpoint.trim() !== '') {
@@ -373,9 +349,6 @@ export function validateOobConfig(raw: unknown): OobConfig {
         },
         introduction: attributes['introduction'] as string,
       },
-    },
-    media: {
-      allowedHosts: media['allowedHosts'] as string[],
     },
     youtube: {
       oEmbedEndpoint: youtube['oEmbedEndpoint'] as string,

@@ -1,4 +1,4 @@
-import type { OobConfig } from '#/server/config/oob-schema.ts'
+import type { MediaConfig } from '#/server/media/validator.ts'
 import { checkMediaUrlShape } from '#/server/media/validator.ts'
 import { TEXT_LIMITS } from '#/server/shared/text.ts'
 import { slugify } from '#/server/shared/slug.ts'
@@ -218,7 +218,7 @@ function mediaUrlField(
   key: string,
   path: string,
   kind: 'video' | 'thumbnail',
-  mediaConfig: OobConfig['media'],
+  mediaConfig: MediaConfig,
   problems: string[],
 ): string | null {
   const value = source[key]
@@ -236,7 +236,7 @@ function mediaUrlField(
 function validateEvent(
   raw: unknown,
   index: number,
-  mediaConfig: OobConfig['media'],
+  mediaConfig: MediaConfig,
   problems: string[],
 ): SeedEvent | null {
   const path = `events[${index}]`
@@ -515,7 +515,7 @@ function validateVideo(
  */
 export function validateSeedJson(
   raw: unknown,
-  mediaConfig: OobConfig['media'],
+  mediaConfig: MediaConfig,
 ): SeedFile {
   const problems: string[] = []
 

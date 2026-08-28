@@ -27,9 +27,6 @@ export interface RawOobConfig {
       introduction: string
     }
   }
-  media: {
-    allowedHosts: string[]
-  }
   youtube: {
     oEmbedEndpoint: string
   }
@@ -84,9 +81,6 @@ export function buildRawOobConfig(
         },
         introduction: 'bss_bemutatkozas',
       },
-    },
-    media: {
-      allowedHosts: ['v.bsstudio.hu'],
     },
     youtube: {
       oEmbedEndpoint: 'https://www.youtube.com/oembed',

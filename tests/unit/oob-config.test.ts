@@ -9,7 +9,6 @@ describe('OOB config validáció', () => {
   it('érvényes konfigurációnál típusos objektumot ad', () => {
     const config = validateOobConfig(buildRawOobConfig())
     expect(config.authentik.clientId).toBe('bss-stack-local')
-    expect(config.media.allowedHosts).toEqual(['v.bsstudio.hu'])
     expect(config.authentik.attributes.joinedSemester.rules).toHaveLength(2)
     expect(
       config.authentik.attributes.joinedSemester.rules[0].pattern,
@@ -27,7 +26,6 @@ describe('OOB config validáció', () => {
     } catch (error) {
       const problems = (error as OobConfigError).problems
       expect(problems.some((p) => p.startsWith('authentik:'))).toBe(true)
-      expect(problems.some((p) => p.startsWith('media:'))).toBe(true)
       expect(problems.some((p) => p.startsWith('youtube:'))).toBe(true)
       expect(problems.some((p) => p.startsWith('seed:'))).toBe(true)
     }
@@ -88,10 +86,5 @@ describe('OOB config validáció', () => {
   it('openid scope nélkül hibát dob', () => {
     const raw = buildRawOobConfig({ authentik: { scopes: ['profile'] } })
     expect(() => validateOobConfig(raw)).toThrow(/openid/)
-  })
-
-  it('média host lista nem lehet üres', () => {
-    const raw = buildRawOobConfig({ media: { allowedHosts: [] } })
-    expect(() => validateOobConfig(raw)).toThrow(/allowedHosts/)
   })
 })

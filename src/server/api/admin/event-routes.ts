@@ -1,5 +1,4 @@
 import type { OobConfig } from '#/server/config/oob-schema.ts'
-import { getCachedOobConfig } from '#/server/config/load.ts'
 import type { Database } from '#/server/auth/session-store.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import type { Clock } from '#/lib/clock.ts'
@@ -12,6 +11,7 @@ import {
   publishEvent,
   updateEvent,
 } from '#/server/events/domain.ts'
+import { DEFAULT_MEDIA_CONFIG } from '#/server/media/validator.ts'
 import { jsonResponse, readJsonBody, runAdminHandler } from './http.ts'
 
 const UUID_PATTERN =
@@ -46,7 +46,7 @@ export async function handleAdminEventRoutes(
     const domainDeps = {
       viewer,
       clock: deps.clock ?? systemClock,
-      mediaConfig: deps.config?.media ?? getCachedOobConfig().media,
+      mediaConfig: DEFAULT_MEDIA_CONFIG,
       fetchImpl: deps.fetchImpl,
     }
 

@@ -98,8 +98,7 @@ Szabályok:
 
 - legfeljebb 50 videó (spec 17.1);
 - `email`, `introduction`/`bemutatkozas` mező bármhol tiltott;
-- az esemény-thumbnail URL-je csak `https://` és az OOB config
-  `media.allowedHosts` hostjairól jöhet;
+- az esemény-thumbnail URL-je csak `https://v.bsstudio.hu` hostról jöhet;
 - publikált videónál kötelező az `encodingGroup`, a `baseFilename`, valamint
   legalább az egyik minőségjelző (`hasHq` vagy `hasLq`);
 - publikált eseménynél kötelező `startDate`; `endDate >= startDate`;

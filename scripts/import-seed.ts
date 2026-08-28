@@ -5,6 +5,7 @@ import { Pool } from 'pg'
 import { loadOobConfig } from '#/server/config/load.ts'
 import { importSeed } from '#/server/seed/importer.ts'
 import { SeedValidationError, validateSeedJson } from '#/server/seed/schema.ts'
+import { DEFAULT_MEDIA_CONFIG } from '#/server/media/validator.ts'
 
 /**
  * Seed importer CLI (BSS-034): a OOB config `seed.path` mezőjében rögzített
@@ -37,7 +38,7 @@ async function main(): Promise<void> {
 
   let seed
   try {
-    seed = validateSeedJson(rawSeed, config.media)
+    seed = validateSeedJson(rawSeed, DEFAULT_MEDIA_CONFIG)
   } catch (error) {
     if (error instanceof SeedValidationError) {
       console.error(error.message)

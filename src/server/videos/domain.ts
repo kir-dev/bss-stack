@@ -1,5 +1,5 @@
 import { eq, inArray } from 'drizzle-orm'
-import type { OobConfig } from '#/server/config/oob-schema.ts'
+import type { MediaConfig } from '#/server/media/validator.ts'
 import type { Clock } from '#/lib/clock.ts'
 import { systemClock } from '#/lib/clock.ts'
 import { can } from '#/server/auth/policy.ts'
@@ -50,7 +50,7 @@ const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 export interface VideoDeps {
   viewer: Viewer
   clock?: Clock
-  mediaConfig: OobConfig['media']
+  mediaConfig: MediaConfig
   fetchImpl?: typeof fetch
 }
 
