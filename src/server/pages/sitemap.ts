@@ -1,4 +1,4 @@
-import { and, desc, eq } from 'drizzle-orm'
+import { and, desc, eq, isNull } from 'drizzle-orm'
 import { events, memberCache, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 
@@ -45,19 +45,19 @@ export async function getSitemapEntries(
     })
   }
 
-  // Only successfully synced profiles (same rule as the public list).
+  // Only live profiles (same rule as the public list).
   const memberRows = await executor
     .select({
       username: memberCache.username,
-      lastSeenAt: memberCache.lastSeenAt,
+      updatedAt: memberCache.updatedAt,
     })
     .from(memberCache)
-    .where(eq(memberCache.syncStatus, 'ok'))
+    .where(isNull(memberCache.deletedAt))
 
   for (const row of memberRows) {
     entries.push({
       path: `/members/${row.username}`,
-      lastmod: row.lastSeenAt.toISOString(),
+      lastmod: row.updatedAt.toISOString(),
     })
   }
 

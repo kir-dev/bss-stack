@@ -8,3 +8,5 @@ dist
 .tanstack
 node_modules
 **/._*
+
+docs/api/members-webhook.openapi.yaml

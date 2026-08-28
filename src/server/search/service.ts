@@ -213,7 +213,7 @@ async function searchMembersRaw(
         case when coalesce(bss_norm(m.introduction), '') like '%' || bss_norm(${query}) || '%' then 20 else 0 end
       ) as score
     from member_cache m
-    where m.sync_status = 'ok'
+    where m.deleted_at is null
       and (
         bss_norm(m.full_name) like '%' || bss_norm(${query}) || '%'
         or bss_norm(coalesce(m.nickname, '')) like '%' || bss_norm(${query}) || '%'

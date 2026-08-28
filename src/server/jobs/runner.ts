@@ -1,18 +1,11 @@
-import { desc } from 'drizzle-orm'
 import type { Clock } from '#/lib/clock.ts'
 import { systemClock } from '#/lib/clock.ts'
-import { memberSyncRuns } from '#/db/schema.ts'
 import type { Database } from '#/server/auth/session-store.ts'
-import { getDefaultDb } from '#/server/auth/session-store.ts'
-import { requireLeadership } from '#/server/auth/guards.ts'
 import type { LockManager } from './locks.ts'
-import type { Viewer } from '#/server/auth/viewer.ts'
-import type { MemberSyncDeps, SyncTrigger } from '#/server/members/sync.ts'
-import { runMemberSync } from '#/server/members/sync.ts'
 
 export interface JobContext {
   clock: Clock
-  trigger: SyncTrigger | 'tick'
+  trigger: 'startup' | 'tick'
 }
 
 export interface JobDefinition {
@@ -83,7 +76,9 @@ export function dueJobs(registry: JobRegistry, now: Date): JobDefinition[] {
   })
 }
 
-export interface RunnerDeps extends MemberSyncDeps {
+export interface RunnerDeps {
+  db?: Database
+  clock?: Clock
   lockManager?: LockManager
 }
 
@@ -146,26 +141,6 @@ export async function runJobWithLock(
   }
 }
 
-/** Default jobs: startup + hourly Authentik Tagcache sync. */
-export function createDefaultSyncJobs(deps: RunnerDeps): JobDefinition[] {
-  const syncOnce = async (trigger: SyncTrigger) => {
-    await runMemberSync(trigger, deps)
-  }
-  return [
-    {
-      name: 'member-sync-startup',
-      intervalMs: 'startup',
-      run: () => syncOnce('startup'),
-    },
-    {
-      name: 'member-sync-hourly',
-
-      intervalMs: 60 * 60 * 1000,
-      run: () => syncOnce('hourly'),
-    },
-  ]
-}
-
 export interface BackgroundRunnerHandle {
   registry: JobRegistry
   tickNow: () => Promise<JobRunRecord[]>
@@ -182,7 +157,7 @@ export function startBackgroundRunner(
   extraJobs: JobDefinition[] = [],
 ): BackgroundRunnerHandle {
   const registry = new JobRegistry()
-  for (const job of [...createDefaultSyncJobs(deps), ...extraJobs]) {
+  for (const job of extraJobs) {
     registry.register(job)
   }
 
@@ -231,32 +206,4 @@ export function startBackgroundRunner(
     .finally(scheduleNextTick)
 
   return handle
-}
-
-/**
- * Leadership error band: the status of the most recent sync runs from the
- * persistent member_sync_runs table. Only leadership can request it.
- */
-export async function getRecentSyncAlerts(
-  viewer: Viewer,
-  options: { db?: Database; limit?: number } = {},
-): Promise<
-  Array<{
-    id: number
-    trigger: string
-    status: string
-    startedAt: Date
-    totalCount: number
-    changedCount: number
-    errorCount: number
-    message: string | null
-  }>
-> {
-  requireLeadership(viewer)
-  const database = options.db ?? (await getDefaultDb())
-  return database
-    .select()
-    .from(memberSyncRuns)
-    .orderBy(desc(memberSyncRuns.id))
-    .limit(options.limit ?? 10)
 }

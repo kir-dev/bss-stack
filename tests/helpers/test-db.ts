@@ -73,6 +73,16 @@ export async function applyDrizzleMigrations(executor: {
   }
 }
 
+/**
+ * Test databases are used one query at a time, so a large pool only ties up
+ * server slots. Keeping it small lets the whole suite run next to a dev server
+ * without hitting PostgreSQL's `max_connections`.
+ */
+const TEST_POOL_LIMITS = {
+  max: 3,
+  idleTimeoutMillis: 1_000,
+} as const
+
 export interface MigratedTestDatabase {
   database: TestDatabase
   pool: Pool
@@ -84,7 +94,10 @@ export async function createMigratedTestDatabase(
   prefix = 'bss_it',
 ): Promise<MigratedTestDatabase> {
   const database = await createTestDatabase(prefix)
-  const pool = new Pool({ connectionString: database.connectionString })
+  const pool = new Pool({
+    connectionString: database.connectionString,
+    ...TEST_POOL_LIMITS,
+  })
   // A `DROP DATABASE ... WITH (FORCE)` lecsatolhatja a még élő backendet;
   // az ilyenkor érkező connection-hibát elnyeljük (a teszt ekkor már kész volt).
   pool.on('error', () => {})

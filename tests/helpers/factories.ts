@@ -125,9 +125,8 @@ export interface MemberFixture {
   isLeadership: boolean
   joinedYear: number | null
   joinedSemester: 'spring' | 'autumn' | null
-  joinedSemesterRaw: string | null
   introduction: string | null
-  lastSeenAt: Date
+  deletedAt: Date | null
 }
 
 export function buildMember(
@@ -144,9 +143,8 @@ export function buildMember(
     isLeadership: overrides.isLeadership ?? false,
     joinedYear: overrides.joinedYear ?? 2023,
     joinedSemester: overrides.joinedSemester ?? 'autumn',
-    joinedSemesterRaw: overrides.joinedSemesterRaw ?? '2023 ősz',
     introduction: overrides.introduction ?? null,
-    lastSeenAt: new Date('2026-06-01T10:00:00.000Z'),
+    deletedAt: overrides.deletedAt ?? null,
     ...overrides,
   }
 }

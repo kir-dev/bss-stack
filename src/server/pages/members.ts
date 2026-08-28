@@ -1,5 +1,6 @@
-import { and, asc, eq, sql } from 'drizzle-orm'
+import { and, asc, eq, isNull, sql } from 'drizzle-orm'
 import type { Viewer } from '#/server/auth/viewer.ts'
+import { formatAcademicSemester } from '#/server/members/member-fields.ts'
 import { memberCache, staffRoles, videoStaff, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 import type { membershipStatusEnum } from '#/db/schema.ts'
@@ -19,15 +20,7 @@ export const MEMBERSHIP_STATUS_LABELS: Record<MembershipStatus, string> = {
   contributor: 'Dolgozott még velünk',
 }
 
-export function semesterLabel(
-  year: number | null,
-  semester: 'spring' | 'autumn' | null,
-): string | null {
-  if (year === null || semester === null) {
-    return null
-  }
-  return `${year} ${semester === 'autumn' ? 'ősz' : 'tavasz'}`
-}
+export { formatAcademicSemester }
 
 export interface PublicMemberCard {
   sub: string
@@ -59,7 +52,7 @@ export async function getActiveMemberBlocks(
       status: memberCache.membershipStatus,
     })
     .from(memberCache)
-    .where(eq(memberCache.syncStatus, 'ok'))
+    .where(isNull(memberCache.deletedAt))
     .orderBy(asc(memberCache.fullName), asc(memberCache.sub))
 
   const toCard = (row: (typeof rows)[number]): PublicMemberCard => ({
@@ -116,7 +109,7 @@ export async function getMemberArchivePage(
       : 1
 
   const condition = and(
-    eq(memberCache.syncStatus, 'ok'),
+    isNull(memberCache.deletedAt),
     eq(memberCache.membershipStatus, status),
   )
   const [rows, countRows] = await Promise.all([
@@ -169,7 +162,7 @@ export async function getMemberProfile(
     .select()
     .from(memberCache)
     .where(
-      and(eq(memberCache.username, username), eq(memberCache.syncStatus, 'ok')),
+      and(eq(memberCache.username, username), isNull(memberCache.deletedAt)),
     )
     .limit(1)
   const member = rows.at(0)
@@ -184,7 +177,10 @@ export async function getMemberProfile(
     avatarUrl: member.avatarUrl,
     statusLabel: MEMBERSHIP_STATUS_LABELS[member.membershipStatus],
     isLeadership: member.isLeadership,
-    joinedSemester: semesterLabel(member.joinedYear, member.joinedSemester),
+    joinedSemester: formatAcademicSemester(
+      member.joinedYear,
+      member.joinedSemester,
+    ),
     introduction: member.introduction,
   }
 }

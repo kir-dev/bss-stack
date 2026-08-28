@@ -15,8 +15,8 @@ import { getDefaultDb } from '#/server/auth/session-store.ts'
 
 const ssrHandler = createStartHandler(defaultStreamHandler)
 
-// Background jobs (startup + hourly sync) start only once.
-// On error the application keeps running; the error goes into the runs table.
+// The background job runner starts only once. On error the application keeps
+// running; the failure is logged and the next tick tries again.
 let runnerHandle: BackgroundRunnerHandle | null = null
 
 function ensureBackgroundRunner(): void {

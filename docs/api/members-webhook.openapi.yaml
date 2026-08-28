@@ -1,0 +1,347 @@
+# Generated file — do not edit by hand.
+# Source: src/server/api/openapi.ts (pnpm openapi:generate)
+openapi: "3.1.0"
+info:
+  title: "BSS member update webhook"
+  version: "1.0.0"
+  description: "This file is generated — do not edit by hand. Regenerate with `pnpm openapi:generate`."
+servers:
+- url: "https://bss.kir-dev.hu"
+  description: "Lois"
+tags:
+- name: "members"
+  description: "Member registry push"
+paths:
+  "/api/webhooks/members":
+    post:
+      tags:
+      - "members"
+      operationId: "pushMembers"
+      summary: "Push member data"
+      description: |-
+        A single request may carry any number of operations; they all run in
+        one transaction, so either every one of them takes effect or none does.
+        The same `sub` may appear only once per request.
+
+        `delete` is a soft delete: the member disappears from the public
+        surfaces, but their row and the roles recorded in credit lists are kept,
+        and a later `upsert` restores them.
+      security:
+      - webhookBearer: []
+      parameters:
+      - name: "x-bss-delivery-id"
+        in: "header"
+        required: false
+        description: |-
+          Idempotency key. When supplied, the same request never runs twice:
+          the repeat gets a `200` with `duplicate: true`. A rejected push does
+          not consume the identifier, so after a fix it can be retried with the
+          same one. The `Idempotency-Key` header works as well.
+        schema:
+          type: "string"
+          maxLength: 200
+        example: "2026-08-28T10:00:00Z-1"
+      requestBody:
+        required: true
+        description: "At most 5242880 bytes."
+        content:
+          application/json:
+            schema:
+              oneOf:
+              - "$ref": "#/components/schemas/OperationsPayload"
+              - "$ref": "#/components/schemas/ReplacePayload"
+            examples:
+              operations:
+                summary: "Operations (create and delete in one request)"
+                value:
+                  operations:
+                  - op: "upsert"
+                    member:
+                      sub: "42"
+                      username: "gipsz.jakab"
+                      fullName: "Gipsz Jakab"
+                      nickname: "Pitypang"
+                      avatarUrl: null
+                      membershipStatus: "studio_member"
+                      isLeadership: false
+                      joinedSemester: "2021/2022/1"
+                  - op: "delete"
+                    sub: "57"
+              replace:
+                summary: "Full roster replacement"
+                value:
+                  mode: "replace"
+                  members:
+                  - sub: "42"
+                    username: "gipsz.jakab"
+                    fullName: "Gipsz Jakab"
+                    nickname: "Pitypang"
+                    avatarUrl: null
+                    membershipStatus: "studio_member"
+                    isLeadership: false
+                    joinedSemester: "2021/2022/1"
+      responses:
+        "200":
+          description: "Processed, or a repeat."
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/PushResponse"
+        "400":
+          description: "Invalid request body. The `problems` array lists every error."
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        "401":
+          description: "Missing, unknown or revoked token, or one with a wrong secret."
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        "405":
+          description: "Only POST requests are accepted."
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        "409":
+          description: "One of the supplied usernames already belongs to another member."
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        "413":
+          description: "The request body exceeds 5242880 bytes."
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+        "500":
+          description: "Saving the member update failed."
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Error"
+components:
+  securitySchemes:
+    webhookBearer:
+      type: "http"
+      scheme: "bearer"
+      description: |-
+        The token of a webhook client issued by a leadership member, in
+        `<client-id>.<secret>` form. The secret is shown only at creation and
+        on secret rotation; the application stores a scrypt hash.
+  schemas:
+    Member:
+      type: "object"
+      description: "Unknown fields are ignored rather than rejected. `introduction` is not part of the contract for now: a push never overwrites the bio stored in the database."
+      required:
+      - "sub"
+      - "username"
+      - "fullName"
+      - "membershipStatus"
+      properties:
+        sub:
+          type: "string"
+          maxLength: 255
+          description: "The value of the Authentik OIDC `sub` claim. This is what ties the member to their login, to the credit lists and to editorial data."
+          examples:
+          - "42"
+        username:
+          type: "string"
+          maxLength: 200
+          description: "Unique username; also the last path segment of the public profile URL."
+          examples:
+          - "gipsz.jakab"
+        fullName:
+          type: "string"
+          maxLength: 200
+          description: "The member's full name as shown on the public pages."
+          examples:
+          - "Gipsz Jakab"
+        nickname:
+          type:
+          - "string"
+          - "null"
+          maxLength: 200
+          description: "Nickname; shown in parentheses next to the name."
+          examples:
+          - "Pitypang"
+        avatarUrl:
+          type:
+          - "string"
+          - "null"
+          maxLength: 2048
+          pattern: "^https?://"
+          description: "Profile picture URL (http or https)."
+        membershipStatus:
+          type: "string"
+          enum:
+          - "studio_member"
+          - "studio_candidate"
+          - "studio_applicant"
+          - "senior_active"
+          - "senior_archived"
+          - "contributor"
+          description: "Membership status. It decides which public list the member appears on; it grants NO permissions."
+          examples:
+          - "studio_member"
+        isLeadership:
+          type: "boolean"
+          default: false
+          description: "Only controls whether the member is shown in the public leadership block. Actual permissions come from Authentik group membership."
+          examples:
+          - false
+        joinedSemester:
+          type:
+          - "string"
+          - "null"
+          pattern: "^(\\d{4})/(\\d{4})/([12])$"
+          description: "The semester of joining, in `YYYY/YYYY/N` form: the second year is the one following the first, and `N` is 1 (autumn) or 2 (spring)."
+          examples:
+          - "2021/2022/1"
+      examples:
+      - sub: "42"
+        username: "gipsz.jakab"
+        fullName: "Gipsz Jakab"
+        nickname: "Pitypang"
+        avatarUrl: null
+        membershipStatus: "studio_member"
+        isLeadership: false
+        joinedSemester: "2021/2022/1"
+    UpsertOperation:
+      type: "object"
+      required:
+      - "op"
+      - "member"
+      properties:
+        op:
+          type: "string"
+          const: "upsert"
+        member:
+          "$ref": "#/components/schemas/Member"
+    DeleteOperation:
+      type: "object"
+      required:
+      - "op"
+      - "sub"
+      properties:
+        op:
+          type: "string"
+          const: "delete"
+        sub:
+          type: "string"
+          maxLength: 255
+          description: "The `sub` of the member to delete. An unknown `sub` is not an error, it is simply ignored."
+    OperationsPayload:
+      type: "object"
+      required:
+      - "operations"
+      description: "A list of targeted operations."
+      properties:
+        mode:
+          type: "string"
+          const: "operations"
+          default: "operations"
+        operations:
+          type: "array"
+          minItems: 1
+          items:
+            oneOf:
+            - "$ref": "#/components/schemas/UpsertOperation"
+            - "$ref": "#/components/schemas/DeleteOperation"
+    ReplacePayload:
+      type: "object"
+      required:
+      - "mode"
+      - "members"
+      description: |-
+        The full member roster. Anything left out of the list gets deleted —
+        a faulty client can empty the entire roster this way.
+      properties:
+        mode:
+          type: "string"
+          const: "replace"
+        members:
+          type: "array"
+          items:
+            "$ref": "#/components/schemas/Member"
+    IngestResult:
+      type: "object"
+      required:
+      - "mode"
+      - "operationCount"
+      - "created"
+      - "updated"
+      - "deleted"
+      - "restored"
+      - "unchanged"
+      - "ignored"
+      properties:
+        mode:
+          type: "string"
+          enum:
+          - "operations"
+          - "replace"
+        operationCount:
+          type: "integer"
+        created:
+          type: "integer"
+        updated:
+          type: "integer"
+        deleted:
+          type: "integer"
+          description: "Soft-deleted members."
+        restored:
+          type: "integer"
+          description: "Members previously deleted and now restored."
+        unchanged:
+          type: "integer"
+          description: "Unchanged members; no audit row is written for these."
+        ignored:
+          type: "integer"
+          description: "Deletes targeting an unknown `sub`."
+    PushResponse:
+      type: "object"
+      required:
+      - "ok"
+      - "duplicate"
+      properties:
+        ok:
+          type: "boolean"
+          const: true
+        duplicate:
+          type: "boolean"
+          description: "True when this delivery identifier has already been processed; `result` is then absent."
+        deliveryId:
+          type:
+          - "string"
+          - "null"
+        result:
+          "$ref": "#/components/schemas/IngestResult"
+        message:
+          type: "string"
+    Error:
+      type: "object"
+      required:
+      - "error"
+      - "message"
+      properties:
+        error:
+          type: "string"
+          enum:
+          - "validation"
+          - "bad_request"
+          - "unauthorized"
+          - "method_not_allowed"
+          - "conflict"
+          - "payload_too_large"
+          - "internal"
+        message:
+          type: "string"
+        problems:
+          type: "array"
+          items:
+            type: "string"
+          description: "On a validation error, every problem in the body at once."

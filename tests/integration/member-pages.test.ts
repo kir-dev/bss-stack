@@ -50,7 +50,7 @@ async function seedMember(
 }
 
 describe.skipIf(!hasTestDatabase)('BSS-023: aktív tagoldal blokkjai', () => {
-  it('vezetőség csak a Vezetőség blokkban; ismeretlen szinkronú profil nem publikus', async () => {
+  it('vezetőség csak a Vezetőség blokkban; törölt profil nem publikus', async () => {
     const db = await setupDb()
     await seedMember(db, {
       sub: 'lead',
@@ -66,10 +66,10 @@ describe.skipIf(!hasTestDatabase)('BSS-023: aktív tagoldal blokkjai', () => {
     })
     await seedMember(db, {
       sub: 'm2',
-      username: 'hibas',
-      fullName: 'Hibás Henriett',
+      username: 'torolt',
+      fullName: 'Törölt Henriett',
       membershipStatus: 'studio_member',
-      syncStatus: 'error',
+      deletedAt: new Date('2026-07-01T00:00:00Z'),
     })
     await seedMember(db, {
       sub: 'm3',
@@ -120,10 +120,10 @@ describe.skipIf(!hasTestDatabase)('BSS-023: archív aloldalak', () => {
     })
     await seedMember(db, {
       sub: 'contr-2',
-      username: 'kozmukodo-hibas',
-      fullName: 'Hibás Közreműködő',
+      username: 'kozmukodo-torolt',
+      fullName: 'Törölt Közreműködő',
       membershipStatus: 'contributor',
-      syncStatus: 'error',
+      deletedAt: new Date('2026-07-01T00:00:00Z'),
     })
 
     const archived = await getMemberArchivePage(db, 'archived')
@@ -138,7 +138,7 @@ describe.skipIf(!hasTestDatabase)('BSS-023: archív aloldalak', () => {
 })
 
 describe.skipIf(!hasTestDatabase)('BSS-023: tagprofil', () => {
-  it('profiladatok; hibás szinkronnál nincs publikus profil', async () => {
+  it('profiladatok; törölt tagnak nincs publikus profil', async () => {
     const db = await setupDb()
     await seedMember(db, {
       sub: 'prof-1',
@@ -148,13 +148,12 @@ describe.skipIf(!hasTestDatabase)('BSS-023: tagprofil', () => {
       introduction: 'Szia, Profi vagyok.',
       joinedYear: 2023,
       joinedSemester: 'autumn',
-      joinedSemesterRaw: '2023 ősz',
     })
     await seedMember(db, {
       sub: 'prof-2',
       username: 'rejtett',
       fullName: 'Rejtett Gábor',
-      syncStatus: 'error',
+      deletedAt: new Date('2026-07-01T00:00:00Z'),
     })
 
     const profile = await getMemberProfile(db, 'profilos')
@@ -162,7 +161,7 @@ describe.skipIf(!hasTestDatabase)('BSS-023: tagprofil', () => {
       fullName: 'Profil Ferenc',
       nickname: 'Profi',
       statusLabel: 'Stúdiós',
-      joinedSemester: '2023 ősz',
+      joinedSemester: '2023/2024/1',
       introduction: 'Szia, Profi vagyok.',
     })
     // Email és mobil mező a sémában sincs; a válasz kulcsai ezt tükrözik.

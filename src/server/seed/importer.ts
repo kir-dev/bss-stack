@@ -71,9 +71,9 @@ async function resolveMemberSubs(
   const missing = unique.filter((username) => !map.has(username))
   if (missing.length > 0) {
     throw new SeedImportError([
-      `A következő stábtag-felhasználók nem találhatók a tagcache-ben: ${missing.join(', ')}. ` +
+      `A következő stábtag-felhasználók nem találhatók a tagok között: ${missing.join(', ')}. ` +
         'A seed stáblistája a lokális Authentik bootstrap tesztprofiljaira mutat; ' +
-        'futtasd le a tagcache-szinkront (alkalmazásindítás vagy kézi szinkron az /admin/members oldalon), mielőtt a seedet betöltöd.',
+        'küldd be előbb a tagokat a tagfrissítő webhookon (POST /api/webhooks/members, lásd docs/member-webhook.md), mielőtt a seedet betöltöd.',
     ])
   }
   return map

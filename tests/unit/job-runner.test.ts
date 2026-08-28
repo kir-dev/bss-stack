@@ -195,18 +195,13 @@ describe.skipIf(!hasTestDatabase)('BSS-010: PostgreSQL advisory lock', () => {
   })
 })
 
-describe('BSS-010: alapértelmezett szinkronfeladatok regisztrációja', () => {
-  it('a runner startup és óránkénti sync feladatot regisztrál', () => {
+describe('BSS-010: háttérfeladatok regisztrációja', () => {
+  it('alapértelmezetten egyetlen feladat sincs regisztrálva', () => {
     const handle = startBackgroundRunner({
-      loadConfig: () => {
-        throw new Error('nem hívható éles config nélkül tesztben')
-      },
       lockManager: createPermissiveLockManager(),
     })
     try {
-      const names = handle.registry.list().map((job) => job.name)
-      expect(names).toContain('member-sync-startup')
-      expect(names).toContain('member-sync-hourly')
+      expect(handle.registry.list()).toHaveLength(0)
     } finally {
       handle.stop()
     }

@@ -230,7 +230,7 @@ describe.skipIf(!hasTestDatabase)('BSS-034: idempotens seed importer', () => {
     expect(auditCount).toBe(2)
   })
 
-  it('a stábkapcsolat a tagcache-beli Authentik sub-hoz kötődik', async () => {
+  it('a stábkapcsolat a tag Authentik sub-jához kötődik', async () => {
     const db = await setupDb()
     const sub = await seedMember(db, 'tag-dev-seed')
     await importSeed(db, { seed: validateSeedJson(baseSeed(), config.media) })
@@ -267,6 +267,6 @@ describe.skipIf(!hasTestDatabase)('BSS-034: idempotens seed importer', () => {
     const db = await setupDb()
     await expect(() =>
       importSeed(db, { seed: validateSeedJson(baseSeed(), config.media) }),
-    ).rejects.toThrow(/nem találhatók a tagcache-ben[\s\S]*tag-dev-seed/)
+    ).rejects.toThrow(/nem találhatók a tagok között[\s\S]*tag-dev-seed/)
   })
 })

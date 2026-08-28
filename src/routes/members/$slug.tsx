@@ -15,6 +15,7 @@ import { resolveViewerStateFromRequest } from '#/server/pages/viewer.ts'
 import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import { formatCalendarDateHu } from '#/lib/format-date.ts'
+import { formatAcademicSemesterHu } from '#/lib/academic-semester.ts'
 
 const loadMemberProfile = createServerFn({ method: 'GET' })
   .validator((slug: string) => slug)
@@ -200,7 +201,7 @@ function MemberProfilePage() {
                 Csatlakozás féléve:{' '}
               </span>
               <span className="text-(--members-data)">
-                {profile.joinedSemester}
+                {formatAcademicSemesterHu(profile.joinedSemester)}
               </span>
             </p>
           )}
