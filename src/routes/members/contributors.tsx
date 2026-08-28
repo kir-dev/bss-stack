@@ -1,14 +1,12 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
 import { loadArchiveMembersServer } from '#/server/pages/member-archive-fn.ts'
+import { parseSearchPage } from '#/server/shared/pagination.ts'
 import { EmptyState } from '#/components/PageStates.tsx'
 
 export const Route = createFileRoute('/members/contributors')({
   validateSearch: (search: Record<string, unknown>) => ({
-    page:
-      typeof search['page'] === 'string' && search['page'] !== ''
-        ? Number(search['page'])
-        : undefined,
+    page: parseSearchPage(search['page']),
   }),
   loaderDeps: ({ search }) => ({ page: search.page }),
   loader: ({ deps, context }) =>
