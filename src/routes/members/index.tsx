@@ -125,7 +125,7 @@ export function MemberBlock({
             className="hover-lift flex w-[178px] flex-col items-center border border-(--card-border) bg-(--members-card-bg) p-3 text-center shadow-[0_2px_2px_rgba(0,0,0,0.2)]"
           >
             <img
-              src={member.avatarUrl ?? '/default-avatar.jpg'}
+              src={member.avatarUrl ?? '/default-avatar.png'}
               alt={member.fullName}
               className="h-[178px] w-[178px] overflow-hidden object-cover"
             />

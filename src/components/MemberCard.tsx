@@ -7,7 +7,7 @@ export default function MemberCard() {
     >
       <img
         className={'max-h-[178px] max-w-[178px] overflow-hidden'}
-        src={'/default-avatar.jpg'}
+        src={'/default-avatar.png'}
         alt={'Member Name'}
       />
       <p className={'text-lg font-bold text-(--bss-text-secondary)'}>
