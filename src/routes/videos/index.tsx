@@ -15,6 +15,7 @@ import { resolveViewerStateFromRequest } from '#/server/pages/viewer.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import { EmptyState, ThumbnailGridSkeleton } from '#/components/PageStates.tsx'
 import Thumbnail from '#/components/Thumbnail.tsx'
+import { getPaginationItems } from '#/lib/pagination.ts'
 import {
   AdminSearchSelect,
   FILTER_LABEL_CLASS,
@@ -406,7 +407,7 @@ function Pagination({
   if (totalPages <= 1) {
     return null
   }
-  const pages = Array.from({ length: totalPages }, (_, index) => index + 1)
+  const items = getPaginationItems(page, totalPages)
   return (
     <nav aria-label="Videólapozás" className="mt-8 flex justify-center gap-1">
       <button
@@ -418,17 +419,27 @@ function Pagination({
       >
         ‹
       </button>
-      {pages.map((value) => (
-        <button
-          key={value}
-          type="button"
-          onClick={() => onPage(value)}
-          aria-current={value === page ? 'page' : undefined}
-          className={`ctrl-btn h-10 w-10 rounded ${value === page ? 'font-bold text-(--orange)' : 'text-(--bss-text-secondary)'}`}
-        >
-          {value}
-        </button>
-      ))}
+      {items.map((item, index) =>
+        item === 'ellipsis' ? (
+          <span
+            key={`ellipsis-${index}`}
+            aria-hidden="true"
+            className="h-10 w-6 text-center leading-10 text-(--bss-text-secondary)"
+          >
+            …
+          </span>
+        ) : (
+          <button
+            key={item}
+            type="button"
+            onClick={() => onPage(item)}
+            aria-current={item === page ? 'page' : undefined}
+            className={`ctrl-btn h-10 w-10 rounded ${item === page ? 'font-bold text-(--orange)' : 'text-(--bss-text-secondary)'}`}
+          >
+            {item}
+          </button>
+        ),
+      )}
       <button
         type="button"
         disabled={page === totalPages}
