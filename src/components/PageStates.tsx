@@ -1,10 +1,5 @@
 import { Link } from '@tanstack/react-router'
 
-/**
- * Shared page states with Hungarian copy (BSS-019): distinct loading, empty,
- * and error states for every list and view (spec 18).
- */
-
 export function LoadingState({ label = 'Betöltés…' }: { label?: string }) {
   return (
     <div className="flex justify-center py-[6dvh] text-(--bss-text-secondary)">

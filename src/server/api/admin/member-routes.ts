@@ -13,10 +13,6 @@ export interface AdminMemberRouteDeps {
   loadConfig?: () => OobConfig
 }
 
-/**
- * Manual member sync (BSS-032): can only be triggered by leadership; the
- * sync runs on the BSS-008 service, is audited and records its status.
- */
 export async function handleAdminMemberSyncRoute(
   request: Request,
   deps: AdminMemberRouteDeps = {},

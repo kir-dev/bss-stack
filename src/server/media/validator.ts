@@ -19,7 +19,6 @@ function parseUrl(rawUrl: string): URL | null {
   }
 }
 
-/** Host allowlist (spec 5.4): only configured media hosts are allowed. */
 export function isAllowedMediaHost(
   rawUrl: string,
   config: OobConfig['media'],
@@ -114,13 +113,6 @@ function contentTypeProblem(
   return null
 }
 
-/**
- * Full media check before publishing (spec 5.4):
- * - HEAD request; a 200 response without redirects is accepted;
- * - video requires a video/mp4, image an image/* content-type;
- * - on 405 or 501 a one-byte Range GET fallback check runs;
- * - the file content is never downloaded, only the headers are read.
- */
 export async function validateMediaForPublish(params: {
   url: string
   kind: MediaKind

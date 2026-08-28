@@ -3,10 +3,6 @@ import { createServerFn } from '@tanstack/react-start'
 import { getAboutPageVideos } from '#/server/homepage/about.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 
-/**
- * About page text (spec 10.1): versioned plain text content;
- * changing it requires a code change.
- */
 const ABOUT_TEXT_VERSION = 1
 
 const ABOUT_TEXT = `A Budavári Schönherz Studió a BME Schönherz Kollázium öntevékeny köre.

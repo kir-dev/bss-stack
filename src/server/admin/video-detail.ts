@@ -35,11 +35,6 @@ export interface AdminVideoDetail {
   relatedVideoIds: string[]
 }
 
-/**
- * Load data for the video editor (BSS-028). Only admins may call it —
- * the route guard verifies at least membership; the domain operations
- * re-verify on every save.
- */
 export async function getAdminVideoDetail(
   executor: Executor,
   videoId: string,
@@ -108,7 +103,7 @@ export interface AdminVideoEditorOptions {
   tags: Array<{ id: string; name: string }>
   staffRoles: Array<{ id: string; name: string }>
   members: Array<{ sub: string; fullName: string }>
-  /** Only published videos can be selected as related (spec 5.6), and not itself. */
+
   candidateRelated: Array<{ id: string; title: string }>
 }
 

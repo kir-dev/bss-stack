@@ -3,15 +3,6 @@ import type { SQL } from 'drizzle-orm'
 import type { Viewer } from '#/server/auth/viewer.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 
-/**
- * Global search (spec 11): video, event, member and tag hits.
- * - There is NO search over used songs.
- * - Authorization filtering happens in the SQL: neither a forbidden video's
- *   metadata nor its hit count may leak out.
- * - Case-, accent- and typo-tolerant (`bss_norm` + pg_trgm).
- * - An empty search or one shorter than two characters does not query the database.
- */
-
 export const MIN_QUERY_LENGTH = 2
 const TRIGRAM_THRESHOLD = 0.3
 
@@ -94,7 +85,7 @@ export async function search(
 }
 
 // ---------------------------------------------------------------------------
-// Weighting (spec 11.2):
+
 // 100-point exact match > 80 prefix > 70/55 tags > 50 trigram >
 // 40 event title > 30 guests/staff > 20 description/introduction
 // ---------------------------------------------------------------------------

@@ -3,11 +3,6 @@ import { aboutPageVideos, liveStreams, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 import { getHighlightedVideoId } from '#/server/homepage/highlight.ts'
 
-/**
- * Load data for the Live and highlight admin pages (BSS-031). Only
- * leadership may call it — both the route guard and the API endpoints verify this.
- */
-
 export interface HomepageAdminData {
   highlight: {
     videoId: string | null

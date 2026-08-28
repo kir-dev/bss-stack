@@ -1,4 +1,3 @@
-/** Hungarian labels for admin statuses and visibilities (spec 4.1). */
 import { Eye, EyeOff, Lock } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 

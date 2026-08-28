@@ -2,11 +2,6 @@ import { and, desc, eq } from 'drizzle-orm'
 import { events, memberCache, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 
-/**
- * Sitemap (BSS-035, spec 16): only public content goes into it.
- * Restricted (schonherz/bss) or unpublished videos never.
- */
-
 export interface SitemapEntry {
   path: string
   lastmod: string | null
@@ -23,7 +18,7 @@ export async function getSitemapEntries(
   }))
 
   // Only published videos AND with public visibility (even a restricted video's
-  // metadata must not leak into the sitemap, spec 16/14).
+
   const videoRows = await executor
     .select({ slug: videos.slug, updatedAt: videos.updatedAt })
     .from(videos)

@@ -12,10 +12,6 @@ export class EntityNotFoundError extends Error {
   }
 }
 
-/**
- * Blocking stale writes (spec 12.4): if someone else modified the record,
- * the second save gets a conflict. There is no silent "last write wins".
- */
 export class StaleWriteError extends Error {
   constructor(entityType: string) {
     super(

@@ -47,11 +47,6 @@ function parseStringArray(value: unknown): string[] {
   return value.filter((item): item is string => typeof item === 'string')
 }
 
-/**
- * Video admin operations (BSS-028). Every endpoint requires at least
- * membership; restoring is a leadership privilege (spec 3.2) — the domain
- * layer re-verifies that as well.
- */
 export async function handleAdminVideoRoutes(
   request: Request,
   action: string,
@@ -59,7 +54,7 @@ export async function handleAdminVideoRoutes(
   deps: AdminVideoRouteDeps = {},
 ): Promise<Response> {
   return runAdminHandler(request, deps, async (viewer) => {
-    // Server-side permission check on every request (spec 14):
+
     // anonymous → 401 with login URL, authenticated unauthorized → 403.
     requireAdmin(viewer, new URL(request.url).pathname)
     const db = deps.db ?? (await getDefaultDb())

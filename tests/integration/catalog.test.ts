@@ -124,7 +124,7 @@ describe.skipIf(!hasTestDatabase)('BSS-012: címkék', () => {
       createTag(db, { viewer: memberViewer }, 'új címke'),
     ).rejects.toBeInstanceOf(ForbiddenError)
     const existing = await createTag(db, { viewer: leaderViewer }, 'stúdió')
-    // hozzárendelés (meglévő címke videóhoz) tagjog — ezt BSS-014 építi erre az alaptermre
+
     const video = await seedVideoWithEvent(db, 'hozzarendeles-video')
     await db.insert(videoTags).values({ videoId: video.id, tagId: existing.id })
     const links = await db.select().from(videoTags)

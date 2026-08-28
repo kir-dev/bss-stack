@@ -5,12 +5,6 @@ import { useCallback, useState } from 'react'
 /** Every thumbnail is 16:9; a missing image also reserves that space. */
 export const THUMBNAIL_FALLBACK_SRC = '/video-thumbnail.png'
 
-/**
- * Thumbnail with a fixed 16:9 frame (BSS-019 UI): the frame reserves the
- * space even before the image arrives, so the grid doesn't jump during
- * loading. Until the image is ready, the frame flashes as a skeleton; the
- * image then fades in.
- */
 export default function Thumbnail({
   src,
   alt,

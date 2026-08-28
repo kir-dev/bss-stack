@@ -108,10 +108,6 @@ export async function createStaffRole(
   })
 }
 
-/**
- * Rename: the role's identifier stays unchanged, so existing
- * staff links cannot be lost (spec BSS-012).
- */
 export async function renameStaffRole(
   executor: Executor,
   deps: CatalogDeps,

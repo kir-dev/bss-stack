@@ -24,7 +24,7 @@ function NewVideoPage() {
     setProblems([])
     setErrorMessage(null)
     setLoginUrl(null)
-    // A draft only needs a title (spec 5.3); a broken media URL can also be saved.
+
     const result = await postJson<{ id: string }>('/api/admin/videos', {
       title,
     })

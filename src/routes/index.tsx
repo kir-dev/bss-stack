@@ -34,7 +34,7 @@ export const Route = createFileRoute('/')({
 })
 
 function HomePage() {
-  // Per-minute check (spec 9.3): the homepage switches without a reload.
+
   const homeQuery = useQuery({
     queryKey: ['homepage'],
     queryFn: loadHomepage,
@@ -229,10 +229,6 @@ function HomepageSkeleton() {
   )
 }
 
-/**
- * In live and highlighted mode five recent public videos appear next to the
- * hero, in normal mode six; the hero must not repeat (spec 9.1).
- */
 function sideList(state: HomepageStateDto) {
   if (state.priority === 'normal') {
     return state.hero !== null ? [] : state.sideVideos.slice(1, 6)

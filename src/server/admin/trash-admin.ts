@@ -3,11 +3,6 @@ import { memberCache, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 import { TRASH_RETENTION_DAYS } from '#/server/videos/purge.ts'
 
-/**
- * Video trash admin (BSS-033, spec 13.1): every member can see the trash,
- * who deleted each item and when; restoring is a leadership privilege.
- */
-
 export interface TrashListItem {
   id: string
   slug: string

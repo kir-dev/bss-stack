@@ -10,7 +10,6 @@ type MembershipStatus = (typeof membershipStatusEnum.enumValues)[number]
 
 export const MEMBER_PAGE_SIZE = 50
 
-/** Hungarian status names (spec 8.3). */
 export const MEMBERSHIP_STATUS_LABELS: Record<MembershipStatus, string> = {
   studio_member: 'Stúdiós',
   studio_candidate: 'Stúdiósjelölt',
@@ -46,11 +45,6 @@ export interface ActiveMemberBlocks {
   seniorActive: Array<PublicMemberCard>
 }
 
-/**
- * Blocks of the active members page (spec 8.4): leadership, studio members,
- * candidates, applicant-applicants, active seniors. Only profiles with
- * `sync_status = 'ok'`; a leadership member appears only in the Leadership block.
- */
 export async function getActiveMemberBlocks(
   executor: Executor,
 ): Promise<ActiveMemberBlocks> {
@@ -108,10 +102,6 @@ export interface MemberListPage {
   title: string
 }
 
-/**
- * Separate archived-seniors and contributors sub-pages (spec 8.4),
- * paginated by 50.
- */
 export async function getMemberArchivePage(
   executor: Executor,
   kind: ArchiveKind,
@@ -171,10 +161,6 @@ export interface MemberProfile {
   introduction: string | null
 }
 
-/**
- * Member profile (spec 8.4): only records with `sync_status='ok'`; email and
- * mobile do not even exist in the schema, so they can never end up in a response.
- */
 export async function getMemberProfile(
   executor: Executor,
   username: string,

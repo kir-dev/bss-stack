@@ -56,12 +56,6 @@ function Avatar({
   )
 }
 
-/**
- * The signed-in viewer's name and avatar in the navbar, with a popover on
- * click (BSS-019 UI): the menu contains logout and, for members and above,
- * the admin area. Authorization is decided by the server; the menu only hides
- * inaccessible items — direct URLs are guarded by the server too (spec 14).
- */
 export default function UserMenu({ viewer }: { viewer: ViewerStateDto }) {
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement | null>(null)

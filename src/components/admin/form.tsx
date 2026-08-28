@@ -1,7 +1,5 @@
 import type { ReactNode } from 'react'
 
-/** Shared admin form fields (BSS-028). */
-
 export function AdminTextField({
   label,
   value,
@@ -16,7 +14,7 @@ export function AdminTextField({
   onChange: (value: string) => void
   type?: string
   required?: boolean
-  /** When set, the field is limited and gets a remaining-character indicator (spec 18). */
+
   maxLength?: number
   hint?: ReactNode
 }) {
@@ -114,7 +112,7 @@ export function AdminSecondaryButton({
   children: ReactNode
   onClick: () => void
   disabled?: boolean
-  /** When set, asks for standard confirmation (spec 13.1). */
+
   confirm?: string
 }) {
   return (

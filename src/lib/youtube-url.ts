@@ -4,11 +4,6 @@
  * it lives here; the network oEmbed check stays in the server-side module.
  */
 
-/**
- * YouTube URL normalization (spec 9.3). Accepted forms:
- * youtube.com/watch?v=ID, youtube.com/live/ID, youtu.be/ID, embed/ID,
- * and youtube-nocookie.com variants. The result is always a video ID.
- */
 export function normalizeYoutubeVideoId(rawUrl: string): string | null {
   try {
     const url = new URL(rawUrl)

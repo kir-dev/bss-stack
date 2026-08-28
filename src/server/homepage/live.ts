@@ -71,10 +71,6 @@ export interface CreateLiveInput {
   endsAt: Date
 }
 
-/**
- * Schedule a live (spec 9.3): start and end are required, overlap forbidden.
- * An oEmbed check runs on save; an invalid ID cannot be saved.
- */
 export async function createLiveSchedule(
   executor: Executor,
   deps: LiveDeps,
@@ -156,7 +152,7 @@ export async function rescheduleLive(
     throw new Error('A live ütemezés nem található.')
   }
   if (current.status === 'ended') {
-    // A past live can only be rescheduled as a copy (spec 9.3).
+
     throw new Error(
       'Befejezett live nem módosítható; csak másolatként ütemezhető újra.',
     )
@@ -190,10 +186,6 @@ export async function rescheduleLive(
   return row
 }
 
-/**
- * `Start now` (spec 9.3): an oEmbed check runs on activation; on failure the
- * error is recorded and the live stays scheduled (the homepage shows the fallback).
- */
 export async function startLiveNow(
   executor: Executor,
   deps: LiveDeps & { youtubeConfig?: { oEmbedEndpoint: string } },
@@ -340,10 +332,6 @@ export async function deleteScheduledLive(
   })
 }
 
-/**
- * Background job (spec 15): activate/close expired schedules.
- * Writes an audit entry only on an actual change (with the `system` actor).
- */
 export async function transitionLiveStates(
   executor: Executor,
   options: { now: Date },
@@ -424,7 +412,7 @@ export async function transitionLiveStates(
 }
 
 /** Admin history: every live, most recent first (never in the public archive). */
-/** Per-minute job for live state transitions (spec 15): an extra job for the runner. */
+
 export function createLiveTransitionJob(deps: {
   clock?: Clock
   db: () => Promise<Executor>

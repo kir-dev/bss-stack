@@ -2,11 +2,6 @@ import { asc, desc, eq, lt, sql } from 'drizzle-orm'
 import { memberCache, memberSyncRuns } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 
-/**
- * Hidden member diagnostics (BSS-032, spec 8.2): leadership can see the
- * Authentik cache state without local profile editing.
- */
-
 export interface DiagnosticsProfile {
   sub: string
   username: string

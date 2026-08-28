@@ -247,7 +247,7 @@ function LiveSection({
   }
 
   // The server uses the same parser before the oEmbed check,
-  // so it's worth flagging an unparsable URL already here (spec 9.3).
+
   const urlWarning = youtubeUrlWarning(youtubeUrl)
   const activeOrScheduled = data.live.filter((live) => live.status !== 'ended')
   const ended = data.live.filter((live) => live.status === 'ended')

@@ -9,10 +9,6 @@ export interface AdminColumn<TRow> {
   primary?: boolean
 }
 
-/**
- * Shared admin table (BSS-027): a table on desktop, cards on mobile —
- * instead of a horizontally scrollable table (spec 12.1).
- */
 export function ResponsiveTable<TRow>({
   columns,
   rows,

@@ -10,10 +10,6 @@ import { writeAudit } from '#/server/shared/write.ts'
 
 export const ABOUT_VIDEO_LIMIT = 6
 
-/**
- * Set the About page video list (spec 10.1): at most six public videos,
- * chosen and ordered by leadership.
- */
 export async function setAboutVideos(
   executor: Executor,
   params: {

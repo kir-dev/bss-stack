@@ -9,12 +9,6 @@ import type { JobDefinition } from '#/server/jobs/runner.ts'
 export const TRASH_RETENTION_DAYS = 30
 export const TRASH_PURGE_JOB_NAME = 'video-trash-purge-daily'
 
-/**
- * Daily permanent deletion (spec 13.1): the record of videos that have been in
- * the trash for at least 30 days is deleted; external media files are not
- * touched. The slug goes into the history (reuse forbidden), and the deletion
- * gets a full audit entry.
- */
 export async function purgeExpiredTrashedVideos(
   executor: Executor,
   options: { now?: Date; retentionDays?: number } = {},
@@ -81,7 +75,6 @@ export async function purgeExpiredTrashedVideos(
   return purgedIds
 }
 
-/** Register the daily job into the background runner (extra job of the BSS-010 runner). */
 export function createTrashPurgeJob(deps: {
   clock?: Clock
   db: () => Promise<Executor>

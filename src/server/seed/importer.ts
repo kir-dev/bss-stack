@@ -15,13 +15,6 @@ import type { Executor } from '#/server/shared/db-executor.ts'
 import { SYSTEM_ACTOR, writeAudit } from '#/server/shared/write.ts'
 import type { SeedFile } from './schema.ts'
 
-/**
- * Idempotent seed importer (BSS-034, spec 17.1): the seed JSON is loaded into
- * a clean database based on natural keys (slug, normalized name).
- * Re-running does not duplicate: it writes nothing for unchanged entities
- * (no audit entry either), and synchronizes changed fields and relations.
- */
-
 export class SeedImportError extends Error {
   readonly problems: string[]
 

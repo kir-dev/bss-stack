@@ -12,15 +12,6 @@ export interface PublicSlugResolution {
   canonicalSlug: string
 }
 
-/**
- * Public slug-route resolution (BSS-019):
- * - on the current slug the published entity is found (for videos, visible to
- *   the viewer) → `current`;
- * - an old slug in the history → redirect to the new canonical route,
- *   but only if the entity is published and visible;
- * - draft, archived, trash, permanently deleted or unknown
- *   → null (the route returns a uniform Hungarian 404).
- */
 export async function resolvePublicSlug(
   executor: Executor,
   params: {
@@ -38,7 +29,6 @@ export async function resolvePublicSlug(
     }
   }
 
-  // The old slug is preserved as a redirect (spec 4.2), but it must not point
   // to publicly unreachable content.
   const redirect = await resolveSlugRedirect(
     executor,

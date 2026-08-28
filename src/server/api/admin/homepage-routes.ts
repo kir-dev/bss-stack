@@ -70,10 +70,6 @@ async function assertSelectableVideos(
   }
 }
 
-/**
- * Leadership homepage settings (BSS-031): highlight, live schedules and
- * About videos. Members cannot invoke any operation.
- */
 export async function handleAdminHighlightRoute(
   request: Request,
   deps: AdminHomepageRouteDeps = {},

@@ -26,7 +26,7 @@ const member: Viewer = viewerFromIdentity(
   { sub: 't1', username: 'tag-dev', groups: ['tag-dev'] },
   config.authentik,
 )
-// A vezetőség a tag csoporttal EGYÜTT ad vezetőségi jogot (spec 3.1).
+
 const leadership: Viewer = viewerFromIdentity(
   {
     sub: 'v1',

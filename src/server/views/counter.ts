@@ -22,10 +22,6 @@ export function newViewSessionToken(): string {
   return randomBytes(32).toString('base64url')
 }
 
-/**
- * Cookie valid until the browser is closed (spec 5.5): deliberately there is
- * NO Max-Age, so a non-persistent session cookie is created.
- */
 export function viewSessionCookieSpec(
   token: string,
   secure = false,
@@ -101,10 +97,6 @@ export async function recordVideoView(
   })
 }
 
-/**
- * Query the view count: it may only appear in an admin response (spec 5.5),
- * therefore at least membership is required.
- */
 export async function getViewCount(
   executor: Executor,
   viewer: Viewer,

@@ -18,12 +18,6 @@ export interface RoleGroup {
   videos: Array<ActivityRow>
 }
 
-/**
- * Activity grouping (spec 8.4):
- * - year view: years in descending order, with staff-role groups below;
- * - role view: videos listed chronologically under each role.
- * With multiple roles, the same video appears in every affected group.
- */
 export function groupActivity(
   rows: Array<ActivityRow>,
   view: 'year' | 'role',

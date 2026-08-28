@@ -19,10 +19,6 @@ const HUNGARIAN_ACCENTS: Record<string, string> = {
   Ű: 'u',
 }
 
-/**
- * Normalize a catalog name (spec 7.1): letter case and superfluous
- * whitespace must not create duplicates. Accents are meaning-distinguishing.
- */
 export function normalizeCatalogName(raw: string): string {
   return raw.trim().replace(/\s+/g, ' ').toLowerCase()
 }
@@ -35,10 +31,6 @@ export function foldAccents(value: string): string {
   )
 }
 
-/**
- * Accent similarity (spec 7.1): normalized names that match when accents
- * are folded but otherwise differ only produce a warning, not a block.
- */
 export function isAccentSimilar(a: string, b: string): boolean {
   const fa = foldAccents(normalizeCatalogName(a))
   const fb = foldAccents(normalizeCatalogName(b))

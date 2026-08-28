@@ -9,7 +9,6 @@ export interface AdminAccessDto {
   viewer?: { level: string; sub: string | null; username: string | null }
 }
 
-/** Guard for the admin area (BSS-027): from the session cookie, without Authentik calls. */
 export const fetchAdminAreaAccess = createServerFn({ method: 'GET' }).handler(
   async (): Promise<AdminAccessDto> => {
     return toDto(

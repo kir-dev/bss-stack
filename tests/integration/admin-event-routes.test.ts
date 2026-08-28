@@ -170,7 +170,7 @@ describe.skipIf(!hasTestDatabase)('BSS-029: esemény API jogosultságok', () => 
     for (const video of detachedVideos) {
       expect(video.eventId).toBeNull()
     }
-    // A `recordedAt` értéke megmarad a leválasztáskor (spec 6.4).
+
     const withDate = detachedVideos.find(
       (video) => video.slug === 'kapcsolt-videó-a',
     )
