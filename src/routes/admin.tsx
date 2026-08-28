@@ -3,11 +3,6 @@ import { ForbiddenContent } from '#/components/PageStates.tsx'
 import { AdminSidebar } from '#/components/admin/AdminSidebar.tsx'
 import { fetchAdminAreaAccess } from '#/server/pages/admin/access-fn.ts'
 
-/**
- * Admin layout (BSS-027): every page under /admin is protected by a
- * server-side guard. Anonymous users are sent to login with returnTo
- * preserved; logged-in users without permission receive a Hungarian 403 page.
- */
 export const Route = createFileRoute('/admin')({
   loader: async () => {
     const access = await fetchAdminAreaAccess()
@@ -28,7 +23,7 @@ function AdminLayout() {
 
   return (
     <div className="site-width my-[3dvh] flex flex-col gap-4 md:flex-row">
-      {/* The admin area must not be indexed (spec 16). */}
+
       <meta name="robots" content="noindex, nofollow" />
       <AdminSidebar level={access.viewer.level} />
       <div className="min-w-0 flex-1">

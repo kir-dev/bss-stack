@@ -6,7 +6,6 @@ export interface SidebarItem {
   leadershipOnly?: boolean
 }
 
-/** Sidebar items in order, per chapter 12.1 of the spec. */
 export const ADMIN_SIDEBAR_ITEMS: SidebarItem[] = [
   { to: '/admin/videos', label: 'Videók' },
   { to: '/admin/events', label: 'Események' },
@@ -22,11 +21,6 @@ export const ADMIN_SIDEBAR_ITEMS: SidebarItem[] = [
   { to: '/admin/audit', label: 'Auditnapló', leadershipOnly: true },
 ]
 
-/**
- * Admin sidebar (BSS-027): a member does not see leadership menu items — but
- * the leadership pages are also separately blocked by the server, even via
- * direct URLs.
- */
 export function AdminSidebar({ level }: { level: string }) {
   const matchRoute = useMatchRoute()
   const items = ADMIN_SIDEBAR_ITEMS.filter(

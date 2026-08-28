@@ -59,10 +59,6 @@ async function stringBody(
   return result
 }
 
-/**
- * Tag catalog and staff role operations (BSS-030). Leadership-only —
- * members must not be able to modify the catalogs even with direct API calls.
- */
 export async function handleAdminTagRoutes(
   request: Request,
   action: string,
@@ -83,7 +79,7 @@ export async function handleAdminTagRoutes(
           })
         }
         case 'similar': {
-          // Accent-similarity warning (spec 7.1): GET ?name=...
+
           const name = new URL(request.url).searchParams.get('name') ?? ''
           const similar = await findAccentSimilarTagNames(
             database,

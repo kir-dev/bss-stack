@@ -16,14 +16,6 @@ import type { Executor } from '#/server/shared/db-executor.ts'
 
 export const RELATED_VIDEO_LIMIT = 5
 
-/**
- * Serving related videos (spec 5.6). The selection order:
- * 1. ordered manual list, if there is one;
- * 2. the five most recently published videos of the same event;
- * 3. without an event, the top five videos having at least one common tag;
- *    more common tags are stronger, on a tie `publishedAt` descending decides.
- * Display is always filtered in the SQL according to the viewer's permissions.
- */
 export async function getRelatedVideos(
   executor: Executor,
   viewer: Viewer,

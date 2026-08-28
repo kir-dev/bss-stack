@@ -1,10 +1,3 @@
-/**
- * Admin client-side request helper (BSS-028). It turns the server's JSON
- * responses into a discriminated result: on a 401 (expired session) it
- * returns the loginUrl so the client can preserve the form data and
- * resubmit it after a new login (spec 12.4).
- */
-
 export interface ApiError {
   status: number
   code:

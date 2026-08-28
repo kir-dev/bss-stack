@@ -112,7 +112,7 @@ function EventEditor({
   const [message, setMessage] = useState<string | null>(null)
   const [loginUrl, setLoginUrl] = useState<string | null>(null)
   const [conflictMessage, setConflictMessage] = useState<string | null>(null)
-  // Permanent deletion confirmation: the event title must be typed in (spec 6.4).
+
   const [deleteConfirmation, setDeleteConfirmation] = useState('')
   const [deleteSummary, setDeleteSummary] = useState<string | null>(null)
 
@@ -129,7 +129,6 @@ function EventEditor({
     return () => window.removeEventListener('beforeunload', handler)
   }, [isDirty])
 
-  // The server rejects an invalid thumbnail host even in drafts (spec 6.1),
   // so we surface it here while editing.
   const thumbnailWarning = mediaUrlWarning(
     'Thumbnail URL',

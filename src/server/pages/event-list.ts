@@ -24,11 +24,6 @@ export interface EventListPage {
   totalPages: number
 }
 
-/**
- * Public event list (spec 6.3): descending by start date, only published
- * events; the video count on the card and the thumbnail fallback are also
- * derived only from videos visible to the viewer (spec 6.2).
- */
 export async function getEventListPage(
   executor: Executor,
   viewer: Viewer,
@@ -179,7 +174,7 @@ export interface EventDetailData {
     }>
     total: number
   }
-  /** The videos' unique staff members sorted by name, without titles (spec 6.2). */
+
   staffMembers: Array<{ username: string; fullName: string }>
 }
 

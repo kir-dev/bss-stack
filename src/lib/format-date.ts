@@ -1,4 +1,3 @@
-/** Public date format (spec 4.4): `2026. június 6.` — according to Europe/Budapest. */
 export function formatDateHu(date: Date): string {
   const parts = new Intl.DateTimeFormat('hu-HU', {
     timeZone: 'Europe/Budapest',
@@ -11,7 +10,6 @@ export function formatDateHu(date: Date): string {
   return `${value('year')}. ${value('month')} ${Number(value('day'))}.`
 }
 
-/** Admin and audit format (spec 4.4): `2026. június 6. 14:32` — Europe/Budapest. */
 export function formatAdminDateTimeHu(date: Date): string {
   const parts = new Intl.DateTimeFormat('hu-HU', {
     timeZone: 'Europe/Budapest',
@@ -58,7 +56,6 @@ export function formatCalendarDateHu(isoDate: string): string {
   return `${year}. ${monthName} ${day}.`
 }
 
-/** Event interval (spec 4.4): `2026. június 6-8.` or a plain date for a single-day event. */
 export function formatEventIntervalHu(
   startDate: string,
   endDate: string | null,

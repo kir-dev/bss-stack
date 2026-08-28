@@ -10,11 +10,6 @@ export interface SearchRouteDeps {
   config?: OobConfig
 }
 
-/**
- * Global search API (spec 11): at most `limit` results per group;
- * permission filtering happens in SQL, metadata of forbidden videos never
- * appears in the response. Returns an empty result for empty/short queries.
- */
 export async function handleSearch(
   request: Request,
   deps: SearchRouteDeps = {},

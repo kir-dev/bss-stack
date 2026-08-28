@@ -189,7 +189,6 @@ function VideoEditor({
     JSON.stringify(staff) !== savedStaffSnapshot ||
     JSON.stringify(relatedIds) !== savedRelatedSnapshot
 
-  // Confirm before navigating away with unsaved changes (spec 5.3).
   useEffect(() => {
     if (!isDirty) return
     const handler = (event: BeforeUnloadEvent) => {
@@ -213,10 +212,6 @@ function VideoEditor({
     setForm((prev) => ({ ...prev, ...partial }))
   }
 
-  /**
-   * Media URL validation before saving (spec 5.4). A broken URL can be saved
-   * in a draft, but only deliberately: we ask for confirmation.
-   */
   function confirmMediaWarnings(): boolean {
     if (mediaWarnings.length === 0) {
       return true
@@ -832,13 +827,6 @@ const SONG_INPUT_CLASS =
   'h-10 min-w-0 border-b border-(--nav-border-b) bg-(--nav-search-bg) px-2 outline-none focus:border-(--orange)'
 const SONGS_MAX_LENGTH = 5000
 
-/**
- * "Songs used" field. The stored format is one `Artist - Song title` per line
- * (spec 5.2); if the existing content is parsable that way, we show a
- * two-input list, otherwise it stays a free-text field so hand-written
- * content isn't damaged. In structured mode the dash is the separator,
- * so it cannot be typed into the fields.
- */
 function SongsField({
   value,
   onChange,

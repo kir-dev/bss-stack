@@ -102,10 +102,6 @@ function validateDateField(
   return value
 }
 
-/**
- * Validate fields for a partial update. An invalid media URL can be saved in
- * a draft (spec 5.4) — here only the plain text and length rules apply.
- */
 function validatedChanges(input: VideoInput): Record<string, unknown> {
   const changes: Record<string, unknown> = {}
 
@@ -162,7 +158,6 @@ function validatedChanges(input: VideoInput): Record<string, unknown> {
   return changes
 }
 
-/** Event date-range mismatch warning (non-blocking, spec 5.2). */
 function eventRangeWarning(
   event: typeof events.$inferSelect,
   recordedAt: string,
@@ -193,12 +188,6 @@ async function loadEventOrNull(executor: Executor, eventId: string | null) {
   return rows.at(0) ?? null
 }
 
-/**
- * Date rules for event assignment (spec 5.2):
- * - a one-day event silently fills in the EMPTY `recordedAt`;
- * - an existing `recordedAt` is never overwritten;
- * - when detaching an event, the `recordedAt` is preserved.
- */
 async function applyEventAssignment(
   tx: Executor,
   currentRecordedAt: string | null,
@@ -430,14 +419,6 @@ function publishPreconditions(
   }
 }
 
-/**
- * Publishing (spec 5.3–5.4):
- * - title, MP4 and thumbnail are required; the media is validated by a network check;
- * - visibility defaults to `public`;
- * - `recordedAt` is required for multi-day events;
- * - `publishedAt`: if missing, it gets the current time; it cannot be in the future;
- * - on a successful status change, the validity of homepage references is settled.
- */
 export async function publishVideo(
   executor: Executor,
   deps: VideoDeps,
@@ -473,7 +454,6 @@ export async function publishVideo(
     ])
   }
 
-  // Media network validation OUTSIDE the transaction (spec 5.4).
   for (const kind of ['video', 'thumbnail'] as const) {
     const url = kind === 'video' ? preloaded.videoUrl : preloaded.thumbnailUrl
     if (url === null) continue
@@ -595,7 +575,6 @@ export async function archiveVideo(
   })
 }
 
-/** Move to trash: any member, relations are preserved (spec 13.1). */
 export async function trashVideo(
   executor: Executor,
   deps: VideoDeps,
@@ -643,10 +622,6 @@ export async function trashVideo(
   })
 }
 
-/**
- * Restore from trash (leadership only, spec 13.1): it goes into the archived
- * state; all its tag, staff, event and related-video relations are preserved.
- */
 export async function restoreVideoFromTrash(
   executor: Executor,
   deps: VideoDeps,

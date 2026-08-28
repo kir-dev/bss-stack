@@ -59,11 +59,6 @@ async function loadTag(executor: Executor, tagId: string) {
   return row
 }
 
-/**
- * Warning for accent similarity (spec 7.1): the list of existing tags whose
- * normalized names match when accents are folded but otherwise differ.
- * Only a warning, not a block.
- */
 export async function findAccentSimilarTagNames(
   executor: Executor,
   rawName: string,
@@ -176,11 +171,6 @@ export async function renameTag(
   })
 }
 
-/**
- * Merge (spec 7.1): every video link is moved to the target tag and the
- * source tag is deleted — in a single transaction. Duplicate video-tag
- * pairs are lost.
- */
 export async function mergeTag(
   executor: Executor,
   deps: CatalogDeps,

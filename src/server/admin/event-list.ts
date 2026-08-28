@@ -50,10 +50,6 @@ export interface AdminEventListItem {
   version: number
 }
 
-/**
- * Event admin list (spec 12.3): title, date range, status,
- * video count (all statuses), last modifier and timestamp.
- */
 export async function getAdminEventList(
   executor: Executor,
   query: { page: number; perPage: number; filters?: AdminEventListFilters },

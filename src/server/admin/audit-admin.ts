@@ -3,12 +3,6 @@ import type { SQL } from 'drizzle-orm'
 import { auditLog } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 
-/**
- * Audit log admin (BSS-033, spec 13.2): read-only leadership view with
- * actor, action, entity and date filters. No editing, deletion or export
- * (spec 19) — a DB trigger also blocks writes.
- */
-
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/
 
 export interface AuditFilters {

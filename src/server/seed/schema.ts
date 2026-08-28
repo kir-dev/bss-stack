@@ -3,12 +3,6 @@ import { checkMediaUrlShape } from '#/server/media/validator.ts'
 import { TEXT_LIMITS } from '#/server/shared/text.ts'
 import { slugify } from '#/server/shared/slug.ts'
 
-/**
- * The format of the seed JSON (BSS-034, spec 17.1): the output of the scraper,
- * loaded by the idempotent seed importer. It must not contain personal data
- * (email, introduction) or media files; people are referenced by the usernames
- * of the local Authentik bootstrap test profiles.
- */
 export interface SeedEvent {
   key: string
   title: string
@@ -51,7 +45,6 @@ export interface SeedFile {
   videos: SeedVideo[]
 }
 
-/** Fields forbidden in the seed (spec 17.1: email and profile introduction never). */
 const FORBIDDEN_KEYS = new Set([
   'email',
   'emailaddress',
@@ -257,7 +250,7 @@ function validateEvent(
   )
 
   if (status === 'published' && startDate === null) {
-    // The publishing rule (spec 6.1) applies here too: a start date is required for publishing.
+
     problems.push(`${path}: publikált eseménynél a startDate kötelező.`)
   }
 

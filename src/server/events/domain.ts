@@ -75,7 +75,6 @@ async function loadEvent(executor: Executor, eventId: string) {
   return row
 }
 
-/** Validate a calendar date field (date without timezone, spec 4.4). */
 function validateDateField(
   fieldName: string,
   value: string | null | undefined,
@@ -152,7 +151,6 @@ function validatedChanges(
   return changes
 }
 
-/** Publish conditions (spec 6.1): title and start date are required. */
 function assertPublishable(row: typeof events.$inferSelect): void {
   const problems: string[] = []
   if (row.title.trim() === '') {
@@ -193,7 +191,7 @@ export async function createEvent(
   assertContentEditor(deps.viewer)
 
   return executor.transaction(async (tx) => {
-    // A draft only needs a title (spec 6.1).
+
     const title = validateRequiredText('Cím', input.title, TEXT_LIMITS.title)
     const emptyCurrent = {
       startDate: null as string | null,
@@ -300,7 +298,6 @@ export async function updateEvent(
   })
 }
 
-/** Publish: from draft or archived, with all conditions (spec 6.1). */
 export async function publishEvent(
   executor: Executor,
   deps: EventDeps,
@@ -383,11 +380,6 @@ async function transitionEventStatus(
   })
 }
 
-/**
- * Permanent event deletion (spec 6.4): leadership rights + title confirmation.
- * In a single transaction: detach videos (`recordedAt` is preserved), archive
- * the old slug into history (reuse forbidden), delete the event, full audit.
- */
 export async function permanentlyDeleteEvent(
   executor: Executor,
   deps: EventDeps,
@@ -473,7 +465,6 @@ export interface ListEventsOptions {
   offset?: number
 }
 
-/** Event list ordered by start date descending (spec 6.3). */
 export async function listEvents(
   executor: Executor,
   options: ListEventsOptions = {},

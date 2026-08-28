@@ -34,10 +34,6 @@ function parseVersion(value: unknown): number {
   return value
 }
 
-/**
- * Event admin operations (BSS-029). The domain layer re-verifies leadership
- * privileges and writes an audit entry on hard delete.
- */
 export async function handleAdminEventRoutes(
   request: Request,
   action: string,

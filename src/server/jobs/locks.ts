@@ -1,12 +1,6 @@
 import { Client } from 'pg'
 import { createHash } from 'node:crypto'
 
-/**
- * PostgreSQL advisory lock (spec 15): of two application instances only one
- * can run the given job at a time. The lock is bound to a dedicated
- * connection, so the release happens on the same connection.
- */
-
 export interface AdvisoryLock {
   release: () => Promise<void>
 }

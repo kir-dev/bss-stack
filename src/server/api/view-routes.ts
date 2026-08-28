@@ -22,10 +22,6 @@ export interface VideoViewDeps {
   db?: Database
 }
 
-/**
- * View counter endpoint (spec 5.5): the client calls it on the first successful
- * `play` event. Counts once per video per browser session.
- */
 export async function handleVideoView(
   request: Request,
   videoId: string,

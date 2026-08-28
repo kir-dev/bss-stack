@@ -11,10 +11,6 @@ export interface HomepageVideoCard {
   thumbnailUrl: string | null
 }
 
-/**
- * The hero also carries the MP4 URL: in highlighted state the homepage plays
- * the video inline instead of only linking to its page (spec 9.1).
- */
 export interface HomepageHeroVideo extends HomepageVideoCard {
   videoUrl: string | null
 }
@@ -40,10 +36,6 @@ export interface HomepageStateDto {
   upcomingLive: { startsAtIso: string; embedUrl: string } | null
 }
 
-/**
- * The homepage state with computed priority (spec 9.1), serialized for the client.
- * The per-minute reload switches between the three states without refreshing.
- */
 export async function getHomepagePage(
   executor: Executor,
   options: { now?: Date } = {},

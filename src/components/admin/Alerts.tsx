@@ -1,13 +1,5 @@
 import type { ReactNode } from 'react'
 
-/**
- * Admin save error states (BSS-028, spec 12.4):
- * - expired session: the form data stays on the client; it can be resubmitted
- *   after logging in again;
- * - stale save (409): conflict message + reload option, no "last save wins"
- *   behavior.
- */
-
 export function LoginRequiredBanner({ loginUrl }: { loginUrl: string }) {
   return (
     <div

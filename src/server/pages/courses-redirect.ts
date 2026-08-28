@@ -1,4 +1,3 @@
-/** Target of the course redirect (spec 10.2). */
 export const COURSE_REDIRECT_TARGET = 'https://tanfolyam.bsstudio.hu/'
 
 /**

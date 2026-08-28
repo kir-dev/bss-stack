@@ -1,10 +1,3 @@
-/**
- * Structured handling of the "Used songs" field. In storage it remains a
- * single text, one `Artist - Song title` per line (spec 5.2), while the
- * editor splits it into two input fields when the existing content is
- * interpretable.
- */
-
 export interface SongEntry {
   artist: string
   title: string

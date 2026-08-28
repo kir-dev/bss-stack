@@ -1,9 +1,3 @@
-/**
- * Security headers and CSP (BSS-035, spec 16): the player (v.bsstudio.hu)
- * and the YouTube live embed (youtube-nocookie.com) must work; all other
- * external content is blocked.
- */
-
 const MEDIA_HOST = 'https://v.bsstudio.hu'
 const YOUTUBE_FRAME_HOSTS =
   'https://www.youtube-nocookie.com https://www.youtube.com'

@@ -53,10 +53,6 @@ export interface ParsedVideoListQuery {
   staffRoleId: string
 }
 
-/**
- * Interpretation of the URL state (spec 5.8): unknown sort and page size fall
- * back to the defaults; paging is always a positive integer.
- */
 export function parseVideoListSearch(
   raw: VideoListRawSearch,
 ): ParsedVideoListQuery {

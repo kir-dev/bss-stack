@@ -38,10 +38,6 @@ async function latestPublicEvents(
     .limit(limit)
 }
 
-/**
- * `Coming up soon` bar (spec 9.3): shown during the 24 hours before the start.
- * The bar does not replace the normal or highlighted hero content.
- */
 export async function getUpcomingLive(
   executor: Executor,
   options: { now: Date; withinMs?: number },
@@ -87,10 +83,6 @@ export interface HomepageState {
   upcomingLive?: { startsAt: Date; embedUrl: string }
 }
 
-/**
- * Homepage computed priority (spec 9.1): active live > highlighted video > normal.
- * Every query narrows to published and public videos in SQL.
- */
 export async function getHomepageState(
   executor: Executor,
   options: { now: Date },

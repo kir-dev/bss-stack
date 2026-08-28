@@ -146,7 +146,6 @@ describe.skipIf(!hasTestDatabase)('BSS-027: guard valódi sessionnel', () => {
     )
     expect(anonymousState.viewer.level).toBe('anonymous')
 
-    // Vezetőség tag csoport nélkül NEM ad adminjogot (spec 3.1): a szint
     // névtelen marad, így az admin terület belépést sem enged neki.
     const leadOnly = await createAuthSession(
       {

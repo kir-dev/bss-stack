@@ -1,12 +1,6 @@
 import { atLeast } from '#/server/auth/viewer.ts'
 import type { Viewer } from '#/server/auth/viewer.ts'
 
-/**
- * Admin permission matrix based on chapter 3.2 of the specification.
- * Leadership rights include member rights: the leadership level
- * satisfies every member capability.
- */
-
 export function isMember(viewer: Viewer): boolean {
   return atLeast(viewer, 'member')
 }

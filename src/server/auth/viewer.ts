@@ -1,7 +1,6 @@
 import type { OobConfig } from '#/server/config/oob-schema.ts'
 import type { AuthSessionRecord } from '#/server/auth/session-store.ts'
 
-/** Order of viewer levels according to chapter 3.1 of the specification. */
 export type ViewerLevel = 'anonymous' | 'schonherz' | 'member' | 'leadership'
 
 const LEVEL_RANK: Record<ViewerLevel, number> = {

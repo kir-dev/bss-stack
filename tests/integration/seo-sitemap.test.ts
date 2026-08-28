@@ -83,7 +83,6 @@ describe.skipIf(!hasTestDatabase)(
       expect(paths).toContain('/members')
       expect(paths).toContain('/about')
 
-      // Korlátozott vagy nem publikált tartalom soha (spec 16).
       expect(paths).not.toContain('/videos/schonherz-video')
       expect(paths).not.toContain('/videos/bss-video')
       expect(paths).not.toContain('/videos/piszkozat-video')

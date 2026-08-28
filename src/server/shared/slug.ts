@@ -26,9 +26,6 @@ const HUNGARIAN_ACCENTS: Record<string, string> = {
   Ű: 'u',
 }
 
-/**
- * Slug generation from a title (spec 4.2): lowercase, accent-free, hyphenated.
- */
 export function slugify(title: string): string {
   const folded = title.replace(
     /[áéíóöőúüűÁÉÍÓÖŐÚÜŰ]/g,

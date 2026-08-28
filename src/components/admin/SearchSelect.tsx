@@ -19,13 +19,6 @@ export const FILTER_LABEL_CLASS = 'text-xs text-(--bss-text-secondary)'
 /** The search bar in the dropdown appears above this many items. */
 export const SEARCH_SELECT_THRESHOLD = 8
 
-/**
- * Searchable single-select list (combobox) for admin lists: event, staff
- * member, related video, tag, action. Needed instead of a native `select`
- * because with hundreds of items you can't search in the dropdown (BSS-028 UI
- * fix). For short, fixed lists (status, visibility) the search bar is omitted
- * to avoid a needless field, while keeping the appearance consistent.
- */
 export function AdminSearchSelect({
   label,
   value,

@@ -16,12 +16,6 @@ import { LiveOverlapError } from '#/server/homepage/live.ts'
 import { EntityNotFoundError, StaleWriteError } from '#/server/shared/write.ts'
 import { TextValidationError } from '#/server/shared/text.ts'
 
-/**
- * Shared admin API foundations: every endpoint verifies permissions
- * server-side on every request (spec 14), and translates domain errors into
- * Hungarian JSON error messages.
- */
-
 export function jsonResponse(status: number, payload: unknown): Response {
   return new Response(JSON.stringify(payload), {
     status,

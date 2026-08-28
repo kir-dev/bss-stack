@@ -49,12 +49,6 @@ export interface VideoDetail {
   relatedVideos: Array<RelatedVideoItem>
 }
 
-/**
- * Public video detail data (spec 5.7). Only a video that is published and
- * visible to the viewer may be returned; anything else → null (uniform
- * Hungarian 404). The related videos come from the BSS-015 service, filtered
- * in the SQL.
- */
 export async function getVideoDetail(
   executor: Executor,
   viewer: Viewer,

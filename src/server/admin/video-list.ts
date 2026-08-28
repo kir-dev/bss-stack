@@ -73,11 +73,6 @@ export function parseAdminVideoFilters(raw: {
   return filters
 }
 
-/**
- * Admin video list (spec 12.2): all statuses visible, paginated,
- * with search and status, visibility, event and tag filters.
- * No bulk operations (spec 19).
- */
 export async function getAdminVideoList(
   executor: Executor,
   query: AdminVideoListQuery,

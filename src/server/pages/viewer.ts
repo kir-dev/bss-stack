@@ -17,11 +17,6 @@ export interface ViewerState {
   loggedIn: boolean
 }
 
-/**
- * Resolve the viewer state from a request: only from the session stored in the
- * local DB, never calls Authentik (spec 8.2 — a public request must not depend
- * on an external service). Returns an anonymous viewer for an invalid/expired session.
- */
 export async function resolveViewerStateFromRequest(
   request: Request,
   deps: { db?: Database; clock?: Clock; config?: OobConfig } = {},

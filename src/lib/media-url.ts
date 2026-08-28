@@ -1,10 +1,3 @@
-/**
- * Client-side media URL validation for pre-save warnings
- * (spec 5.4). Actual enforcement stays server-side
- * (`src/server/media/validator.ts`); this is only early feedback in
- * the editor so that a bad host doesn't surface only after saving.
- */
-
 /** If the OOB config is not available to the client, this host is the fallback. */
 export const DEFAULT_MEDIA_HOSTS = ['v.bsstudio.hu'] as const
 

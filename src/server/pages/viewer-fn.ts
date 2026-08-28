@@ -18,11 +18,6 @@ export interface ViewerStateDto {
   canAccessAdmin: boolean
 }
 
-/**
- * The navbar's login state (BSS-019). It decides only from the local session
- * and the member cache, without Authentik calls; the client may also use the
- * `/api/auth/me` endpoint.
- */
 export const fetchViewerState = createServerFn({ method: 'GET' }).handler(
   async (): Promise<ViewerStateDto> => {
     const state = await resolveViewerStateFromRequest(getRequest())

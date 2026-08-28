@@ -21,7 +21,7 @@ const loadSearchResults = createServerFn({ method: 'GET' })
   .handler(async ({ data: query }) => {
     const { viewer } = await resolveViewerStateFromRequest(getRequest())
     const db = await getDefaultDb()
-    // The All tab shows at most ten results per type (spec 11.3).
+
     return search(db, viewer, query, { limitPerType: 10 })
   })
 
@@ -86,7 +86,7 @@ function SearchPage() {
 
   return (
     <main className="site-width my-[4dvh]">
-      {/* Technical page: search must not be indexed (spec 16). */}
+
       <meta name="robots" content="noindex, nofollow" />
       <title>Keresés | BSS</title>
       <h1 className="mb-6 text-3xl font-bold text-(--bss-text)">

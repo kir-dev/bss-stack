@@ -159,7 +159,7 @@ export function createDefaultSyncJobs(deps: RunnerDeps): JobDefinition[] {
     },
     {
       name: 'member-sync-hourly',
-      // Hourly sync (spec 8.2 / 15).
+
       intervalMs: 60 * 60 * 1000,
       run: () => syncOnce('hourly'),
     },

@@ -109,7 +109,7 @@ describe.skipIf(!hasTestDatabase)(
         const { heroVideo } = highlightState
         if (heroVideo !== undefined) {
           expect(heroVideo.id).toBe(videoId)
-          // A hero nem ismétlődik az oldalsó listában (spec 9.1).
+
           expect(
             highlightState.sideVideos.map((video) => video.id),
           ).not.toContain(videoId)

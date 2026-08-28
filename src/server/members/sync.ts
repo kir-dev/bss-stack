@@ -95,17 +95,6 @@ async function writeAuditEntry(
   })
 }
 
-/**
- * Member cache sync: reads the Authentik users and writes them into a local,
- * read-only cache.
- *
- * Rules based on chapter 8 of the specification:
- * - the last known record of a disappeared member is preserved (never deleted);
- * - a profile with unknown status or format is marked as erroneous and is not
- *   placed into the public group;
- * - an audit entry (with `system` as actor) is written only on actual change;
- * - every run is recorded in the member_sync_runs table.
- */
 export async function runMemberSync(
   trigger: SyncTrigger,
   deps: MemberSyncDeps = {},
