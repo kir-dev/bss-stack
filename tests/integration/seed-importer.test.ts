@@ -11,11 +11,15 @@ import type { Database } from '#/server/auth/session-store.ts'
 import { importSeed } from '#/server/seed/importer.ts'
 import { validateSeedJson } from '#/server/seed/schema.ts'
 import { validateOobConfig } from '#/server/config/oob-schema.ts'
+import { DEFAULT_MEDIA_CONFIG } from '#/server/media/validator.ts'
 import { buildRawOobConfig } from '../helpers/oob-config.ts'
 import { createMigratedTestDatabase } from '../helpers/test-db.ts'
 
 const hasTestDatabase = Boolean(process.env.TEST_DATABASE_URL)
-const config = validateOobConfig(buildRawOobConfig())
+const config = {
+  ...validateOobConfig(buildRawOobConfig()),
+  media: DEFAULT_MEDIA_CONFIG,
+}
 
 const databases: Array<{ drop: () => Promise<void> }> = []
 const poolCleanups: Array<() => Promise<void>> = []

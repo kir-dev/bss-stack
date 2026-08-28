@@ -1,5 +1,5 @@
 import { desc, eq, sql } from 'drizzle-orm'
-import type { OobConfig } from '#/server/config/oob-schema.ts'
+import type { MediaConfig } from '#/server/media/validator.ts'
 import type { Clock } from '#/lib/clock.ts'
 import { systemClock } from '#/lib/clock.ts'
 import { can } from '#/server/auth/policy.ts'
@@ -40,7 +40,7 @@ export class EventConfirmationError extends Error {
 export interface EventDeps {
   viewer: Viewer
   clock?: Clock
-  mediaConfig: OobConfig['media']
+  mediaConfig: MediaConfig
   fetchImpl?: typeof fetch
 }
 
@@ -101,7 +101,7 @@ function validateDateField(
 function validatedChanges(
   current: Pick<typeof events.$inferSelect, 'startDate' | 'endDate'>,
   input: EventInput,
-  mediaConfig: OobConfig['media'],
+  mediaConfig: MediaConfig,
 ): Record<string, unknown> {
   const changes: Record<string, unknown> = {}
 

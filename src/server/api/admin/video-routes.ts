@@ -1,5 +1,4 @@
 import type { OobConfig } from '#/server/config/oob-schema.ts'
-import { getCachedOobConfig } from '#/server/config/load.ts'
 import type { Database } from '#/server/auth/session-store.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import { can } from '#/server/auth/policy.ts'
@@ -17,6 +16,8 @@ import {
   updateVideo,
 } from '#/server/videos/domain.ts'
 import { setManualRelatedVideos } from '#/server/videos/related.ts'
+import type { MediaConfig } from '#/server/media/validator.ts'
+import { DEFAULT_MEDIA_CONFIG } from '#/server/media/validator.ts'
 import { jsonResponse, readJsonBody, runAdminHandler } from './http.ts'
 
 const UUID_PATTERN =
@@ -283,15 +284,6 @@ function optionalPublishedAt(value: unknown): Date | null | undefined {
   return date
 }
 
-export function mediaConfigOf(deps: AdminVideoRouteDeps): OobConfig['media'] {
-  if (deps.config !== undefined) {
-    return deps.config.media
-  }
-  // In production the cached OOB config is used; if missing, an empty allowlist
-  // is set and the validator reports with its own Hungarian error message.
-  try {
-    return getCachedOobConfig().media
-  } catch {
-    return { allowedHosts: [] }
-  }
+export function mediaConfigOf(_deps: AdminVideoRouteDeps): MediaConfig {
+  return DEFAULT_MEDIA_CONFIG
 }

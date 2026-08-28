@@ -13,7 +13,6 @@ try {
   console.log(
     `  Csoportok: schonherz=${config.authentik.groups.schonherz}, tag=${config.authentik.groups.tag}, vezetoseg=${config.authentik.groups.vezetoseg}`,
   )
-  console.log(`  Méria hostok: ${config.media.allowedHosts.join(', ')}`)
   console.log(`  Seed fájl helye: ${config.seed.path}`)
 } catch (error) {
   console.error((error as Error).message)

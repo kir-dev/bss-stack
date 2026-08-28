@@ -33,8 +33,8 @@ import {
 } from '#/db/schema.ts'
 import { createTag } from '#/server/catalog/tags.ts'
 import { createMigratedTestDatabase } from '../helpers/test-db.ts'
-import { buildRawOobConfig } from '../helpers/oob-config.ts'
 import { installFetchMock } from '../helpers/http-mock.ts'
+import { DEFAULT_MEDIA_CONFIG } from '#/server/media/validator.ts'
 
 const databases: Array<{ drop: () => Promise<void> }> = []
 const poolCleanups: Array<() => Promise<void>> = []
@@ -50,7 +50,7 @@ afterAll(async () => {
 
 const hasTestDatabase = Boolean(process.env.TEST_DATABASE_URL)
 const clock = new FakeClock('2026-06-15T10:00:00.000Z')
-const mediaConfig = buildRawOobConfig().media
+const mediaConfig = DEFAULT_MEDIA_CONFIG
 
 const memberViewer: Viewer = {
   level: 'member',

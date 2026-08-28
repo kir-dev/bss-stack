@@ -1,4 +1,4 @@
-import type { OobConfig } from '#/server/config/oob-schema.ts'
+import { DEFAULT_MEDIA_HOSTS } from '#/lib/media-url.ts'
 
 export const MEDIA_CONNECT_TIMEOUT_MS = 5_000
 export const MEDIA_TOTAL_TIMEOUT_MS = 15_000
@@ -11,6 +11,14 @@ export interface MediaCheckResult {
 
 export type MediaKind = 'video' | 'thumbnail'
 
+export interface MediaConfig {
+  allowedHosts: readonly string[]
+}
+
+export const DEFAULT_MEDIA_CONFIG: MediaConfig = {
+  allowedHosts: DEFAULT_MEDIA_HOSTS,
+}
+
 function parseUrl(rawUrl: string): URL | null {
   try {
     return new URL(rawUrl)
@@ -21,7 +29,7 @@ function parseUrl(rawUrl: string): URL | null {
 
 export function isAllowedMediaHost(
   rawUrl: string,
-  config: OobConfig['media'],
+  config: MediaConfig,
 ): boolean {
   const url = parseUrl(rawUrl)
   if (url === null) {
@@ -40,7 +48,7 @@ export function isAllowedMediaHost(
 export function checkMediaUrlShape(
   rawUrl: string,
   kind: MediaKind,
-  config: OobConfig['media'],
+  config: MediaConfig,
 ): MediaCheckResult {
   const problems: string[] = []
   const url = parseUrl(rawUrl)
@@ -116,7 +124,7 @@ function contentTypeProblem(
 export async function validateMediaForPublish(params: {
   url: string
   kind: MediaKind
-  mediaConfig: OobConfig['media']
+  mediaConfig: MediaConfig
   connectTimeoutMs?: number
   totalTimeoutMs?: number
   fetchImpl?: typeof fetch
