@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { videoAssetUrls } from '#/lib/video-media.ts'
+import { videoAssetUrls as buildVideoAssetUrls } from '#/lib/video-media.ts'
+import { TEST_MEDIA_HOST } from '../helpers/oob-config.ts'
+import type { VideoMediaSource } from '#/lib/video-media.ts'
+
+function videoAssetUrls(source: VideoMediaSource) {
+  return buildVideoAssetUrls(source, TEST_MEDIA_HOST)
+}
 
 describe('videoAssetUrls', () => {
   it.each([

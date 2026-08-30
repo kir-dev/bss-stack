@@ -11,7 +11,7 @@ Az alkalmazás három bemenete out-of-band, azaz nem a git repóban érkezik. Hi
   - Authentik OIDC kapcsolat: issuer URL, client id, client secret, scope-ok;
   - claim-leképezés: `sub`, felhasználónév, teljes név, becenév, profilkép URL;
   - csoportleképezés: schönherzes, tag és vezetőség csoport neve;
-  - médiahost-engedélylista (specifikáció szerint `v.bsstudio.hu`);
+  - médiahost (`media.host`, jelenleg `https://v.bsstudio.hu`);
   - YouTube oEmbed végpont;
   - seed JSON helye.
 

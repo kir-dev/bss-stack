@@ -2,7 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { getAboutPageVideos } from '#/server/homepage/about.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
-import { videoThumbnailUrl } from '#/lib/video-media.ts'
+import { videoThumbnailUrl } from '#/server/media/video-media.ts'
 
 const ABOUT_TEXT_VERSION = 1
 

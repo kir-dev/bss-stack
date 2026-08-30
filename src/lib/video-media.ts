@@ -18,8 +18,6 @@ export interface VideoAssetUrls {
   mobileUrl: string | null
 }
 
-export const VIDEO_MEDIA_ORIGIN = 'https://v.bsstudio.hu'
-
 const STORAGE_DIRECTORIES: Record<VideoEncodingGroup, string> = {
   '4a3_SD': 'bss_vagott_web_4a3_SD',
   '16a9_SD': 'bss_vagott_web_16a9_SD',
@@ -27,15 +25,19 @@ const STORAGE_DIRECTORIES: Record<VideoEncodingGroup, string> = {
 }
 
 function assetUrl(
+  mediaHost: string,
   group: VideoEncodingGroup,
   directory: string,
   filename: string,
 ): string {
   const storageDirectory = STORAGE_DIRECTORIES[group]
-  return `${VIDEO_MEDIA_ORIGIN}/${storageDirectory}/${directory}/${encodeURIComponent(filename)}`
+  return `${mediaHost}/${storageDirectory}/${directory}/${encodeURIComponent(filename)}`
 }
 
-export function videoAssetUrls(source: VideoMediaSource): VideoAssetUrls {
+export function videoAssetUrls(
+  source: VideoMediaSource,
+  mediaHost: string,
+): VideoAssetUrls {
   const { encodingGroup, hasHq, hasLq } = source
   const baseFilename = source.baseFilename?.trim() ?? ''
   if (encodingGroup === null || baseFilename === '') {
@@ -50,12 +52,14 @@ export function videoAssetUrls(source: VideoMediaSource): VideoAssetUrls {
   }
 
   const lowQualityUrl = assetUrl(
+    mediaHost,
     encodingGroup,
     'low_quality',
     `${baseFilename}_lq.mp4`,
   )
   const highQualitySuffix = encodingGroup === '16a9_HD' ? 'hq_HD' : 'hq_SD'
   const highQualityUrl = assetUrl(
+    mediaHost,
     encodingGroup,
     'high_quality',
     `${baseFilename}_${highQualitySuffix}.mp4`,
@@ -66,19 +70,31 @@ export function videoAssetUrls(source: VideoMediaSource): VideoAssetUrls {
     hqUrl: hasHq ? highQualityUrl : null,
     lqUrl: hasLq ? lowQualityUrl : null,
     thumbnailUrl: assetUrl(
+      mediaHost,
       encodingGroup,
       'thumbnail',
       `${baseFilename}_tn.png`,
     ),
-    keyframeUrl: assetUrl(encodingGroup, 'keyframe', `${baseFilename}_lq.png`),
+    keyframeUrl: assetUrl(
+      mediaHost,
+      encodingGroup,
+      'keyframe',
+      `${baseFilename}_lq.png`,
+    ),
     mobileUrl: hasLq ? lowQualityUrl : null,
   }
 }
 
-export function videoUrl(source: VideoMediaSource): string | null {
-  return videoAssetUrls(source).videoUrl
+export function videoUrl(
+  source: VideoMediaSource,
+  mediaHost: string,
+): string | null {
+  return videoAssetUrls(source, mediaHost).videoUrl
 }
 
-export function videoThumbnailUrl(source: VideoMediaSource): string | null {
-  return videoAssetUrls(source).thumbnailUrl
+export function videoThumbnailUrl(
+  source: VideoMediaSource,
+  mediaHost: string,
+): string | null {
+  return videoAssetUrls(source, mediaHost).thumbnailUrl
 }

@@ -5,7 +5,6 @@ import { buildRawOobConfig } from '../helpers/oob-config.ts'
 import { validateOobConfig } from '#/server/config/oob-schema.ts'
 import {
   checkMediaUrlShape,
-  DEFAULT_MEDIA_CONFIG,
   isAllowedMediaHost,
   validateMediaForPublish,
 } from '#/server/media/validator.ts'
@@ -15,10 +14,7 @@ import {
   validateYoutubeVideo,
 } from '#/server/media/youtube.ts'
 
-const config = {
-  ...validateOobConfig(buildRawOobConfig()),
-  media: DEFAULT_MEDIA_CONFIG,
-}
+const config = validateOobConfig(buildRawOobConfig())
 
 const VIDEO_URL = 'https://v.bsstudio.hu/media/video.mp4'
 

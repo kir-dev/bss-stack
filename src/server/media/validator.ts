@@ -1,5 +1,3 @@
-import { DEFAULT_MEDIA_HOSTS } from '#/lib/media-url.ts'
-
 export const MEDIA_CONNECT_TIMEOUT_MS = 5_000
 export const MEDIA_TOTAL_TIMEOUT_MS = 15_000
 
@@ -13,10 +11,6 @@ export type MediaKind = 'video' | 'thumbnail'
 
 export interface MediaConfig {
   allowedHosts: readonly string[]
-}
-
-export const DEFAULT_MEDIA_CONFIG: MediaConfig = {
-  allowedHosts: DEFAULT_MEDIA_HOSTS,
 }
 
 function parseUrl(rawUrl: string): URL | null {

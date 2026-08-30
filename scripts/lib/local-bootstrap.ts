@@ -372,6 +372,9 @@ export function renderOobConfig(secrets: LocalSecrets): unknown {
     youtube: {
       oEmbedEndpoint: 'https://www.youtube.com/oEmbed',
     },
+    media: {
+      host: 'https://v.bsstudio.hu',
+    },
     seed: {
       path: 'oob/seed.json',
     },

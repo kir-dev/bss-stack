@@ -5,7 +5,6 @@ import { Pool } from 'pg'
 import { loadOobConfig } from '#/server/config/load.ts'
 import { importSeed } from '#/server/seed/importer.ts'
 import { SeedValidationError, validateSeedJson } from '#/server/seed/schema.ts'
-import { DEFAULT_MEDIA_CONFIG } from '#/server/media/validator.ts'
 
 async function main(): Promise<void> {
   const databaseUrl = process.env.DATABASE_URL
@@ -34,7 +33,7 @@ async function main(): Promise<void> {
 
   let seed
   try {
-    seed = validateSeedJson(rawSeed, DEFAULT_MEDIA_CONFIG)
+    seed = validateSeedJson(rawSeed, config.media)
   } catch (error) {
     if (error instanceof SeedValidationError) {
       console.error(error.message)

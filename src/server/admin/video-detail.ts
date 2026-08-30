@@ -10,7 +10,7 @@ import {
   videos,
 } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
-import { videoAssetUrls } from '#/lib/video-media.ts'
+import { videoAssetUrls } from '#/server/media/video-media.ts'
 import type { VideoEncodingGroup } from '#/lib/video-media.ts'
 
 export interface AdminVideoDetail {

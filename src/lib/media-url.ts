@@ -1,6 +1,3 @@
-/** If the OOB config is not available to the client, this host is the fallback. */
-export const DEFAULT_MEDIA_HOSTS = ['v.bsstudio.hu'] as const
-
 function parseUrl(rawUrl: string): URL | null {
   try {
     return new URL(rawUrl)
@@ -30,9 +27,8 @@ export function mediaUrlWarning(
   if (url.protocol !== 'https:') {
     return `${label}: csak https:// URL adható meg.`
   }
-  const hosts = allowedHosts.length > 0 ? allowedHosts : DEFAULT_MEDIA_HOSTS
-  if (!hosts.includes(url.hostname)) {
-    return `${label}: a(z) „${url.hostname}" host nem engedélyezett, csak ${hosts.join(', ')}.`
+  if (!allowedHosts.includes(url.hostname)) {
+    return `${label}: a(z) „${url.hostname}" host nem engedélyezett, csak ${allowedHosts.join(', ')}.`
   }
   return null
 }

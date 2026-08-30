@@ -20,6 +20,9 @@
   "youtube": {
     "oEmbedEndpoint": "https://www.youtube.com/oembed"
   },
+  "media": {
+    "host": "https://v.bsstudio.hu"
+  },
   "seed": {
     "path": "oob/seed.json"
   }

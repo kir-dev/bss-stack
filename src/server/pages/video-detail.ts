@@ -12,7 +12,7 @@ import {
 import type { Executor } from '#/server/shared/db-executor.ts'
 import { visibleVideoCondition } from '#/server/videos/visibility.ts'
 import { getRelatedVideos } from '#/server/videos/related.ts'
-import { videoAssetUrls } from '#/lib/video-media.ts'
+import { videoAssetUrls } from '#/server/media/video-media.ts'
 
 export interface VideoDetailStaffEntry {
   roleId: string

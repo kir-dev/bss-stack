@@ -35,7 +35,8 @@ import {
   slugify,
 } from '#/server/shared/slug.ts'
 import { invalidateHomepageReferences } from './highlight-invalidation.ts'
-import { VIDEO_ENCODING_GROUPS, videoAssetUrls } from '#/lib/video-media.ts'
+import { VIDEO_ENCODING_GROUPS } from '#/lib/video-media.ts'
+import { videoAssetUrls } from '#/server/media/video-media.ts'
 import type { VideoEncodingGroup } from '#/lib/video-media.ts'
 
 export type VideoVisibility = 'public' | 'schonherz' | 'bss'

@@ -33,6 +33,10 @@ export interface OobConfig {
   youtube: {
     oEmbedEndpoint: string
   }
+  media: {
+    host: string
+    allowedHosts: string[]
+  }
   seed: {
     path: string
   }
@@ -80,6 +84,9 @@ export function validateOobConfig(raw: unknown): OobConfig {
   if (!isRecord(raw.youtube)) {
     problems.push('youtube: kötelező szekció hiányzik.')
   }
+  if (!isRecord(raw.media)) {
+    problems.push('media: kötelező szekció hiányzik.')
+  }
   if (!isRecord(raw.seed)) {
     problems.push('seed: kötelező szekció hiányzik.')
   }
@@ -90,6 +97,7 @@ export function validateOobConfig(raw: unknown): OobConfig {
 
   const authentik = raw.authentik as Record<string, unknown>
   const youtube = raw.youtube as Record<string, unknown>
+  const media = raw.media as Record<string, unknown>
   const seed = raw.seed as Record<string, unknown>
 
   requireString(authentik, 'authentik.issuerUrl', problems)
@@ -174,6 +182,31 @@ export function validateOobConfig(raw: unknown): OobConfig {
     }
   }
 
+  requireString(media, 'media.host', problems)
+  const mediaHost = media['host']
+  let mediaOrigin = ''
+  let mediaHostname = ''
+  if (typeof mediaHost === 'string' && mediaHost.trim() !== '') {
+    try {
+      const parsed = new URL(mediaHost)
+      if (
+        parsed.protocol !== 'https:' ||
+        parsed.pathname !== '/' ||
+        parsed.search !== '' ||
+        parsed.hash !== ''
+      ) {
+        problems.push(
+          'media.host: útvonal nélküli https origin kell legyen (pl. https://v.bsstudio.hu).',
+        )
+      } else {
+        mediaOrigin = parsed.origin
+        mediaHostname = parsed.hostname
+      }
+    } catch {
+      problems.push('media.host: érvénytelen URL.')
+    }
+  }
+
   requireString(seed, 'seed.path', problems)
 
   if (problems.length > 0) {
@@ -194,6 +227,10 @@ export function validateOobConfig(raw: unknown): OobConfig {
     },
     youtube: {
       oEmbedEndpoint: youtube['oEmbedEndpoint'] as string,
+    },
+    media: {
+      host: mediaOrigin,
+      allowedHosts: [mediaHostname],
     },
     seed: {
       path: seed['path'] as string,

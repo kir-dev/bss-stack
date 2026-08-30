@@ -3,7 +3,7 @@ import { getHomepageState, getUpcomingLive } from '#/server/homepage/state.ts'
 import { latestVisibleThumbnailByEvent } from '#/server/pages/event-list.ts'
 import { anonymousViewer } from '#/server/auth/viewer.ts'
 import { systemClock } from '#/lib/clock.ts'
-import { videoAssetUrls } from '#/lib/video-media.ts'
+import { videoAssetUrls } from '#/server/media/video-media.ts'
 
 export interface HomepageVideoCard {
   id: string
