@@ -1,4 +1,4 @@
-import { afterAll, describe, expect, it } from 'vitest'
+import { afterAll, describe, expect, it, vi } from 'vitest'
 import { Client } from 'pg'
 import { FakeClock } from '#/lib/clock.ts'
 import {
@@ -192,6 +192,60 @@ describe.skipIf(!hasTestDatabase)('BSS-010: PostgreSQL advisory lock', () => {
     })
     expect(secondAttempt.status).toBe('ok')
     expect(executions).toBe(1)
+  })
+})
+
+describe('BSS-010: PostgreSQL lock kapcsolat', () => {
+  it('egyszer csatlakozik a factory által létrehozott klienssel', async () => {
+    const connect = vi.fn(async () => undefined)
+    const query = vi.fn(async () => ({ rows: [{ locked: false }] }))
+    const end = vi.fn(async () => undefined)
+    const client = { connect, query, end } as unknown as Client
+    const manager = createPgLockManager({
+      clientFactory: async () => client,
+    })
+
+    await manager.acquire('egyszer-csatlakozik')
+
+    expect(connect).toHaveBeenCalledOnce()
+    expect(query).toHaveBeenCalledOnce()
+    await manager.close?.()
+  })
+
+  it('továbbadja a csatlakozási hibát, majd új klienssel próbálkozik', async () => {
+    const connectionError = new Error('kapcsolódási hiba')
+    const failedConnect = vi.fn(async () => {
+      throw connectionError
+    })
+    const failedQuery = vi.fn()
+    const failedClient = {
+      connect: failedConnect,
+      query: failedQuery,
+    } as unknown as Client
+    const healthyConnect = vi.fn(async () => undefined)
+    const healthyQuery = vi.fn(async () => ({ rows: [{ locked: false }] }))
+    const healthyClient = {
+      connect: healthyConnect,
+      query: healthyQuery,
+    } as unknown as Client
+    const clientFactory = vi
+      .fn<() => Promise<Client>>()
+      .mockResolvedValueOnce(failedClient)
+      .mockResolvedValueOnce(healthyClient)
+    const manager = createPgLockManager({
+      clientFactory,
+    })
+
+    await expect(manager.acquire('hibas-kapcsolat')).rejects.toBe(
+      connectionError,
+    )
+    expect(failedConnect).toHaveBeenCalledOnce()
+    expect(failedQuery).not.toHaveBeenCalled()
+
+    await expect(manager.acquire('ujraprobalas')).resolves.toBeNull()
+    expect(clientFactory).toHaveBeenCalledTimes(2)
+    expect(healthyConnect).toHaveBeenCalledOnce()
+    expect(healthyQuery).toHaveBeenCalledOnce()
   })
 })
 

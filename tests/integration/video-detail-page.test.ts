@@ -211,6 +211,7 @@ describe.skipIf(!hasTestDatabase)(
         db,
       })
       expect(first.status).toBe(200)
+      expect(await first.json()).toEqual({ counted: true })
       const setCookie = first.headers.get('set-cookie')
       expect(setCookie).toContain(VIEW_SESSION_COOKIE_NAME)
 
@@ -227,6 +228,7 @@ describe.skipIf(!hasTestDatabase)(
         { db },
       )
       expect(second.status).toBe(200)
+      expect(await second.json()).toEqual({ counted: false })
       expect(second.headers.get('set-cookie')).toBeNull()
       const afterRows = await db
         .select()

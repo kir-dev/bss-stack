@@ -54,9 +54,11 @@ export async function handleVideoView(
   const isNewSession = existingToken === null || existingToken === ''
   const token = isNewSession ? newViewSessionToken() : existingToken
 
+  let counted: boolean
   try {
     const db = deps.db ?? (await getDefaultDb())
-    await recordVideoView(db, { videoId, viewer, token })
+    const result = await recordVideoView(db, { videoId, viewer, token })
+    counted = result.counted
   } catch {
     // Unknown, non-published or non-visible video: no information leak.
     return new Response(JSON.stringify({ error: 'not_found' }), {
@@ -71,7 +73,7 @@ export async function handleVideoView(
     const cookie: CookieSpec = viewSessionCookieSpec(token, secure)
     headers.append('set-cookie', serializeSetCookie(cookie))
   }
-  return new Response(JSON.stringify({ counted: true }), {
+  return new Response(JSON.stringify({ counted }), {
     status: 200,
     headers,
   })

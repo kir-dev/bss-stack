@@ -19,9 +19,7 @@ async function getDefaultLockClient(): Promise<Client> {
       'A DATABASE_URL környezeti változó nincs beállítva. Másold a .env.example alapú .env fájlba, vagy állítsd be explicit módon.',
     )
   }
-  const client = new Client({ connectionString: url })
-  await client.connect()
-  return client
+  return new Client({ connectionString: url })
 }
 
 export interface LockManager {
@@ -33,14 +31,22 @@ export function createPgLockManager(
   options: { clientFactory?: () => Promise<Client> } = {},
 ): LockManager {
   let sharedClient: Client | null = null
+  let connectingClient: Promise<Client> | null = null
 
   async function getClient(): Promise<Client> {
     if (sharedClient === null) {
-      sharedClient = await (options.clientFactory ?? getDefaultLockClient)()
-      await sharedClient.connect().catch((error) => {
-        // Errors indicating an already-connected client are harmless.
-        void error
-      })
+      connectingClient ??= (async () => {
+        const client = await (options.clientFactory ?? getDefaultLockClient)()
+        await client.connect()
+        sharedClient = client
+        return client
+      })()
+      try {
+        return await connectingClient
+      } catch (error) {
+        connectingClient = null
+        throw error
+      }
     }
     return sharedClient
   }
@@ -66,6 +72,7 @@ export function createPgLockManager(
       if (sharedClient !== null) {
         await sharedClient.end()
         sharedClient = null
+        connectingClient = null
       }
     },
   }
