@@ -1,4 +1,5 @@
 import type { OobConfig } from '#/server/config/oob-schema.ts'
+import { getCachedOobConfig } from '#/server/config/load.ts'
 import type { Database } from '#/server/auth/session-store.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import { can } from '#/server/auth/policy.ts'
@@ -17,7 +18,6 @@ import {
 } from '#/server/videos/domain.ts'
 import { setManualRelatedVideos } from '#/server/videos/related.ts'
 import type { MediaConfig } from '#/server/media/validator.ts'
-import { DEFAULT_MEDIA_CONFIG } from '#/server/media/validator.ts'
 import { jsonResponse, readJsonBody, runAdminHandler } from './http.ts'
 
 const UUID_PATTERN =
@@ -285,5 +285,5 @@ function optionalPublishedAt(value: unknown): Date | null | undefined {
 }
 
 export function mediaConfigOf(_deps: AdminVideoRouteDeps): MediaConfig {
-  return DEFAULT_MEDIA_CONFIG
+  return (_deps.config ?? getCachedOobConfig()).media
 }

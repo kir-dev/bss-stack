@@ -11,6 +11,8 @@ describe('OOB config validáció', () => {
     expect(config.authentik.clientId).toBe('bss-stack-local')
     expect(config.authentik.claims.sub).toBe('sub')
     expect(config.authentik.groups.tag).toBe('tag-dev')
+    expect(config.media.host).toBe('https://v.bsstudio.hu')
+    expect(config.media.allowedHosts).toEqual(['v.bsstudio.hu'])
   })
 
   it('hiányzó szekciókra konkrét hibaüzenetet ad', () => {
@@ -22,6 +24,7 @@ describe('OOB config validáció', () => {
       const problems = (error as OobConfigError).problems
       expect(problems.some((p) => p.startsWith('authentik:'))).toBe(true)
       expect(problems.some((p) => p.startsWith('youtube:'))).toBe(true)
+      expect(problems.some((p) => p.startsWith('media:'))).toBe(true)
       expect(problems.some((p) => p.startsWith('seed:'))).toBe(true)
     }
   })

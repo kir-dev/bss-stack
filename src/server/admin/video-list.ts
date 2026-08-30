@@ -2,7 +2,7 @@ import { and, desc, eq, ilike, or, sql } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
 import { events, memberCache, tags, videoTags, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
-import { videoThumbnailUrl } from '#/lib/video-media.ts'
+import { videoThumbnailUrl } from '#/server/media/video-media.ts'
 
 export const ADMIN_PAGE_SIZES = [10, 25, 50, 100] as const
 export const ADMIN_DEFAULT_PAGE_SIZE = 25

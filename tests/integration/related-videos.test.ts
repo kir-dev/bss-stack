@@ -12,7 +12,7 @@ import { TextValidationError } from '#/server/shared/text.ts'
 import { FakeClock } from '#/lib/clock.ts'
 import { events, memberCache, tags, videoTags, videos } from '#/db/schema.ts'
 import { createMigratedTestDatabase } from '../helpers/test-db.ts'
-import { DEFAULT_MEDIA_CONFIG } from '#/server/media/validator.ts'
+import { TEST_MEDIA_CONFIG } from '../helpers/oob-config.ts'
 import { installFetchMock } from '../helpers/http-mock.ts'
 
 const databases: Array<{ drop: () => Promise<void> }> = []
@@ -29,7 +29,7 @@ afterAll(async () => {
 
 const hasTestDatabase = Boolean(process.env.TEST_DATABASE_URL)
 const clock = new FakeClock('2026-06-20T10:00:00.000Z')
-const mediaConfig = DEFAULT_MEDIA_CONFIG
+const mediaConfig = TEST_MEDIA_CONFIG
 
 const anonymousViewer: Viewer = {
   level: 'anonymous',

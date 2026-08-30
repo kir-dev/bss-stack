@@ -40,13 +40,10 @@ describe('média-URL kliensoldali figyelmeztetés', () => {
     )
   })
 
-  it('config nélkül a specifikált hostra esik vissza', () => {
+  it('üres engedélylistánál egy hostot sem fogad el', () => {
     expect(
       mediaUrlWarning('MP4 URL', 'https://v.bsstudio.hu/a.mp4', []),
-    ).toBeNull()
-    expect(
-      mediaUrlWarning('MP4 URL', 'https://example.com/a.mp4', []),
-    ).toContain('v.bsstudio.hu')
+    ).toContain('nem engedélyezett')
   })
 
   it('mindkét média mezőt ellenőrzi', () => {

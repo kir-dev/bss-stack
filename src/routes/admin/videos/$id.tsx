@@ -7,6 +7,7 @@ import {
   getAdminVideoEditorOptions,
 } from '#/server/admin/video-detail.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
+import { getCachedOobConfig } from '#/server/config/load.ts'
 import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
 import { ErrorState, LoadingState } from '#/components/PageStates.tsx'
 import {
@@ -45,7 +46,7 @@ const loadAdminVideoEditor = createServerFn({ method: 'GET' })
       return null
     }
     const options = await getAdminVideoEditorOptions(db, data.id)
-    return { detail, options }
+    return { detail, options, mediaHost: getCachedOobConfig().media.host }
   })
 
 export const Route = createFileRoute('/admin/videos/$id')({
@@ -136,6 +137,7 @@ function AdminVideoEditorPage() {
       key={`${payload.detail.id}-${payload.detail.version}`}
       detail={payload.detail}
       options={payload.options}
+      mediaHost={payload.mediaHost}
       isLeadership={viewerQuery.data?.level === 'leadership'}
       onReload={() =>
         queryClient.invalidateQueries({ queryKey: ['admin-video-editor', id] })
@@ -147,11 +149,13 @@ function AdminVideoEditorPage() {
 function VideoEditor({
   detail,
   options,
+  mediaHost,
   isLeadership,
   onReload,
 }: {
   detail: AdminVideoDetail
   options: Awaited<ReturnType<typeof getAdminVideoEditorOptions>>
+  mediaHost: string
   isLeadership: boolean
   onReload: () => Promise<unknown>
 }) {
@@ -201,15 +205,18 @@ function VideoEditor({
     (item) => ({ value: item.id, label: item.title }),
   )
 
-  const mediaUrls = videoAssetUrls({
-    encodingGroup:
-      form.encodingGroup === ''
-        ? null
-        : (form.encodingGroup as '4a3_SD' | '16a9_SD' | '16a9_HD'),
-    hasHq: form.hasHq,
-    hasLq: form.hasLq,
-    baseFilename: form.baseFilename === '' ? null : form.baseFilename,
-  })
+  const mediaUrls = videoAssetUrls(
+    {
+      encodingGroup:
+        form.encodingGroup === ''
+          ? null
+          : (form.encodingGroup as '4a3_SD' | '16a9_SD' | '16a9_HD'),
+      hasHq: form.hasHq,
+      hasLq: form.hasLq,
+      baseFilename: form.baseFilename === '' ? null : form.baseFilename,
+    },
+    mediaHost,
+  )
 
   function patch(partial: Partial<EditorForm>) {
     setForm((prev) => ({ ...prev, ...partial }))

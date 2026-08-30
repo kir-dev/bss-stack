@@ -2,7 +2,7 @@ import { and, desc, eq, lte, sql } from 'drizzle-orm'
 import { memberCache, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 import { TRASH_RETENTION_DAYS } from '#/server/videos/purge.ts'
-import { videoThumbnailUrl } from '#/lib/video-media.ts'
+import { videoThumbnailUrl } from '#/server/media/video-media.ts'
 
 export interface TrashListItem {
   id: string

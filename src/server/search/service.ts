@@ -2,7 +2,7 @@ import { sql } from 'drizzle-orm'
 import type { SQL } from 'drizzle-orm'
 import type { Viewer } from '#/server/auth/viewer.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
-import { videoThumbnailUrl } from '#/lib/video-media.ts'
+import { videoThumbnailUrl } from '#/server/media/video-media.ts'
 import type { VideoEncodingGroup } from '#/lib/video-media.ts'
 
 export const MIN_QUERY_LENGTH = 2

@@ -4,10 +4,11 @@ import {
   robotsTxt,
   securityHeaders,
 } from '#/server/http/security-headers.ts'
+import { TEST_MEDIA_HOST } from '../helpers/oob-config.ts'
 
 describe('BSS-035: biztonsági fejlécek és CSP', () => {
   it('a CSP engedi a média hostot és a YouTube nocookie framet', () => {
-    const csp = contentSecurityPolicy()
+    const csp = contentSecurityPolicy(TEST_MEDIA_HOST)
     expect(csp).toContain("media-src 'self' https://v.bsstudio.hu")
     expect(csp).toContain('https://www.youtube-nocookie.com')
     expect(csp).toContain("frame-ancestors 'none'")
@@ -15,7 +16,7 @@ describe('BSS-035: biztonsági fejlécek és CSP', () => {
   })
 
   it('minden alapbiztonsági header jelen van', () => {
-    const headers = securityHeaders()
+    const headers = securityHeaders(TEST_MEDIA_HOST)
     expect(headers['x-content-type-options']).toBe('nosniff')
     expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin')
     expect(headers['permissions-policy']).toContain('camera=()')

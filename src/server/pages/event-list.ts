@@ -3,7 +3,7 @@ import type { Viewer } from '#/server/auth/viewer.ts'
 import { events, memberCache, videoStaff, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 import { visibleVideoCondition } from '#/server/videos/visibility.ts'
-import { videoThumbnailUrl } from '#/lib/video-media.ts'
+import { videoThumbnailUrl } from '#/server/media/video-media.ts'
 
 export const EVENT_PAGE_SIZES = [10, 25, 50, 100] as const
 export const DEFAULT_EVENT_PAGE_SIZE = 50

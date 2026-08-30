@@ -10,10 +10,18 @@ export interface RawOobConfig {
   youtube: {
     oEmbedEndpoint: string
   }
+  media: {
+    host: string
+  }
   seed: {
     path: string
   }
 }
+
+export const TEST_MEDIA_HOST = 'https://v.bsstudio.hu'
+export const TEST_MEDIA_CONFIG = {
+  allowedHosts: [new URL(TEST_MEDIA_HOST).hostname],
+} as const
 
 export function buildRawOobConfig(
   overrides: DeepPartial<RawOobConfig> = {},
@@ -39,6 +47,9 @@ export function buildRawOobConfig(
     },
     youtube: {
       oEmbedEndpoint: 'https://www.youtube.com/oembed',
+    },
+    media: {
+      host: TEST_MEDIA_HOST,
     },
     seed: {
       path: 'oob/seed.json',

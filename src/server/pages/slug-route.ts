@@ -29,7 +29,6 @@ export async function resolvePublicSlug(
     }
   }
 
-  // to publicly unreachable content.
   const redirect = await resolveSlugRedirect(
     executor,
     params.entityType,
