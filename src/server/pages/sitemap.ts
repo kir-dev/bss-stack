@@ -17,7 +17,7 @@ export async function getSitemapEntries(
     lastmod: null,
   }))
 
-  // Only published videos AND with public visibility (even a restricted video's
+  // Only published videos AND with public visibility (even a restricted video's metadata must not be indexed).
 
   const videoRows = await executor
     .select({ slug: videos.slug, updatedAt: videos.updatedAt })
