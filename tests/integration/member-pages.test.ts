@@ -227,6 +227,10 @@ describe.skipIf(!hasTestDatabase)('BSS-023: tevékenység', () => {
       'uj-video',
       'regi-video',
     ])
+    expect(activity.items.map((row) => row.videoId)).toEqual([
+      recent.id,
+      old.id,
+    ])
     expect(activity.items[0]?.roles.sort()).toEqual(['Rendező', 'Vágó'])
 
     // Tag néző már a titkos videót is látja.

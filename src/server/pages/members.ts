@@ -209,7 +209,7 @@ export async function getMemberActivity(
   const offset = params.offset ?? 0
 
   const rowsResult = await executor.execute(sql`
-    select v.id, v.slug, v.title,
+    select v.id as "videoId", v.slug, v.title,
       to_char(v.recorded_at, 'YYYY-MM-DD') as "recordedAt",
       extract(year from v.recorded_at)::int as year,
       coalesce(
