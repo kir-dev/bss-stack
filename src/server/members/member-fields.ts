@@ -160,7 +160,7 @@ export const MEMBER_FIELD_SPECS: readonly MemberFieldSpec[] = [
     enumValues: MEMBERSHIP_STATUS_KEYS,
     description:
       'Membership status. It decides which public list the member appears on; it grants NO permissions.',
-    example: 'studio_member',
+    example: 'MEMBER',
   },
   {
     name: 'isLeadership',

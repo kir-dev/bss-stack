@@ -126,13 +126,13 @@ describe.skipIf(!hasTestDatabase)('BSS-021: videórészlet', () => {
         sub: 'sub-a',
         username: 'tag-a',
         fullName: 'Anna Tag',
-        membershipStatus: 'studio_member',
+        membershipStatus: 'MEMBER',
       },
       {
         sub: 'sub-b',
         username: 'tag-b',
         fullName: 'Bence Tag',
-        membershipStatus: 'studio_member',
+        membershipStatus: 'MEMBER',
       },
     ])
     const video = await seedVideo(db, {
@@ -203,7 +203,7 @@ describe.skipIf(!hasTestDatabase)(
         sub: 'sub-x',
         username: 'tag-x',
         fullName: 'X Tag',
-        membershipStatus: 'studio_member',
+        membershipStatus: 'MEMBER',
       })
       const video = await seedVideo(db, { slug: 'szamlalt-video' })
 

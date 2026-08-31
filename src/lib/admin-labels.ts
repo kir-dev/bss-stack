@@ -21,12 +21,11 @@ export const VISIBILITY_LABELS: Record<string, [LucideIcon, string]> = {
 }
 
 export const MEMBERSHIP_STATUS_LABELS: Record<string, string> = {
-  studio_member: 'Stúdiós',
-  studio_candidate: 'Stúdiósjelölt',
-  studio_applicant: 'Stúdiósjelölt-jelölt',
-  senior_active: 'Aktív öregtag',
-  senior_archived: 'Archivált öregtag',
-  contributor: 'Dolgozott még velünk',
+  MEMBER_CANDIDATE_CANDIDATE: 'Stúdiósjelölt-jelölt',
+  MEMBER_CANDIDATE: 'Stúdiósjelölt',
+  MEMBER: 'Stúdiós',
+  ACTIVE_ALUMNI: 'Aktív öregtag',
+  ALUMNI: 'Öregtag',
 }
 
 /**

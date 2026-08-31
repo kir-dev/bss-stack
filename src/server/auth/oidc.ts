@@ -50,9 +50,6 @@ export interface TokenSet {
 export interface AuthenticatedIdentity {
   sub: string
   username: string
-  fullName: string | null
-  nickname: string | null
-  avatarUrl: string | null
   groups: string[]
 }
 
@@ -372,12 +369,7 @@ export function extractIdentityFromClaims(
       `Az id_tokenben hiányzik a kötelező "${config.claims.sub}" (sub) claim.`,
     )
   }
-  const username = claimString(claims, config.claims.username)
-  if (!username) {
-    throw new OidcProtocolError(
-      `Az id_tokenben hiányzik a kötelező "${config.claims.username}" (felhasználónév) claim.`,
-    )
-  }
+  const username = claimString(claims, 'preferred_username') ?? sub
 
   const rawGroups = claims['groups']
   const groups = Array.isArray(rawGroups)
@@ -390,9 +382,6 @@ export function extractIdentityFromClaims(
   return {
     sub,
     username,
-    fullName: claimString(claims, config.claims.fullName),
-    nickname: claimString(claims, config.claims.nickname),
-    avatarUrl: claimString(claims, config.claims.avatarUrl),
     groups,
   }
 }

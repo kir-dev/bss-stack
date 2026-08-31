@@ -79,14 +79,7 @@ function MembersPage() {
               search={() => ({ page: undefined })}
               className="font-bold text-(--orange) underline"
             >
-              Archivált öregtagok
-            </Link>
-            <Link
-              to="/members/contributors"
-              search={() => ({ page: undefined })}
-              className="font-bold text-(--orange) underline"
-            >
-              Dolgozott még velünk
+              Öregtagok
             </Link>
           </nav>
         </>

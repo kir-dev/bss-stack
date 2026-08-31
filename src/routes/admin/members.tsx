@@ -170,7 +170,7 @@ function EndpointSection() {
           "fullName": "Gipsz Jakab",
           "nickname": "Pitypang",
           "avatarUrl": null,
-          "membershipStatus": "studio_member",
+          "membershipStatus": "MEMBER",
           "isLeadership": false,
           "joinedSemester": "2021/2022/1"
       }},

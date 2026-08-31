@@ -90,7 +90,7 @@ describe.skipIf(!hasTestDatabase)('BSS-027: guard valódi sessionnel', () => {
       {
         memberSub: 'sub-admin-member',
         username: 'adminmember',
-        groups: [config.authentik.groups.tag],
+        groups: [config.authentik.groups.studio],
         accessToken: null,
       },
       { db },
@@ -105,7 +105,7 @@ describe.skipIf(!hasTestDatabase)('BSS-027: guard valódi sessionnel', () => {
       {
         memberSub: 'sub-admin-sch',
         username: 'adminsch',
-        groups: [config.authentik.groups.schonherz],
+        groups: [],
         accessToken: null,
       },
       { db },
@@ -125,7 +125,7 @@ describe.skipIf(!hasTestDatabase)('BSS-027: guard valódi sessionnel', () => {
       {
         memberSub: 'sub-expired',
         username: 'expired',
-        groups: [config.authentik.groups.tag],
+        groups: [config.authentik.groups.studio],
         accessToken: null,
       },
       { db, ttlMs: -1000 },
@@ -138,7 +138,7 @@ describe.skipIf(!hasTestDatabase)('BSS-027: guard valódi sessionnel', () => {
     expect(adminAreaAccess(state.viewer, '/admin/videos').kind).toBe('login')
   })
 
-  it('cookie nélkül névtelen; vezetőségi csoport tagsággal együtt ad teljes jogot', async () => {
+  it('cookie nélkül névtelen; a vezetőségi csoport önmagában teljes jogot ad', async () => {
     const db = await setupDb()
     const anonymousState = await resolveViewerStateFromRequest(
       new Request('http://localhost/admin'),
@@ -146,12 +146,11 @@ describe.skipIf(!hasTestDatabase)('BSS-027: guard valódi sessionnel', () => {
     )
     expect(anonymousState.viewer.level).toBe('anonymous')
 
-    // névtelen marad, így az admin terület belépést sem enged neki.
     const leadOnly = await createAuthSession(
       {
         memberSub: 'sub-lead-only',
         username: 'leadonly',
-        groups: [config.authentik.groups.vezetoseg],
+        groups: [config.authentik.groups.leadership],
         accessToken: null,
       },
       { db },
@@ -160,22 +159,14 @@ describe.skipIf(!hasTestDatabase)('BSS-027: guard valódi sessionnel', () => {
       requestWithCookie(leadOnly.token),
       { db, config },
     )
-    expect(leadOnlyState.viewer.level).not.toBe('leadership')
-    expect(leadOnlyState.viewer.level).not.toBe('member')
-    expect(
-      ['ok', 'forbidden'].includes(
-        adminAreaAccess(leadOnlyState.viewer, '/admin').kind,
-      ),
-    ).toBe(false)
+    expect(leadOnlyState.viewer.level).toBe('leadership')
+    expect(adminAreaAccess(leadOnlyState.viewer, '/admin').kind).toBe('ok')
 
     const full = await createAuthSession(
       {
         memberSub: 'sub-full-lead',
         username: 'fulllead',
-        groups: [
-          config.authentik.groups.tag,
-          config.authentik.groups.vezetoseg,
-        ],
+        groups: [config.authentik.groups.admin],
         accessToken: null,
       },
       { db },

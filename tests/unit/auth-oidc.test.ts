@@ -343,17 +343,17 @@ describe('identity kinyerés', () => {
 
     expect(identity.sub).toBe('sub-1')
     expect(identity.username).toBe('tag-dev')
-    expect(identity.fullName).toBe('Teszt BSS Tag')
-    expect(identity.nickname).toBe('Tagocska')
-    expect(identity.avatarUrl).toBeNull()
     expect(identity.groups).toEqual(['bss-tag', 'bss-vezetoseg'])
   })
 
-  it('hiányzó sub vagy felhasználónév esetén nem talál ki identitást', () => {
+  it('hiányzó sub esetén nem talál ki identitást', () => {
     expect(() => extractIdentityFromClaims({}, config.authentik)).toThrow(/sub/)
-    expect(() =>
+  })
+
+  it('a sub elég, ha nincs felhasználónév claim', () => {
+    expect(
       extractIdentityFromClaims({ sub: 'sub-1' }, config.authentik),
-    ).toThrow(/felhasználónév/)
+    ).toMatchObject({ sub: 'sub-1', username: 'sub-1' })
   })
 })
 

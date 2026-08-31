@@ -43,12 +43,11 @@ export const eventStatusEnum = pgEnum('event_status', [
 ])
 
 export const membershipStatusEnum = pgEnum('membership_status', [
-  'studio_member',
-  'studio_candidate',
-  'studio_applicant',
-  'senior_active',
-  'senior_archived',
-  'contributor',
+  'MEMBER_CANDIDATE_CANDIDATE',
+  'MEMBER_CANDIDATE',
+  'MEMBER',
+  'ACTIVE_ALUMNI',
+  'ALUMNI',
 ])
 
 export const semesterEnum = pgEnum('semester', ['spring', 'autumn'])

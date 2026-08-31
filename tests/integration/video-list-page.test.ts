@@ -214,7 +214,7 @@ describe.skipIf(!hasTestDatabase)('BSS-020: videólista lekérdezés', () => {
       sub: 'staff-sub',
       username: 'stábtag',
       fullName: 'Stáb Tag',
-      membershipStatus: 'studio_member',
+      membershipStatus: 'MEMBER',
     })
     await db.insert(videoStaff).values({
       videoId: video.id,

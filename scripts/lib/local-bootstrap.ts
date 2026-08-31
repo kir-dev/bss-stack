@@ -36,12 +36,24 @@ interface LocalUserSpec {
   introduction: string | null
 }
 
+const LOCAL_GROUPS = [
+  { id: 'admin', name: 'Admin' },
+  { id: 'studio', name: 'Stúdiós' },
+  { id: 'studio-candidate', name: 'Stúdiós jelölt' },
+  {
+    id: 'studio-candidate-candidate',
+    name: 'Stúdiós jelölt-jelölt',
+  },
+  { id: 'leadership', name: 'Vezetőség' },
+  { id: 'alumni', name: 'Öregtag' },
+] as const
+
 export const LOCAL_USERS: LocalUserSpec[] = [
   {
     username: 'schonherz-dev',
     fullName: 'Schönherzes Teszt Felhasználó',
     nickname: 'Schi',
-    groups: ['bss-schonherz'],
+    groups: [],
     status: null,
     joinedSemester: null,
     introduction: null,
@@ -50,7 +62,7 @@ export const LOCAL_USERS: LocalUserSpec[] = [
     username: 'tag-dev',
     fullName: 'Teszt BSS Tag',
     nickname: 'Tagocska',
-    groups: ['bss-tag'],
+    groups: ['Stúdiós'],
     status: 'stúdiós',
     joinedSemester: '2023/2024/1',
     introduction: 'Lokális teszt profil egy stúdiós szerepére.',
@@ -59,16 +71,25 @@ export const LOCAL_USERS: LocalUserSpec[] = [
     username: 'vezetoseg-dev',
     fullName: 'Teszt Vezetőségi Tag',
     nickname: 'Vezér',
-    groups: ['bss-tag', 'bss-vezetoseg'],
+    groups: ['Vezetőség'],
     status: 'stúdiós',
     joinedSemester: '2020/2021/2',
     introduction: 'Lokális teszt profil vezetőségi joggal.',
   },
   {
+    username: 'admin-dev',
+    fullName: 'Teszt Admin',
+    nickname: 'Admin',
+    groups: ['Admin'],
+    status: 'stúdiós',
+    joinedSemester: '2020/2021/2',
+    introduction: 'Lokális teszt profil admin joggal.',
+  },
+  {
     username: 'jelolt-dev',
     fullName: 'Teszt Stúdiósjelölt',
     nickname: 'Jelöltke',
-    groups: [],
+    groups: ['Stúdiós jelölt'],
     status: 'stúdiósjelölt',
     joinedSemester: '2025/2026/1',
     introduction: null,
@@ -77,7 +98,7 @@ export const LOCAL_USERS: LocalUserSpec[] = [
     username: 'jeloltjelolt-dev',
     fullName: 'Teszt Stúdiósjelölt-jelölt',
     nickname: 'Jelcsa',
-    groups: [],
+    groups: ['Stúdiós jelölt-jelölt'],
     status: 'stúdiósjelölt-jelölt',
     joinedSemester: '2026/2027/1',
     introduction: null,
@@ -86,7 +107,7 @@ export const LOCAL_USERS: LocalUserSpec[] = [
     username: 'oregtag-dev',
     fullName: 'Teszt Aktív Öregtag',
     nickname: 'Öreg',
-    groups: [],
+    groups: ['Öregtag'],
     status: 'aktív öregtag',
     joinedSemester: '2019/2020/1',
     introduction: null,
@@ -95,18 +116,9 @@ export const LOCAL_USERS: LocalUserSpec[] = [
     username: 'archivalt-oregtag-dev',
     fullName: 'Teszt Archivált Öregtag',
     nickname: 'Archie',
-    groups: [],
+    groups: ['Öregtag'],
     status: 'archivált öregtag',
     joinedSemester: '2018/2019/1',
-    introduction: null,
-  },
-  {
-    username: 'kozremukodo-dev',
-    fullName: 'Teszt Korábbi Közreműködő',
-    nickname: 'Közreműködő',
-    groups: [],
-    status: 'dolgozott még velünk',
-    joinedSemester: '2019/2020/2',
     introduction: null,
   },
 ]
@@ -134,7 +146,11 @@ export function renderBlueprint(secrets: LocalSecrets): string {
     if (user.groups.length > 0) {
       lines.push('      groups:')
       for (const group of user.groups) {
-        lines.push(`        - !KeyOf id-${group}`)
+        const groupId = LOCAL_GROUPS.find((entry) => entry.name === group)?.id
+        if (groupId === undefined) {
+          throw new Error(`Ismeretlen lokális Authentik csoport: ${group}`)
+        }
+        lines.push(`        - !KeyOf id-bss-${groupId}`)
       }
     }
     if (
@@ -241,27 +257,15 @@ export function renderBlueprint(secrets: LocalSecrets): string {
     '      order: 2',
     '      target: !KeyOf id-authn-flow',
     '      stage: !KeyOf id-stage-login',
-    '  - model: authentik_core.group',
-    '    id: id-bss-schonherz',
-    '    identifiers:',
-    '      name: bss-schonherz',
-    '    attrs:',
-    '      name: bss-schonherz',
-    '      is_superuser: false',
-    '  - model: authentik_core.group',
-    '    id: id-bss-tag',
-    '    identifiers:',
-    '      name: bss-tag',
-    '    attrs:',
-    '      name: bss-tag',
-    '      is_superuser: false',
-    '  - model: authentik_core.group',
-    '    id: id-bss-vezetoseg',
-    '    identifiers:',
-    '      name: bss-vezetoseg',
-    '    attrs:',
-    '      name: bss-vezetoseg',
-    '      is_superuser: false',
+    ...LOCAL_GROUPS.flatMap((group) => [
+      '  - model: authentik_core.group',
+      `    id: id-bss-${group.id}`,
+      '    identifiers:',
+      `      name: ${group.name}`,
+      '    attrs:',
+      `      name: ${group.name}`,
+      '      is_superuser: false',
+    ]),
     userEntries,
     '  - model: authentik_providers_oauth2.scopemapping',
     '    id: id-map-profile',
@@ -358,15 +362,14 @@ export function renderOobConfig(secrets: LocalSecrets): unknown {
       scopes: ['openid', 'profile', 'email', 'bss'],
       claims: {
         sub: 'sub',
-        username: 'preferred_username',
-        fullName: 'name',
-        nickname: 'nickname',
-        avatarUrl: 'picture',
       },
       groups: {
-        schonherz: 'bss-schonherz',
-        tag: 'bss-tag',
-        vezetoseg: 'bss-vezetoseg',
+        admin: 'Admin',
+        studio: 'Stúdiós',
+        studioCandidate: 'Stúdiós jelölt',
+        studioCandidateCandidate: 'Stúdiós jelölt-jelölt',
+        leadership: 'Vezetőség',
+        alumni: 'Öregtag',
       },
     },
     youtube: {

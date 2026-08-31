@@ -62,7 +62,7 @@ paths:
                       fullName: "Gipsz Jakab"
                       nickname: "Pitypang"
                       avatarUrl: null
-                      membershipStatus: "studio_member"
+                      membershipStatus: "MEMBER"
                       isLeadership: false
                       joinedSemester: "2021/2022/1"
                   - op: "delete"
@@ -77,7 +77,7 @@ paths:
                     fullName: "Gipsz Jakab"
                     nickname: "Pitypang"
                     avatarUrl: null
-                    membershipStatus: "studio_member"
+                    membershipStatus: "MEMBER"
                     isLeadership: false
                     joinedSemester: "2021/2022/1"
       responses:
@@ -178,15 +178,14 @@ components:
         membershipStatus:
           type: "string"
           enum:
-          - "studio_member"
-          - "studio_candidate"
-          - "studio_applicant"
-          - "senior_active"
-          - "senior_archived"
-          - "contributor"
+          - "MEMBER_CANDIDATE_CANDIDATE"
+          - "MEMBER_CANDIDATE"
+          - "MEMBER"
+          - "ACTIVE_ALUMNI"
+          - "ALUMNI"
           description: "Membership status. It decides which public list the member appears on; it grants NO permissions."
           examples:
-          - "studio_member"
+          - "MEMBER"
         isLeadership:
           type: "boolean"
           default: false
@@ -207,7 +206,7 @@ components:
         fullName: "Gipsz Jakab"
         nickname: "Pitypang"
         avatarUrl: null
-        membershipStatus: "studio_member"
+        membershipStatus: "MEMBER"
         isLeadership: false
         joinedSemester: "2021/2022/1"
     UpsertOperation:

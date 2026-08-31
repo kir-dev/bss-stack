@@ -98,7 +98,7 @@ function member(overrides: Record<string, unknown> = {}) {
     fullName: 'Gipsz Jakab',
     nickname: 'Pitypang',
     avatarUrl: null,
-    membershipStatus: 'studio_member',
+    membershipStatus: 'MEMBER',
     isLeadership: false,
     joinedSemester: '2019/2020/1',
     ...overrides,
@@ -446,7 +446,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
       operations: [
         {
           op: 'upsert',
-          member: member({ membershipStatus: 'senior_archived' }),
+          member: member({ membershipStatus: 'ALUMNI' }),
         },
       ],
     })
@@ -678,9 +678,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook validáció', () => {
 
     // The colliding push left the existing member untouched.
     const rows = await memberRows(ctx.db)
-    expect(rows.filter((row) => row.username === 'gipsz.jakab')).toHaveLength(
-      1,
-    )
+    expect(rows.filter((row) => row.username === 'gipsz.jakab')).toHaveLength(1)
     expect(rows.some((row) => row.sub === '99')).toBe(false)
   })
 })
