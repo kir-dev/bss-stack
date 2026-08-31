@@ -203,13 +203,13 @@ describe.skipIf(!hasTestDatabase)('BSS-022: eseményrészlet', () => {
         sub: 'sub-a',
         username: 'anna',
         fullName: 'Anna Tag',
-        membershipStatus: 'studio_member',
+        membershipStatus: 'MEMBER',
       },
       {
         sub: 'sub-b',
         username: 'bence',
         fullName: 'Bence Tag',
-        membershipStatus: 'studio_member',
+        membershipStatus: 'MEMBER',
       },
     ])
     const roleRows = await db

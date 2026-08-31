@@ -165,6 +165,6 @@ async function seedMember(db: Database): Promise<void> {
     sub: 'member-sub',
     username: 'tag',
     fullName: 'BSS Tag',
-    membershipStatus: 'studio_member',
+    membershipStatus: 'MEMBER',
   })
 }

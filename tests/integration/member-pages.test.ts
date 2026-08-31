@@ -44,7 +44,7 @@ async function seedMember(
 ): Promise<void> {
   await db.insert(memberCache).values({
     fullName: overrides.username,
-    membershipStatus: 'studio_member',
+    membershipStatus: 'MEMBER',
     ...overrides,
   })
 }
@@ -57,7 +57,7 @@ describe.skipIf(!hasTestDatabase)('BSS-023: aktív tagoldal blokkjai', () => {
       username: 'vezeto',
       fullName: 'Vezető Erika',
       isLeadership: true,
-      membershipStatus: 'studio_member',
+      membershipStatus: 'MEMBER',
     })
     await seedMember(db, {
       sub: 'm1',
@@ -68,20 +68,20 @@ describe.skipIf(!hasTestDatabase)('BSS-023: aktív tagoldal blokkjai', () => {
       sub: 'm2',
       username: 'torolt',
       fullName: 'Törölt Henriett',
-      membershipStatus: 'studio_member',
+      membershipStatus: 'MEMBER',
       deletedAt: new Date('2026-07-01T00:00:00Z'),
     })
     await seedMember(db, {
       sub: 'm3',
       username: 'jelolt',
       fullName: 'Jelölt Csaba',
-      membershipStatus: 'studio_candidate',
+      membershipStatus: 'MEMBER_CANDIDATE',
     })
     await seedMember(db, {
       sub: 'm4',
       username: 'oregtag',
       fullName: 'Öregtag Dénes',
-      membershipStatus: 'senior_active',
+      membershipStatus: 'ACTIVE_ALUMNI',
     })
 
     const blocks = await getActiveMemberBlocks(db)
@@ -101,39 +101,20 @@ describe.skipIf(!hasTestDatabase)('BSS-023: aktív tagoldal blokkjai', () => {
   })
 })
 
-describe.skipIf(!hasTestDatabase)('BSS-023: archív aloldalak', () => {
-  it('archivált öregtagok és közreműködők külön, 50-es lapozással', async () => {
+describe.skipIf(!hasTestDatabase)('BSS-023: archív aloldal', () => {
+  it('öregtagok 50-es lapozással', async () => {
     const db = await setupDb()
     for (let index = 0; index < 3; index += 1) {
       await seedMember(db, {
         sub: `arch-${index}`,
         username: `archivalt-${index}`,
         fullName: `Archivált ${index}`,
-        membershipStatus: 'senior_archived',
+        membershipStatus: 'ALUMNI',
       })
     }
-    await seedMember(db, {
-      sub: 'contr-1',
-      username: 'kozmukodo',
-      fullName: 'Közreműködő Elek',
-      membershipStatus: 'contributor',
-    })
-    await seedMember(db, {
-      sub: 'contr-2',
-      username: 'kozmukodo-torolt',
-      fullName: 'Törölt Közreműködő',
-      membershipStatus: 'contributor',
-      deletedAt: new Date('2026-07-01T00:00:00Z'),
-    })
-
     const archived = await getMemberArchivePage(db, 'archived')
     expect(archived.total).toBe(3)
-    expect(archived.title).toBe('Archivált öregtag')
-
-    const contributors = await getMemberArchivePage(db, 'contributors')
-    expect(contributors.items.map((member) => member.username)).toEqual([
-      'kozmukodo',
-    ])
+    expect(archived.title).toBe('Öregtag')
   })
 })
 

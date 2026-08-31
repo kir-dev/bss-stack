@@ -401,7 +401,7 @@ describe.skipIf(!hasTestDatabase)(
         {
           memberSub: 'sub-tag-1',
           username: 'tag-dev',
-          groups: [testConfig.authentik.groups.tag],
+          groups: [testConfig.authentik.groups.studio],
           accessToken: null,
         },
         { clock, db },

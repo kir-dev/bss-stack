@@ -12,12 +12,11 @@ type MembershipStatus = (typeof membershipStatusEnum.enumValues)[number]
 export const MEMBER_PAGE_SIZE = 50
 
 export const MEMBERSHIP_STATUS_LABELS: Record<MembershipStatus, string> = {
-  studio_member: 'Stúdiós',
-  studio_candidate: 'Stúdiósjelölt',
-  studio_applicant: 'Stúdiósjelölt-jelölt',
-  senior_active: 'Aktív öregtag',
-  senior_archived: 'Archivált öregtag',
-  contributor: 'Dolgozott még velünk',
+  MEMBER_CANDIDATE_CANDIDATE: 'Stúdiósjelölt-jelölt',
+  MEMBER_CANDIDATE: 'Stúdiósjelölt',
+  MEMBER: 'Stúdiós',
+  ACTIVE_ALUMNI: 'Aktív öregtag',
+  ALUMNI: 'Öregtag',
 }
 
 export { formatAcademicSemester }
@@ -66,25 +65,24 @@ export async function getActiveMemberBlocks(
   return {
     leadership: rows.filter((row) => row.isLeadership).map(toCard),
     studioMembers: rows
-      .filter((row) => !row.isLeadership && row.status === 'studio_member')
+      .filter((row) => !row.isLeadership && row.status === 'MEMBER')
       .map(toCard),
     studioCandidates: rows
-      .filter((row) => row.status === 'studio_candidate')
+      .filter((row) => row.status === 'MEMBER_CANDIDATE')
       .map(toCard),
     studioApplicants: rows
-      .filter((row) => row.status === 'studio_applicant')
+      .filter((row) => row.status === 'MEMBER_CANDIDATE_CANDIDATE')
       .map(toCard),
     seniorActive: rows
-      .filter((row) => row.status === 'senior_active')
+      .filter((row) => row.status === 'ACTIVE_ALUMNI')
       .map(toCard),
   }
 }
 
-export type ArchiveKind = 'archived' | 'contributors'
+export type ArchiveKind = 'archived'
 
 const ARCHIVE_STATUS: Record<ArchiveKind, MembershipStatus> = {
-  archived: 'senior_archived',
-  contributors: 'contributor',
+  archived: 'ALUMNI',
 }
 
 export interface MemberListPage {

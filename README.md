@@ -76,13 +76,14 @@ Megjegyzések:
 
 Jelszavak: `oob/local-secrets.json` (gitignore-olt).
 
-| Felhasználó           | Szerep                                                                |
-| --------------------- | --------------------------------------------------------------------- |
-| (nincs bejelentkezés) | névtelen látogató — csak publikus videók                              |
-| schonherz-dev         | bejelentkezett schönherzes — publikus + schönherz videók, admin nincs |
-| tag-dev               | BSS-tag — minden láthatóság, adminjogok                               |
-| vezetoseg-dev         | vezetőség — kibővített adminjogok                                     |
-| további `-dev` userek | szintetikus tagprofilok minden tagsági státuszhoz                     |
+| Felhasználó           | Szerep                                                          |
+| --------------------- | --------------------------------------------------------------- |
+| (nincs bejelentkezés) | névtelen látogató — csak publikus videók                        |
+| schonherz-dev         | csoport nélküli felhasználó — csak publikus videók, admin nincs |
+| tag-dev               | BSS-tag — minden láthatóság, adminjogok                         |
+| vezetoseg-dev         | vezetőség — kibővített adminjogok                               |
+| admin-dev             | admin — kibővített adminjogok                                   |
+| további `-dev` userek | szintetikus tagprofilok minden tagsági státuszhoz               |
 
 ## Demo forgatókönyvek szereplőnként
 
@@ -95,10 +96,9 @@ Jelszavak: `oob/local-secrets.json` (gitignore-olt).
    szűrős videólista.
 4. A navbar Belépés gombja belépésre visz, megtartva a kért oldalt.
 
-### Schönherzes (schonherz-dev)
+### Csoport nélküli felhasználó (schonherz-dev)
 
-1. Jelentkezz be; a `/videos` listában már a schönherz láthatóságú videók is
-   megjelennek.
+1. Jelentkezz be; továbbra is csak a publikus videók jelennek meg.
 2. `/admin` közvetlenül: magyar tiltóoldal (403), sidebar sem látszik.
 
 ### BSS-tag (tag-dev)

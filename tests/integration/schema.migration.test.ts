@@ -67,7 +67,7 @@ describe.skipIf(!hasTestDatabase)('új adatbázisséma és migrációs alap', ()
     const { client } = await createMigratedDatabase()
     try {
       await client.query(
-        "INSERT INTO member_cache (sub, username, full_name, membership_status) VALUES ('sub1','user1','Egy Tag','studio_member')",
+        "INSERT INTO member_cache (sub, username, full_name, membership_status) VALUES ('sub1','user1','Egy Tag','MEMBER')",
       )
 
       await expect(

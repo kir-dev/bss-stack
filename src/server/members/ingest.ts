@@ -186,7 +186,7 @@ function parseMember(
       typeof values['avatarUrl'] === 'string' ? values['avatarUrl'] : null,
     membershipStatus: (typeof values['membershipStatus'] === 'string'
       ? values['membershipStatus']
-      : 'studio_member') as MembershipStatusKey,
+      : 'MEMBER') as MembershipStatusKey,
     isLeadership: values['isLeadership'] === true,
     joinedYear,
     joinedSemester,

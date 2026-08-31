@@ -51,13 +51,13 @@ async function setupDb(): Promise<NodePgDatabase<Record<string, never>>> {
       sub: '36',
       username: 'tag-dev',
       fullName: 'Teszt BSS Tag',
-      membershipStatus: 'studio_member',
+      membershipStatus: 'MEMBER',
     },
     {
       sub: '37',
       username: 'vezetoseg-dev',
       fullName: 'Teszt Vezetőségi Tag',
-      membershipStatus: 'studio_member',
+      membershipStatus: 'MEMBER',
     },
   ])
 

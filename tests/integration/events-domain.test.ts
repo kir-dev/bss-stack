@@ -68,13 +68,13 @@ async function setupDb(): Promise<NodePgDatabase<Record<string, never>>> {
       sub: 'member-sub',
       username: 'tag',
       fullName: 'BSS Tag',
-      membershipStatus: 'studio_member',
+      membershipStatus: 'MEMBER',
     },
     {
       sub: 'leader-sub',
       username: 'vezetoseg',
       fullName: 'Vezetőségi Tag',
-      membershipStatus: 'studio_member',
+      membershipStatus: 'MEMBER',
     },
   ])
   return migrated.db

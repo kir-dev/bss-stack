@@ -30,12 +30,13 @@ afterAll(async () => {
 const hasTestDatabase = Boolean(process.env.TEST_DATABASE_URL)
 
 const anonymous: Viewer = { level: 'anonymous', sub: null, username: null }
-const schonherz: Viewer = viewerFromIdentity(
-  { sub: 's1', username: 'schonherz-dev', groups: ['schonherz-dev'] },
-  testConfig.authentik,
-)
+const schonherz: Viewer = {
+  level: 'schonherz',
+  sub: 's1',
+  username: 'schonherz-dev',
+}
 const member: Viewer = viewerFromIdentity(
-  { sub: 't1', username: 'tag-dev', groups: ['tag-dev'] },
+  { sub: 't1', username: 'tag-dev', groups: ['Stúdiós'] },
   testConfig.authentik,
 )
 
@@ -104,7 +105,7 @@ describe.skipIf(!hasTestDatabase)(
         {
           sub: 'v1',
           username: 'vezetoseg-dev',
-          groups: ['tag-dev', 'vezetoseg-dev'],
+          groups: ['Vezetőség'],
         },
         testConfig.authentik,
       )

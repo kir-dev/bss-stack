@@ -18,12 +18,13 @@ import { validateOobConfig } from '#/server/config/oob-schema.ts'
 const config = validateOobConfig(buildRawOobConfig())
 
 const anonymous: Viewer = anonymousViewer()
-const schonherz: Viewer = viewerFromIdentity(
-  { sub: 's1', username: 'schonherz-dev', groups: ['schonherz-dev'] },
-  config.authentik,
-)
+const schonherz: Viewer = {
+  level: 'schonherz',
+  sub: 's1',
+  username: 'schonherz-dev',
+}
 const member: Viewer = viewerFromIdentity(
-  { sub: 't1', username: 'tag-dev', groups: ['tag-dev'] },
+  { sub: 't1', username: 'tag-dev', groups: ['Stúdiós'] },
   config.authentik,
 )
 
@@ -31,24 +32,40 @@ const leadership: Viewer = viewerFromIdentity(
   {
     sub: 'v1',
     username: 'vezetoseg-dev',
-    groups: ['tag-dev', 'vezetoseg-dev'],
+    groups: ['Vezetőség'],
   },
   config.authentik,
 )
-// Csak vezetőségi csoport, tag nélkül: NINCS adminjog.
-const leadershipWithoutMember: Viewer = viewerFromIdentity(
-  { sub: 'v2', username: 'elokuldott', groups: ['vezetoseg-dev'] },
+const admin: Viewer = viewerFromIdentity(
+  { sub: 'a1', username: 'admin', groups: ['Admin'] },
   config.authentik,
 )
 
 describe('nézői szint felismerése csoportokból', () => {
-  it('a négy szint helyesen feloldható', () => {
+  it('az Authentik csoportok helyesen oldódnak fel', () => {
     expect(anonymous.level).toBe('anonymous')
-    expect(schonherz.level).toBe('schonherz')
+    expect(
+      viewerFromIdentity(
+        { sub: 's1', username: 'külsős', groups: ['más-csoport'] },
+        config.authentik,
+      ).level,
+    ).toBe('anonymous')
     expect(member.level).toBe('member')
     expect(leadership.level).toBe('leadership')
-    expect(leadershipWithoutMember.level).toBe('anonymous')
+    expect(admin.level).toBe('leadership')
   })
+
+  it.each(['Stúdiós', 'Stúdiós jelölt', 'Stúdiós jelölt-jelölt', 'Öregtag'])(
+    '%s csoport BSS-tagságot ad',
+    (group) => {
+      expect(
+        viewerFromIdentity(
+          { sub: group, username: group, groups: [group] },
+          config.authentik,
+        ).level,
+      ).toBe('member')
+    },
+  )
 
   it('a vezetőségi jog magában foglalja a tagjogot', () => {
     for (const capability of Object.values(can)) {
@@ -142,6 +159,6 @@ describe('szintrendezés', () => {
     expect(atLeast(schonherz, 'member')).toBe(false)
     expect(atLeast(member, 'leadership')).toBe(false)
     expect(atLeast(leadership, 'member')).toBe(true)
-    expect(isLeadership(leadershipWithoutMember)).toBe(false)
+    expect(isLeadership(admin)).toBe(true)
   })
 })

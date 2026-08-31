@@ -21,23 +21,21 @@ export function anonymousViewer(): Viewer {
   return { level: 'anonymous', sub: null, username: null }
 }
 
-/**
- * The leadership group complements membership, it does not replace it:
- * leadership only grants full rights together with the member group.
- */
 export function resolveViewerLevel(
   groups: ReadonlyArray<string>,
   config: OobConfig['authentik'],
 ): ViewerLevel {
   const has = (groupName: string): boolean => groups.includes(groupName)
-  if (has(config.groups.tag) && has(config.groups.vezetoseg)) {
+  if (has(config.groups.admin) || has(config.groups.leadership)) {
     return 'leadership'
   }
-  if (has(config.groups.tag)) {
+  if (
+    has(config.groups.studio) ||
+    has(config.groups.studioCandidate) ||
+    has(config.groups.studioCandidateCandidate) ||
+    has(config.groups.alumni)
+  ) {
     return 'member'
-  }
-  if (has(config.groups.schonherz)) {
-    return 'schonherz'
   }
   return 'anonymous'
 }

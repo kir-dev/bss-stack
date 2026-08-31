@@ -11,7 +11,7 @@ try {
   )
   console.log(`  Authentik issuer: ${config.authentik.issuerUrl}`)
   console.log(
-    `  Csoportok: schonherz=${config.authentik.groups.schonherz}, tag=${config.authentik.groups.tag}, vezetoseg=${config.authentik.groups.vezetoseg}`,
+    `  Csoportok: admin=${config.authentik.groups.admin}, stúdiós=${config.authentik.groups.studio}, jelölt=${config.authentik.groups.studioCandidate}, jelölt-jelölt=${config.authentik.groups.studioCandidateCandidate}, vezetőség=${config.authentik.groups.leadership}, öregtag=${config.authentik.groups.alumni}`,
   )
   console.log(`  Seed fájl helye: ${config.seed.path}`)
 } catch (error) {
