@@ -125,7 +125,7 @@ export interface MemberFixture {
   joinedYear: number | null
   joinedSemester: 'spring' | 'autumn' | null
   introduction: string | null
-  deletedAt: Date | null
+  archivedAt: Date | null
 }
 
 export function buildMember(
@@ -143,7 +143,7 @@ export function buildMember(
     joinedYear: overrides.joinedYear ?? 2023,
     joinedSemester: overrides.joinedSemester ?? 'autumn',
     introduction: overrides.introduction ?? null,
-    deletedAt: overrides.deletedAt ?? null,
+    archivedAt: overrides.archivedAt ?? null,
     ...overrides,
   }
 }

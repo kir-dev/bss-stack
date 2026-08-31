@@ -14,8 +14,8 @@ export interface DiagnosticsProfile {
   isLeadership: boolean
   joinedSemester: string | null
   updatedAt: Date
-  /** Soft-deleted: hidden from every public listing, credits preserved. */
-  deletedAt: Date | null
+  /** Archived: hidden from every public listing, credits preserved. */
+  archivedAt: Date | null
 }
 
 export interface DiagnosticsDelivery {
@@ -28,7 +28,7 @@ export interface DiagnosticsDelivery {
   operationCount: number
   createdCount: number
   updatedCount: number
-  deletedCount: number
+  archivedCount: number
   restoredCount: number
   message: string | null
   receivedAt: Date
@@ -41,7 +41,7 @@ export interface MemberDiagnostics {
   summary: {
     total: number
     active: number
-    deleted: number
+    archived: number
     activeClients: number
     lastDeliveryStatus: string | null
     lastDeliveryMessage: string | null
@@ -73,7 +73,7 @@ export async function getMemberDiagnostics(
         operationCount: webhookDeliveries.operationCount,
         createdCount: webhookDeliveries.createdCount,
         updatedCount: webhookDeliveries.updatedCount,
-        deletedCount: webhookDeliveries.deletedCount,
+        archivedCount: webhookDeliveries.archivedCount,
         restoredCount: webhookDeliveries.restoredCount,
         message: webhookDeliveries.message,
         receivedAt: webhookDeliveries.receivedAt,
@@ -89,11 +89,11 @@ export async function getMemberDiagnostics(
 
   const deliveries: DiagnosticsDelivery[] = deliveryRows
 
-  const deletedRows = await executor
+  const archivedRows = await executor
     .select({ count: sql<number>`count(*)::int` })
     .from(memberCache)
-    .where(isNotNull(memberCache.deletedAt))
-  const deleted = deletedRows.at(0)?.count ?? 0
+    .where(isNotNull(memberCache.archivedAt))
+  const archived = archivedRows.at(0)?.count ?? 0
 
   const last = deliveries.at(0)
   return {
@@ -109,14 +109,14 @@ export async function getMemberDiagnostics(
         profile.joinedSemester,
       ),
       updatedAt: profile.updatedAt,
-      deletedAt: profile.deletedAt,
+      archivedAt: profile.archivedAt,
     })),
     clients,
     deliveries,
     summary: {
       total: profileRows.length,
-      active: profileRows.length - deleted,
-      deleted,
+      active: profileRows.length - archived,
+      archived,
       activeClients: clients.filter((client) => client.revokedAt === null)
         .length,
       lastDeliveryStatus: last?.status ?? null,

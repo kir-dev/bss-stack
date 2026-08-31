@@ -229,7 +229,7 @@ export async function handleMemberWebhook(
         .set({
           createdCount: applied.created,
           updatedCount: applied.updated,
-          deletedCount: applied.deleted,
+          archivedCount: applied.archived,
           restoredCount: applied.restored,
         })
         .where(eq(webhookDeliveries.id, deliveryRowId))
