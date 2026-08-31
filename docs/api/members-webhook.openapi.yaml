@@ -23,7 +23,7 @@ paths:
         one transaction, so either every one of them takes effect or none does.
         The same `sub` may appear only once per request.
 
-        `delete` is a soft delete: the member disappears from the public
+        `archive` hides the member from the public
         surfaces, but their row and the roles recorded in credit lists are kept,
         and a later `upsert` restores them.
       security:
@@ -52,7 +52,7 @@ paths:
               - "$ref": "#/components/schemas/ReplacePayload"
             examples:
               operations:
-                summary: "Operations (create and delete in one request)"
+                summary: "Operations (create and archive in one request)"
                 value:
                   operations:
                   - op: "upsert"
@@ -62,10 +62,10 @@ paths:
                       fullName: "Gipsz Jakab"
                       nickname: "Pitypang"
                       avatarUrl: null
-                      membershipStatus: "studio_member"
+                      membershipStatus: "MEMBER"
                       isLeadership: false
                       joinedSemester: "2021/2022/1"
-                  - op: "delete"
+                  - op: "archive"
                     sub: "57"
               replace:
                 summary: "Full roster replacement"
@@ -77,7 +77,7 @@ paths:
                     fullName: "Gipsz Jakab"
                     nickname: "Pitypang"
                     avatarUrl: null
-                    membershipStatus: "studio_member"
+                    membershipStatus: "MEMBER"
                     isLeadership: false
                     joinedSemester: "2021/2022/1"
       responses:
@@ -178,15 +178,14 @@ components:
         membershipStatus:
           type: "string"
           enum:
-          - "studio_member"
-          - "studio_candidate"
-          - "studio_applicant"
-          - "senior_active"
-          - "senior_archived"
-          - "contributor"
+          - "MEMBER_CANDIDATE_CANDIDATE"
+          - "MEMBER_CANDIDATE"
+          - "MEMBER"
+          - "ACTIVE_ALUMNI"
+          - "ALUMNI"
           description: "Membership status. It decides which public list the member appears on; it grants NO permissions."
           examples:
-          - "studio_member"
+          - "MEMBER"
         isLeadership:
           type: "boolean"
           default: false
@@ -207,7 +206,7 @@ components:
         fullName: "Gipsz Jakab"
         nickname: "Pitypang"
         avatarUrl: null
-        membershipStatus: "studio_member"
+        membershipStatus: "MEMBER"
         isLeadership: false
         joinedSemester: "2021/2022/1"
     UpsertOperation:
@@ -221,7 +220,7 @@ components:
           const: "upsert"
         member:
           "$ref": "#/components/schemas/Member"
-    DeleteOperation:
+    ArchiveOperation:
       type: "object"
       required:
       - "op"
@@ -229,11 +228,11 @@ components:
       properties:
         op:
           type: "string"
-          const: "delete"
+          const: "archive"
         sub:
           type: "string"
           maxLength: 255
-          description: "The `sub` of the member to delete. An unknown `sub` is not an error, it is simply ignored."
+          description: "The `sub` of the member to archive. An unknown `sub` is not an error, it is simply ignored."
     OperationsPayload:
       type: "object"
       required:
@@ -250,14 +249,14 @@ components:
           items:
             oneOf:
             - "$ref": "#/components/schemas/UpsertOperation"
-            - "$ref": "#/components/schemas/DeleteOperation"
+            - "$ref": "#/components/schemas/ArchiveOperation"
     ReplacePayload:
       type: "object"
       required:
       - "mode"
       - "members"
       description: |-
-        The full member roster. Anything left out of the list gets deleted —
+        The full member roster. Anything left out of the list gets archived —
         a faulty client can empty the entire roster this way.
       properties:
         mode:
@@ -274,7 +273,7 @@ components:
       - "operationCount"
       - "created"
       - "updated"
-      - "deleted"
+      - "archived"
       - "restored"
       - "unchanged"
       - "ignored"
@@ -290,18 +289,18 @@ components:
           type: "integer"
         updated:
           type: "integer"
-        deleted:
+        archived:
           type: "integer"
-          description: "Soft-deleted members."
+          description: "Archived members."
         restored:
           type: "integer"
-          description: "Members previously deleted and now restored."
+          description: "Members previously archived and now restored."
         unchanged:
           type: "integer"
           description: "Unchanged members; no audit row is written for these."
         ignored:
           type: "integer"
-          description: "Deletes targeting an unknown `sub`."
+          description: "Archives targeting an unknown `sub`."
     PushResponse:
       type: "object"
       required:

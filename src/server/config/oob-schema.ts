@@ -1,10 +1,9 @@
 export const MEMBERSHIP_STATUS_KEYS = [
-  'studio_member',
-  'studio_candidate',
-  'studio_applicant',
-  'senior_active',
-  'senior_archived',
-  'contributor',
+  'MEMBER_CANDIDATE_CANDIDATE',
+  'MEMBER_CANDIDATE',
+  'MEMBER',
+  'ACTIVE_ALUMNI',
+  'ALUMNI',
 ] as const
 
 export type MembershipStatusKey = (typeof MEMBERSHIP_STATUS_KEYS)[number]
@@ -19,15 +18,14 @@ export interface OobConfig {
     scopes: string[]
     claims: {
       sub: string
-      username: string
-      fullName: string
-      nickname: string
-      avatarUrl: string
     }
     groups: {
-      schonherz: string
-      tag: string
-      vezetoseg: string
+      admin: string
+      studio: string
+      studioCandidate: string
+      studioCandidateCandidate: string
+      leadership: string
+      alumni: string
     }
   }
   youtube: {
@@ -141,29 +139,26 @@ export function validateOobConfig(raw: unknown): OobConfig {
     problems.push('authentik.claims: kötelező szekció hiányzik.')
   } else {
     const claims = authentik['claims']
-    for (const key of [
-      'sub',
-      'username',
-      'fullName',
-      'nickname',
-      'avatarUrl',
-    ]) {
-      requireString(claims, `authentik.claims.${key}`, problems)
-    }
+    requireString(claims, 'authentik.claims.sub', problems)
   }
 
   if (!isRecord(authentik['groups'])) {
     problems.push('authentik.groups: kötelező szekció hiányzik.')
   } else {
     const groups = authentik['groups']
-    for (const key of ['schonherz', 'tag', 'vezetoseg']) {
+    for (const key of [
+      'admin',
+      'studio',
+      'studioCandidate',
+      'studioCandidateCandidate',
+      'leadership',
+      'alumni',
+    ]) {
       requireString(groups, `authentik.groups.${key}`, problems)
     }
     const groupValues = Object.values(groups)
     if (new Set(groupValues).size !== groupValues.length) {
-      problems.push(
-        'authentik.groups: minden csoportnévnek különböznie kell (a vezetőség tagságot nem helyettesítheti).',
-      )
+      problems.push('authentik.groups: minden csoportnévnek különböznie kell.')
     }
   }
 

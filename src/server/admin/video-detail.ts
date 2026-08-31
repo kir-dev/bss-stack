@@ -137,7 +137,7 @@ export async function getAdminVideoEditorOptions(
       executor
         .select({ sub: memberCache.sub, fullName: memberCache.fullName })
         .from(memberCache)
-        .where(isNull(memberCache.deletedAt))
+        .where(isNull(memberCache.archivedAt))
         .orderBy(asc(memberCache.fullName))
         .limit(2000),
       executor

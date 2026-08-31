@@ -58,15 +58,15 @@ function MembersPage() {
           />
           <MemberBlock
             title="Stúdiósok"
-            members={blocksQuery.data.studioMembers}
+            members={blocksQuery.data.members}
           />
           <MemberBlock
             title="Stúdiósjelöltek"
-            members={blocksQuery.data.studioCandidates}
+            members={blocksQuery.data.member_candidates}
           />
           <MemberBlock
             title="Stúdiósjelölt-jelöltek"
-            members={blocksQuery.data.studioApplicants}
+            members={blocksQuery.data.member_candiate_candidates}
           />
           <MemberBlock
             title="Aktív öregtagok"
@@ -79,14 +79,7 @@ function MembersPage() {
               search={() => ({ page: undefined })}
               className="font-bold text-(--orange) underline"
             >
-              Archivált öregtagok
-            </Link>
-            <Link
-              to="/members/contributors"
-              search={() => ({ page: undefined })}
-              className="font-bold text-(--orange) underline"
-            >
-              Dolgozott még velünk
+              Dolgoztak még velünk
             </Link>
           </nav>
         </>

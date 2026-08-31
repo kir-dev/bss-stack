@@ -34,15 +34,14 @@ export function buildRawOobConfig(
       scopes: ['openid', 'profile', 'email'],
       claims: {
         sub: 'sub',
-        username: 'preferred_username',
-        fullName: 'name',
-        nickname: 'nickname',
-        avatarUrl: 'picture',
       },
       groups: {
-        schonherz: 'schonherz-dev',
-        tag: 'tag-dev',
-        vezetoseg: 'vezetoseg-dev',
+        admin: 'Admin',
+        studio: 'Stúdiós',
+        studioCandidate: 'Stúdiós jelölt',
+        studioCandidateCandidate: 'Stúdiós jelölt-jelölt',
+        leadership: 'Vezetőség',
+        alumni: 'Öregtag',
       },
     },
     youtube: {

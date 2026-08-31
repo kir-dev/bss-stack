@@ -1,4 +1,3 @@
-import { readFileSync } from 'node:fs'
 import { validateOobConfig } from './oob-schema.ts'
 import type { OobConfig } from './oob-schema.ts'
 
@@ -22,7 +21,8 @@ export function loadOobConfig(explicitPath?: string): OobConfig {
 
   let content: string
   try {
-    content = readFileSync(path, 'utf-8')
+    const fs = process.getBuiltinModule('node:fs')
+    content = fs.readFileSync(path, 'utf-8')
   } catch (error) {
     throw new OobConfigFileError(
       `Nem olvasható a BSS OOB config fájl: ${path}. ` +

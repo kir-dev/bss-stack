@@ -24,7 +24,6 @@ import { Route as EventsSlugRouteImport } from './routes/events/$slug'
 import { Route as MembersIndexRouteImport } from './routes/members/index'
 import { Route as MembersSlugRouteImport } from './routes/members/$slug'
 import { Route as MembersArchivedRouteImport } from './routes/members/archived'
-import { Route as MembersContributorsRouteImport } from './routes/members/contributors'
 import { Route as VideosIndexRouteImport } from './routes/videos/index'
 import { Route as VideosSlugRouteImport } from './routes/videos/$slug'
 import { Route as AdminCatalogStaffRolesRouteImport } from './routes/admin/catalog/staff-roles'
@@ -111,11 +110,6 @@ const MembersArchivedRoute = MembersArchivedRouteImport.update({
   path: '/members/archived',
   getParentRoute: () => rootRouteImport,
 } as any)
-const MembersContributorsRoute = MembersContributorsRouteImport.update({
-  id: '/members/contributors',
-  path: '/members/contributors',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const VideosIndexRoute = VideosIndexRouteImport.update({
   id: '/videos/',
   path: '/videos/',
@@ -180,7 +174,6 @@ export interface FileRoutesByFullPath {
   '/events/$slug': typeof EventsSlugRoute
   '/members/$slug': typeof MembersSlugRoute
   '/members/archived': typeof MembersArchivedRoute
-  '/members/contributors': typeof MembersContributorsRoute
   '/videos/$slug': typeof VideosSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/events/': typeof EventsIndexRoute
@@ -207,7 +200,6 @@ export interface FileRoutesByTo {
   '/events/$slug': typeof EventsSlugRoute
   '/members/$slug': typeof MembersSlugRoute
   '/members/archived': typeof MembersArchivedRoute
-  '/members/contributors': typeof MembersContributorsRoute
   '/videos/$slug': typeof VideosSlugRoute
   '/admin': typeof AdminIndexRoute
   '/events': typeof EventsIndexRoute
@@ -236,7 +228,6 @@ export interface FileRoutesById {
   '/events/$slug': typeof EventsSlugRoute
   '/members/$slug': typeof MembersSlugRoute
   '/members/archived': typeof MembersArchivedRoute
-  '/members/contributors': typeof MembersContributorsRoute
   '/videos/$slug': typeof VideosSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/events/': typeof EventsIndexRoute
@@ -266,7 +257,6 @@ export interface FileRouteTypes {
     | '/events/$slug'
     | '/members/$slug'
     | '/members/archived'
-    | '/members/contributors'
     | '/videos/$slug'
     | '/admin/'
     | '/events/'
@@ -293,7 +283,6 @@ export interface FileRouteTypes {
     | '/events/$slug'
     | '/members/$slug'
     | '/members/archived'
-    | '/members/contributors'
     | '/videos/$slug'
     | '/admin'
     | '/events'
@@ -321,7 +310,6 @@ export interface FileRouteTypes {
     | '/events/$slug'
     | '/members/$slug'
     | '/members/archived'
-    | '/members/contributors'
     | '/videos/$slug'
     | '/admin/'
     | '/events/'
@@ -346,7 +334,6 @@ export interface RootRouteChildren {
   EventsSlugRoute: typeof EventsSlugRoute
   MembersSlugRoute: typeof MembersSlugRoute
   MembersArchivedRoute: typeof MembersArchivedRoute
-  MembersContributorsRoute: typeof MembersContributorsRoute
   VideosSlugRoute: typeof VideosSlugRoute
   EventsIndexRoute: typeof EventsIndexRoute
   MembersIndexRoute: typeof MembersIndexRoute
@@ -458,13 +445,6 @@ declare module '@tanstack/react-router' {
       path: '/members/archived'
       fullPath: '/members/archived'
       preLoaderRoute: typeof MembersArchivedRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/members/contributors': {
-      id: '/members/contributors'
-      path: '/members/contributors'
-      fullPath: '/members/contributors'
-      preLoaderRoute: typeof MembersContributorsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/videos/': {
@@ -583,7 +563,6 @@ const rootRouteChildren: RootRouteChildren = {
   EventsSlugRoute: EventsSlugRoute,
   MembersSlugRoute: MembersSlugRoute,
   MembersArchivedRoute: MembersArchivedRoute,
-  MembersContributorsRoute: MembersContributorsRoute,
   VideosSlugRoute: VideosSlugRoute,
   EventsIndexRoute: EventsIndexRoute,
   MembersIndexRoute: MembersIndexRoute,

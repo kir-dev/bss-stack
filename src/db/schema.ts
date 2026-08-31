@@ -43,12 +43,11 @@ export const eventStatusEnum = pgEnum('event_status', [
 ])
 
 export const membershipStatusEnum = pgEnum('membership_status', [
-  'studio_member',
-  'studio_candidate',
-  'studio_applicant',
-  'senior_active',
-  'senior_archived',
-  'contributor',
+  'MEMBER_CANDIDATE_CANDIDATE',
+  'MEMBER_CANDIDATE',
+  'MEMBER',
+  'ACTIVE_ALUMNI',
+  'ALUMNI',
 ])
 
 export const semesterEnum = pgEnum('semester', ['spring', 'autumn'])
@@ -107,13 +106,13 @@ export const memberCache = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
-    /** Soft delete: retired members keep their staff credits but leave every listing. */
-    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+    /** Archived members keep their staff credits but leave every listing. */
+    archivedAt: timestamp('archived_at', { withTimezone: true }),
   },
   (table) => [
     uniqueIndex('member_cache_username_key').on(table.username),
     index('member_cache_status_idx').on(table.membershipStatus),
-    index('member_cache_deleted_idx').on(table.deletedAt),
+    index('member_cache_archived_idx').on(table.archivedAt),
   ],
 )
 
@@ -156,7 +155,7 @@ export const webhookDeliveries = pgTable(
     operationCount: integer('operation_count').notNull().default(0),
     createdCount: integer('created_count').notNull().default(0),
     updatedCount: integer('updated_count').notNull().default(0),
-    deletedCount: integer('deleted_count').notNull().default(0),
+    archivedCount: integer('archived_count').notNull().default(0),
     restoredCount: integer('restored_count').notNull().default(0),
     message: text('message'),
     receivedAt: timestamp('received_at', { withTimezone: true })

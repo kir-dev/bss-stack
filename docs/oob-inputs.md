@@ -9,8 +9,8 @@ Az alkalmazás három bemenete out-of-band, azaz nem a git repóban érkezik. Hi
 - Formája: JSON, a szerkezetét a [`docs/examples/oob-config.example.json`](./examples/oob-config.example.json) mutatja.
 - Tartalma:
   - Authentik OIDC kapcsolat: issuer URL, client id, client secret, scope-ok;
-  - claim-leképezés: `sub`, felhasználónév, teljes név, becenév, profilkép URL;
-  - csoportleképezés: schönherzes, tag és vezetőség csoport neve;
+  - claim-leképezés: az Authentik felhasználót a taggal összekötő `sub`;
+  - csoportleképezés: Admin, Stúdiós, Stúdiós jelölt, Stúdiós jelölt-jelölt, Vezetőség és Öregtag;
   - médiahost (`media.host`, jelenleg `https://v.bsstudio.hu`);
   - YouTube oEmbed végpont;
   - seed JSON helye.

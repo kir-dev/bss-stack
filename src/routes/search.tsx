@@ -1,7 +1,11 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import { MIN_QUERY_LENGTH, search } from '#/server/search/service.ts'
+import {
+  MIN_QUERY_LENGTH,
+  search,
+  type MemberHit,
+} from '#/server/search/service.ts'
 import { getVideoListPage } from '#/server/pages/video-list.ts'
 import { resolveViewerStateFromRequest } from '#/server/pages/viewer.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
@@ -185,25 +189,15 @@ function SearchPage() {
               </ResultSection>
               <ResultSection title="Események">
                 <ul className="mt-2 space-y-1">
-                  {data.results.events.map(({ item }) => (
-                    <li key={item.id}>
-                      <HitLink
-                        href={`/events/${item.slug}`}
-                        label={item.title}
-                      />
-                    </li>
-                  ))}
+                  {data.results.events.map(({ item }) =>
+                    EventRow({ event: item }),
+                  )}
                 </ul>
               </ResultSection>
               <ResultSection title="Tagok">
                 <ul className="mt-2 space-y-1">
                   {data.results.members.map(({ item }) => (
-                    <li key={item.sub}>
-                      <HitLink
-                        href={`/members/${item.username}`}
-                        label={`${item.fullName} (Tag)`}
-                      />
-                    </li>
+                    <MemberRow key={item.sub} member={item} />
                   ))}
                 </ul>
               </ResultSection>
@@ -263,12 +257,7 @@ function SearchPage() {
               ) : (
                 <ul className="space-y-1">
                   {data.results.events.map(({ item }) => (
-                    <li key={item.id}>
-                      <HitLink
-                        href={`/events/${item.slug}`}
-                        label={item.title}
-                      />
-                    </li>
+                    <EventRow key={item.slug} event={item} />
                   ))}
                 </ul>
               )}
@@ -282,12 +271,7 @@ function SearchPage() {
               ) : (
                 <ul className="space-y-1">
                   {data.results.members.map(({ item }) => (
-                    <li key={item.sub}>
-                      <HitLink
-                        href={`/members/${item.username}`}
-                        label={`${item.fullName} (Tag)`}
-                      />
-                    </li>
+                    <MemberRow key={item.sub} member={item} />
                   ))}
                 </ul>
               )}
@@ -296,6 +280,27 @@ function SearchPage() {
         </>
       )}
     </main>
+  )
+}
+
+function EventRow(props: { event: { slug: string; title: string } }) {
+  const { event } = props
+  return (
+    <li key={event.slug}>
+      <HitLink href={`/events/${event.slug}`} label={event.title} />
+    </li>
+  )
+}
+
+function MemberRow(props: { member: MemberHit }) {
+  const { member } = props
+  return (
+    <li key={member.sub}>
+      <HitLink
+        href={`/members/${member.username}`}
+        label={`${member.fullName} ${member.archived ? '(Archivált)' : ''}`}
+      />
+    </li>
   )
 }
 

@@ -115,7 +115,7 @@ export function buildMemberWebhookOpenApi(): JsonValue {
             'one transaction, so either every one of them takes effect or none does.',
             'The same `sub` may appear only once per request.',
             '',
-            '`delete` is a soft delete: the member disappears from the public',
+            '`archive` hides the member from the public',
             'surfaces, but their row and the roles recorded in credit lists are kept,',
             'and a later `upsert` restores them.',
           ].join('\n'),
@@ -148,11 +148,11 @@ export function buildMemberWebhookOpenApi(): JsonValue {
                 },
                 examples: {
                   operations: {
-                    summary: 'Operations (create and delete in one request)',
+                    summary: 'Operations (create and archive in one request)',
                     value: {
                       operations: [
                         { op: 'upsert', member: example },
-                        { op: 'delete', sub: '57' },
+                        { op: 'archive', sub: '57' },
                       ],
                     },
                   },
@@ -213,16 +213,16 @@ export function buildMemberWebhookOpenApi(): JsonValue {
             member: { $ref: '#/components/schemas/Member' },
           },
         },
-        DeleteOperation: {
+        ArchiveOperation: {
           type: 'object',
           required: ['op', 'sub'],
           properties: {
-            op: { type: 'string', const: 'delete' },
+            op: { type: 'string', const: 'archive' },
             sub: {
               type: 'string',
               maxLength: 255,
               description:
-                'The `sub` of the member to delete. An unknown `sub` is not an error, it is simply ignored.',
+                'The `sub` of the member to archive. An unknown `sub` is not an error, it is simply ignored.',
             },
           },
         },
@@ -242,7 +242,7 @@ export function buildMemberWebhookOpenApi(): JsonValue {
               items: {
                 oneOf: [
                   { $ref: '#/components/schemas/UpsertOperation' },
-                  { $ref: '#/components/schemas/DeleteOperation' },
+                  { $ref: '#/components/schemas/ArchiveOperation' },
                 ],
               },
             },
@@ -252,7 +252,7 @@ export function buildMemberWebhookOpenApi(): JsonValue {
           type: 'object',
           required: ['mode', 'members'],
           description: [
-            'The full member roster. Anything left out of the list gets deleted —',
+            'The full member roster. Anything left out of the list gets archived —',
             'a faulty client can empty the entire roster this way.',
           ].join('\n'),
           properties: {
@@ -270,7 +270,7 @@ export function buildMemberWebhookOpenApi(): JsonValue {
             'operationCount',
             'created',
             'updated',
-            'deleted',
+            'archived',
             'restored',
             'unchanged',
             'ignored',
@@ -280,18 +280,19 @@ export function buildMemberWebhookOpenApi(): JsonValue {
             operationCount: { type: 'integer' },
             created: { type: 'integer' },
             updated: { type: 'integer' },
-            deleted: { type: 'integer', description: 'Soft-deleted members.' },
+            archived: { type: 'integer', description: 'Archived members.' },
             restored: {
               type: 'integer',
-              description: 'Members previously deleted and now restored.',
+              description: 'Members previously archived and now restored.',
             },
             unchanged: {
               type: 'integer',
-              description: 'Unchanged members; no audit row is written for these.',
+              description:
+                'Unchanged members; no audit row is written for these.',
             },
             ignored: {
               type: 'integer',
-              description: 'Deletes targeting an unknown `sub`.',
+              description: 'Archives targeting an unknown `sub`.',
             },
           },
         },

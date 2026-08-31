@@ -52,7 +52,7 @@ export async function getSitemapEntries(
       updatedAt: memberCache.updatedAt,
     })
     .from(memberCache)
-    .where(isNull(memberCache.deletedAt))
+    .where(isNull(memberCache.archivedAt))
 
   for (const row of memberRows) {
     entries.push({

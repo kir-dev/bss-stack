@@ -10,7 +10,7 @@ describe('OOB config validáció', () => {
     const config = validateOobConfig(buildRawOobConfig())
     expect(config.authentik.clientId).toBe('bss-stack-local')
     expect(config.authentik.claims.sub).toBe('sub')
-    expect(config.authentik.groups.tag).toBe('tag-dev')
+    expect(config.authentik.groups.studio).toBe('Stúdiós')
     expect(config.media.host).toBe('https://v.bsstudio.hu')
     expect(config.media.allowedHosts).toEqual(['v.bsstudio.hu'])
   })
@@ -40,9 +40,8 @@ describe('OOB config validáció', () => {
     const raw = buildRawOobConfig({
       authentik: {
         groups: {
-          schonherz: 'ugyanaz',
-          tag: 'ugyanaz',
-          vezetoseg: 'vezetoseg-dev',
+          admin: 'ugyanaz',
+          studio: 'ugyanaz',
         },
       },
     })

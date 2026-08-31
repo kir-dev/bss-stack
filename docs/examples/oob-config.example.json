@@ -5,16 +5,15 @@
     "clientSecret": "TÖLTSD-KI-titok-nem-kerülhet-gitbe",
     "scopes": ["openid", "profile", "email"],
     "claims": {
-      "sub": "sub",
-      "username": "preferred_username",
-      "fullName": "name",
-      "nickname": "nickname",
-      "avatarUrl": "picture"
+      "sub": "sub"
     },
     "groups": {
-      "schonherz": "TÖLTSD-KI-schönherzes-csoport-neve",
-      "tag": "TÖLTSD-KI-tag-csoport-neve",
-      "vezetoseg": "TÖLTSD-KI-vezetőség-csoport-neve"
+      "admin": "Admin",
+      "studio": "Stúdiós",
+      "studioCandidate": "Stúdiós jelölt",
+      "studioCandidateCandidate": "Stúdiós jelölt-jelölt",
+      "leadership": "Vezetőség",
+      "alumni": "Öregtag"
     }
   },
   "youtube": {

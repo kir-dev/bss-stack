@@ -155,7 +155,7 @@ function MemberProfilePage() {
 
   return (
     <main className="site-width my-[4dvh]">
-      <title>{profile.fullName} | BSS</title>
+      <title>{`{profile.fullName} | BSS`}</title>
       <meta name="description" content={meta.description} />
       <link rel="canonical" href={meta.canonical} />
       <meta property="og:title" content={profile.fullName} />
@@ -193,6 +193,7 @@ function MemberProfilePage() {
             <span className="text-(--members-data)">
               {profile.statusLabel}
               {profile.isLeadership ? ', Vezetőség' : ''}
+              {profile.archived ? ', Archivált' : ''}
             </span>
           </p>
           {profile.joinedSemester !== null && (

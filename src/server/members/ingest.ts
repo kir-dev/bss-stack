@@ -30,7 +30,7 @@ export interface MemberInput {
 }
 
 export type MemberOperation =
-  { op: 'upsert'; member: MemberInput } | { op: 'delete'; sub: string }
+  { op: 'upsert'; member: MemberInput } | { op: 'archive'; sub: string }
 
 export interface MemberIngestPayload {
   mode: IngestMode
@@ -42,10 +42,10 @@ export interface IngestResult {
   operationCount: number
   created: number
   updated: number
-  deleted: number
+  archived: number
   restored: number
   unchanged: number
-  /** Deletes naming a member the app has never seen; not an error. */
+  /** Archives naming a member the app has never seen; not an error. */
   ignored: number
 }
 
@@ -186,7 +186,7 @@ function parseMember(
       typeof values['avatarUrl'] === 'string' ? values['avatarUrl'] : null,
     membershipStatus: (typeof values['membershipStatus'] === 'string'
       ? values['membershipStatus']
-      : 'studio_member') as MembershipStatusKey,
+      : 'MEMBER') as MembershipStatusKey,
     isLeadership: values['isLeadership'] === true,
     joinedYear,
     joinedSemester,
@@ -249,15 +249,15 @@ export function parseMemberIngestPayload(raw: unknown): MemberIngestPayload {
           op: 'upsert',
           member: parseMember(entry['member'], `${path}.member`, problems),
         })
-      } else if (op === 'delete') {
+      } else if (op === 'archive') {
         const sub = parseField(SUB_SPEC, entry, path, problems)
         operations.push({
-          op: 'delete',
+          op: 'archive',
           sub: typeof sub === 'string' ? sub : '',
         })
       } else {
         problems.push(
-          `${path}.op: csak "upsert" vagy "delete" lehet, nem "${String(op)}".`,
+          `${path}.op: csak "upsert" vagy "archive" lehet, nem "${String(op)}".`,
         )
       }
     })
@@ -319,7 +319,7 @@ export async function applyMemberIngest(
     operationCount: payload.operations.length,
     created: 0,
     updated: 0,
-    deleted: 0,
+    archived: 0,
     restored: 0,
     unchanged: 0,
     ignored: 0,
@@ -356,22 +356,22 @@ export async function applyMemberIngest(
   const existingBySub = new Map(existingRows.map((row) => [row.sub, row]))
 
   for (const operation of payload.operations) {
-    if (operation.op === 'delete') {
+    if (operation.op === 'archive') {
       const existing = existingBySub.get(operation.sub)
       if (existing === undefined) {
         result.ignored += 1
         continue
       }
-      if (existing.deletedAt !== null) {
+      if (existing.archivedAt !== null) {
         result.unchanged += 1
         continue
       }
       await executor
         .update(memberCache)
-        .set({ deletedAt: now, updatedAt: now })
+        .set({ archivedAt: now, updatedAt: now })
         .where(eq(memberCache.sub, operation.sub))
-      addAudit('delete', operation.sub, snapshot(existing), null)
-      result.deleted += 1
+      addAudit('archive', operation.sub, snapshot(existing), null)
+      result.archived += 1
       continue
     }
 
@@ -391,16 +391,16 @@ export async function applyMemberIngest(
         joinedSemester: member.joinedSemester,
         createdAt: now,
         updatedAt: now,
-        deletedAt: null,
+        archivedAt: null,
       })
       addAudit('create', member.sub, null, snapshot(member))
       result.created += 1
       continue
     }
 
-    const wasDeleted = existing.deletedAt !== null
+    const wasArchived = existing.archivedAt !== null
     const fieldsChanged = differs(existing, member)
-    if (!wasDeleted && !fieldsChanged) {
+    if (!wasArchived && !fieldsChanged) {
       result.unchanged += 1
       continue
     }
@@ -417,16 +417,16 @@ export async function applyMemberIngest(
         joinedYear: member.joinedYear,
         joinedSemester: member.joinedSemester,
         updatedAt: now,
-        deletedAt: null,
+        archivedAt: null,
       })
       .where(eq(memberCache.sub, member.sub))
     addAudit(
-      wasDeleted ? 'restore' : 'update',
+      wasArchived ? 'restore' : 'update',
       member.sub,
       snapshot(existing),
       snapshot(member),
     )
-    if (wasDeleted) {
+    if (wasArchived) {
       result.restored += 1
     } else {
       result.updated += 1
@@ -438,17 +438,17 @@ export async function applyMemberIngest(
     const liveRows = await executor
       .select()
       .from(memberCache)
-      .where(isNull(memberCache.deletedAt))
+      .where(isNull(memberCache.archivedAt))
     for (const row of liveRows) {
       if (keep.has(row.sub)) {
         continue
       }
       await executor
         .update(memberCache)
-        .set({ deletedAt: now, updatedAt: now })
+        .set({ archivedAt: now, updatedAt: now })
         .where(eq(memberCache.sub, row.sub))
-      addAudit('delete', row.sub, snapshot(row), null)
-      result.deleted += 1
+      addAudit('archive', row.sub, snapshot(row), null)
+      result.archived += 1
     }
   }
 

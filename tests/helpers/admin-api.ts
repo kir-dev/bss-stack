@@ -63,7 +63,7 @@ export async function setupAdminApiTest(
       fullName: 'Admin Tag',
       nickname: null,
       avatarUrl: null,
-      membershipStatus: 'studio_member',
+      membershipStatus: 'MEMBER',
       isLeadership: false,
       joinedYear: 2023,
       joinedSemester: 'autumn',
@@ -77,7 +77,7 @@ export async function setupAdminApiTest(
       fullName: 'Admin Vezetőség',
       nickname: null,
       avatarUrl: null,
-      membershipStatus: 'studio_member',
+      membershipStatus: 'MEMBER',
       isLeadership: true,
       joinedYear: 2022,
       joinedSemester: 'autumn',
@@ -91,7 +91,7 @@ export async function setupAdminApiTest(
       fullName: 'Admin Schönherz',
       nickname: null,
       avatarUrl: null,
-      membershipStatus: 'studio_member',
+      membershipStatus: 'MEMBER',
       isLeadership: false,
       joinedYear: 2024,
       joinedSemester: 'spring',
@@ -102,12 +102,9 @@ export async function setupAdminApiTest(
   ])
 
   const [member, leadership, schonherz] = await Promise.all([
-    createSession(db, 'sub-admin-member', 'adminmember', [groups.tag]),
-    createSession(db, 'sub-admin-leader', 'adminleader', [
-      groups.tag,
-      groups.vezetoseg,
-    ]),
-    createSession(db, 'sub-admin-schonherz', 'adminsch', [groups.schonherz]),
+    createSession(db, 'sub-admin-member', 'adminmember', [groups.studio]),
+    createSession(db, 'sub-admin-leader', 'adminleader', [groups.leadership]),
+    createSession(db, 'sub-admin-schonherz', 'adminsch', []),
   ])
   return {
     db,

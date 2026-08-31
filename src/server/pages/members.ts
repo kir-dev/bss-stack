@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql } from 'drizzle-orm'
+import { and, asc, eq, isNotNull, isNull, sql } from 'drizzle-orm'
 import type { Viewer } from '#/server/auth/viewer.ts'
 import { formatAcademicSemester } from '#/server/members/member-fields.ts'
 import { memberCache, staffRoles, videoStaff, videos } from '#/db/schema.ts'
@@ -12,12 +12,11 @@ type MembershipStatus = (typeof membershipStatusEnum.enumValues)[number]
 export const MEMBER_PAGE_SIZE = 50
 
 export const MEMBERSHIP_STATUS_LABELS: Record<MembershipStatus, string> = {
-  studio_member: 'Stúdiós',
-  studio_candidate: 'Stúdiósjelölt',
-  studio_applicant: 'Stúdiósjelölt-jelölt',
-  senior_active: 'Aktív öregtag',
-  senior_archived: 'Archivált öregtag',
-  contributor: 'Dolgozott még velünk',
+  MEMBER_CANDIDATE_CANDIDATE: 'Stúdiósjelölt-jelölt',
+  MEMBER_CANDIDATE: 'Stúdiósjelölt',
+  MEMBER: 'Stúdiós',
+  ACTIVE_ALUMNI: 'Aktív öregtag',
+  ALUMNI: 'Öregtag',
 }
 
 export { formatAcademicSemester }
@@ -32,9 +31,9 @@ export interface PublicMemberCard {
 
 export interface ActiveMemberBlocks {
   leadership: Array<PublicMemberCard>
-  studioMembers: Array<PublicMemberCard>
-  studioCandidates: Array<PublicMemberCard>
-  studioApplicants: Array<PublicMemberCard>
+  members: Array<PublicMemberCard>
+  member_candidates: Array<PublicMemberCard>
+  member_candiate_candidates: Array<PublicMemberCard>
   seniorActive: Array<PublicMemberCard>
 }
 
@@ -52,7 +51,7 @@ export async function getActiveMemberBlocks(
       status: memberCache.membershipStatus,
     })
     .from(memberCache)
-    .where(isNull(memberCache.deletedAt))
+    .where(isNull(memberCache.archivedAt))
     .orderBy(asc(memberCache.fullName), asc(memberCache.sub))
 
   const toCard = (row: (typeof rows)[number]): PublicMemberCard => ({
@@ -65,26 +64,29 @@ export async function getActiveMemberBlocks(
 
   return {
     leadership: rows.filter((row) => row.isLeadership).map(toCard),
-    studioMembers: rows
-      .filter((row) => !row.isLeadership && row.status === 'studio_member')
+    members: rows
+      .filter((row) => !row.isLeadership && row.status === 'MEMBER')
       .map(toCard),
-    studioCandidates: rows
-      .filter((row) => row.status === 'studio_candidate')
+    member_candidates: rows
+      .filter((row) => row.status === 'MEMBER_CANDIDATE')
       .map(toCard),
-    studioApplicants: rows
-      .filter((row) => row.status === 'studio_applicant')
+    member_candiate_candidates: rows
+      .filter((row) => row.status === 'MEMBER_CANDIDATE_CANDIDATE')
       .map(toCard),
     seniorActive: rows
-      .filter((row) => row.status === 'senior_active')
+      .filter((row) => row.status === 'ACTIVE_ALUMNI')
       .map(toCard),
   }
 }
 
-export type ArchiveKind = 'archived' | 'contributors'
+export type ArchiveKind = 'archived'
 
 const ARCHIVE_STATUS: Record<ArchiveKind, MembershipStatus> = {
-  archived: 'senior_archived',
-  contributors: 'contributor',
+  archived: 'ALUMNI',
+}
+
+const ARCHIVE_TITLES: Record<ArchiveKind, string> = {
+  archived: 'Dolgoztak még velünk',
 }
 
 export interface MemberListPage {
@@ -100,7 +102,6 @@ export async function getMemberArchivePage(
   kind: ArchiveKind,
   params: { page?: number } = {},
 ): Promise<MemberListPage> {
-  const status = ARCHIVE_STATUS[kind]
   const page =
     params.page !== undefined &&
     Number.isInteger(params.page) &&
@@ -108,10 +109,7 @@ export async function getMemberArchivePage(
       ? params.page
       : 1
 
-  const condition = and(
-    isNull(memberCache.deletedAt),
-    eq(memberCache.membershipStatus, status),
-  )
+  const condition = isNotNull(memberCache.archivedAt)
   const [rows, countRows] = await Promise.all([
     executor
       .select({
@@ -138,7 +136,7 @@ export async function getMemberArchivePage(
     total,
     page,
     totalPages: Math.ceil(total / MEMBER_PAGE_SIZE),
-    title: MEMBERSHIP_STATUS_LABELS[status],
+    title: ARCHIVE_TITLES[kind],
   }
 }
 
@@ -151,7 +149,8 @@ export interface MemberProfile {
   statusLabel: string
   isLeadership: boolean
   joinedSemester: string | null
-  introduction: string | null
+  introduction: string | null,
+  archived: boolean
 }
 
 export async function getMemberProfile(
@@ -161,9 +160,7 @@ export async function getMemberProfile(
   const rows = await executor
     .select()
     .from(memberCache)
-    .where(
-      and(eq(memberCache.username, username), isNull(memberCache.deletedAt)),
-    )
+    .where(eq(memberCache.username, username))
     .limit(1)
   const member = rows.at(0)
   if (member === undefined) {
@@ -182,6 +179,7 @@ export async function getMemberProfile(
       member.joinedSemester,
     ),
     introduction: member.introduction,
+    archived: member.archivedAt !== null,
   }
 }
 
@@ -207,7 +205,7 @@ export async function getMemberActivity(
   const offset = params.offset ?? 0
 
   const rowsResult = await executor.execute(sql`
-    select v.id, v.slug, v.title,
+    select v.id as "videoId", v.slug, v.title,
       to_char(v.recorded_at, 'YYYY-MM-DD') as "recordedAt",
       extract(year from v.recorded_at)::int as year,
       coalesce(

@@ -43,7 +43,7 @@ async function seedMember(db: Database, username: string): Promise<string> {
     username,
     fullName: `${username} Teljes Neve`,
     nickname: username,
-    membershipStatus: 'studio_member',
+    membershipStatus: 'MEMBER',
     isLeadership: false,
   })
   return sub

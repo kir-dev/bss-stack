@@ -36,20 +36,20 @@ describe('lokális Authentik bootstrap', () => {
     expect(usernames).toContain('schonherz-dev')
     expect(usernames).toContain('tag-dev')
     expect(usernames).toContain('vezetoseg-dev')
+    expect(usernames).toContain('admin-dev')
 
     const tag = LOCAL_USERS.find((user) => user.username === 'tag-dev')!
-    expect(tag.groups).toContain('bss-tag')
+    expect(tag.groups).toContain('Stúdiós')
 
     const leadership = LOCAL_USERS.find(
       (user) => user.username === 'vezetoseg-dev',
     )!
-    expect(leadership.groups).toContain('bss-tag')
-    expect(leadership.groups).toContain('bss-vezetoseg')
+    expect(leadership.groups).toEqual(['Vezetőség'])
 
     const schonherz = LOCAL_USERS.find(
       (user) => user.username === 'schonherz-dev',
     )!
-    expect(schonherz.groups).not.toContain('bss-tag')
+    expect(schonherz.groups).toEqual([])
 
     const statuses = LOCAL_USERS.map((user) => user.status)
     expect(statuses).toEqual(
@@ -59,7 +59,6 @@ describe('lokális Authentik bootstrap', () => {
         'stúdiósjelölt-jelölt',
         'aktív öregtag',
         'archivált öregtag',
-        'dolgozott még velünk',
       ]),
     )
   })
@@ -72,8 +71,8 @@ describe('lokális Authentik bootstrap', () => {
     }
     const validated = validateOobConfig(renderOobConfig(secrets))
     expect(validated.authentik.clientId).toBe('bss-stack-local')
-    expect(validated.authentik.groups.tag).toBe('bss-tag')
-    expect(validated.authentik.claims.username).toBe('preferred_username')
+    expect(validated.authentik.groups.studio).toBe('Stúdiós')
+    expect(validated.authentik.claims.sub).toBe('sub')
   })
 
   it('a blueprint tartalmazza a csoportokat, felhasználókat és a providert', () => {
@@ -84,7 +83,14 @@ describe('lokális Authentik bootstrap', () => {
     }
     const yaml = renderBlueprint(secrets)
 
-    for (const group of ['bss-schonherz', 'bss-tag', 'bss-vezetoseg']) {
+    for (const group of [
+      'Admin',
+      'Stúdiós',
+      'Stúdiós jelölt',
+      'Stúdiós jelölt-jelölt',
+      'Vezetőség',
+      'Öregtag',
+    ]) {
       expect(yaml).toContain(`name: ${group}`)
     }
     for (const user of LOCAL_USERS) {
