@@ -324,7 +324,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
             fullName: 'Nagy Éva',
           }),
         },
-        { op: 'delete', sub: 'nem-letezik' },
+        { op: 'archive', sub: 'nem-letezik' },
       ],
     })
     expect(result.payload['result']).toMatchObject({
@@ -334,8 +334,8 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
     })
   })
 
-  it('a törlés puha: a tag eltűnik a publikus oldalakról, de a sora megmarad', async () => {
-    const ctx = await setupAdminApiTest('bss whdelete')
+  it('az archiválás elrejti a tagot, de a sora megmarad', async () => {
+    const ctx = await setupAdminApiTest('bss wharchive')
     const clock = new FakeClock('2026-08-24T10:00:00Z')
     const { token } = await createClient(ctx, clock)
 
@@ -343,18 +343,18 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
       operations: [{ op: 'upsert', member: member() }],
     })
     const beforeBlocks = await getActiveMemberBlocks(ctx.db)
-    expect(beforeBlocks.studioMembers.some((card) => card.sub === '42')).toBe(
+    expect(beforeBlocks.members.some((card) => card.sub === '42')).toBe(
       true,
     )
 
     clock.advanceMinutes(1)
-    const deleted = await push(ctx, clock, token, {
-      operations: [{ op: 'delete', sub: '42' }],
+    const archived = await push(ctx, clock, token, {
+      operations: [{ op: 'archive', sub: '42' }],
     })
-    expect(deleted.payload['result']).toMatchObject({ deleted: 1 })
+    expect(archived.payload['result']).toMatchObject({ archived: 1 })
 
     const afterBlocks = await getActiveMemberBlocks(ctx.db)
-    expect(afterBlocks.studioMembers.some((card) => card.sub === '42')).toBe(
+    expect(afterBlocks.members.some((card) => card.sub === '42')).toBe(
       false,
     )
     expect(await getMemberProfile(ctx.db, 'gipsz.jakab')).toBeNull()
@@ -363,17 +363,20 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
     const rows = await memberRows(ctx.db)
     const row = rows.find((entry) => entry.sub === '42')
     expect(row).toBeDefined()
-    expect(row?.deletedAt).not.toBeNull()
+    expect(row?.archivedAt).not.toBeNull()
 
-    // A repeated delete is a no-op rather than an error.
+    // A repeated archive is a no-op rather than an error.
     clock.advanceMinutes(1)
     const again = await push(ctx, clock, token, {
-      operations: [{ op: 'delete', sub: '42' }],
+      operations: [{ op: 'archive', sub: '42' }],
     })
-    expect(again.payload['result']).toMatchObject({ deleted: 0, unchanged: 1 })
+    expect(again.payload['result']).toMatchObject({
+      archived: 0,
+      unchanged: 1,
+    })
   })
 
-  it('törölt tag újbóli beküldése visszaállítja', async () => {
+  it('archivált tag újbóli beküldése visszaállítja', async () => {
     const ctx = await setupAdminApiTest('bss whrestore')
     const clock = new FakeClock('2026-08-24T10:00:00Z')
     const { token } = await createClient(ctx, clock)
@@ -383,7 +386,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
     })
     clock.advanceMinutes(1)
     await push(ctx, clock, token, {
-      operations: [{ op: 'delete', sub: '42' }],
+      operations: [{ op: 'archive', sub: '42' }],
     })
     clock.advanceMinutes(1)
     const restored = await push(ctx, clock, token, {
@@ -395,7 +398,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
     expect(profile?.fullName).toBe('Gipsz Jakab')
   })
 
-  it('replace mód törli a névsorból kimaradt tagokat', async () => {
+  it('replace mód archiválja a névsorból kimaradt tagokat', async () => {
     const ctx = await setupAdminApiTest('bss whreplace')
     const clock = new FakeClock('2026-08-24T10:00:00Z')
     const { token } = await createClient(ctx, clock)
@@ -425,11 +428,11 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
     // admin fixture profiles. That is the point of the mode.
     expect(replaced.payload['result']).toMatchObject({
       mode: 'replace',
-      deleted: 4,
+      archived: 4,
     })
 
     const blocks = await getActiveMemberBlocks(ctx.db)
-    expect(blocks.studioMembers.map((card) => card.sub)).toEqual(['43'])
+    expect(blocks.members.map((card) => card.sub)).toEqual(['43'])
     expect(blocks.leadership).toHaveLength(0)
   })
 
@@ -452,7 +455,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
     })
 
     const blocks = await getActiveMemberBlocks(ctx.db)
-    expect(blocks.studioMembers.some((card) => card.sub === '42')).toBe(false)
+    expect(blocks.members.some((card) => card.sub === '42')).toBe(false)
     const archive = await getMemberArchivePage(ctx.db, 'archived')
     expect(archive.items.map((card) => card.sub)).toEqual(['42'])
   })
@@ -648,7 +651,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook validáció', () => {
     const response = await push(ctx, clock, token, {
       operations: [
         { op: 'upsert', member: member() },
-        { op: 'delete', sub: '42' },
+        { op: 'archive', sub: '42' },
       ],
     })
     expect(response.status).toBe(400)
@@ -767,13 +770,13 @@ describe.skipIf(!hasTestDatabase)('tagadminisztráció diagnosztikája', () => {
     })
     clock.advanceMinutes(1)
     await push(ctx, clock, token, {
-      operations: [{ op: 'delete', sub: '43' }],
+      operations: [{ op: 'archive', sub: '43' }],
     })
 
     const data = await getMemberDiagnostics(ctx.db)
     // The three admin fixture profiles plus the two pushed members.
     expect(data.summary.total).toBe(5)
-    expect(data.summary.deleted).toBe(1)
+    expect(data.summary.archived).toBe(1)
     expect(data.summary.active).toBe(4)
     expect(data.summary.activeClients).toBe(1)
     expect(data.summary.lastDeliveryStatus).toBe('ok')

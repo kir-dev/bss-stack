@@ -69,7 +69,7 @@ describe.skipIf(!hasTestDatabase)('BSS-023: aktív tagoldal blokkjai', () => {
       username: 'torolt',
       fullName: 'Törölt Henriett',
       membershipStatus: 'MEMBER',
-      deletedAt: new Date('2026-07-01T00:00:00Z'),
+      archivedAt: new Date('2026-07-01T00:00:00Z'),
     })
     await seedMember(db, {
       sub: 'm3',
@@ -89,11 +89,14 @@ describe.skipIf(!hasTestDatabase)('BSS-023: aktív tagoldal blokkjai', () => {
       'vezeto',
     ])
     // A vezetőségi tag (stúdiós státuszával együtt) nem ismétlődik a stúdiósoknál.
-    expect(blocks.studioMembers.map((member) => member.username)).toEqual([
+    expect(blocks.members.map((member) => member.username)).toEqual([
       'studios',
     ])
-    expect(blocks.studioCandidates.map((member) => member.username)).toEqual([
+    expect(blocks.member_candidates.map((member) => member.username)).toEqual([
       'jelolt',
+    ])
+    expect(blocks.member_candiate_candidates.map((member) => member.username)).toEqual([
+      'jelölt-jelölt',
     ])
     expect(blocks.seniorActive.map((member) => member.username)).toEqual([
       'oregtag',
@@ -134,7 +137,7 @@ describe.skipIf(!hasTestDatabase)('BSS-023: tagprofil', () => {
       sub: 'prof-2',
       username: 'rejtett',
       fullName: 'Rejtett Gábor',
-      deletedAt: new Date('2026-07-01T00:00:00Z'),
+      archivedAt: new Date('2026-07-01T00:00:00Z'),
     })
 
     const profile = await getMemberProfile(db, 'profilos')

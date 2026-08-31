@@ -62,7 +62,7 @@ async function setupDb(): Promise<NodePgDatabase<Record<string, never>>> {
       username: 'torolt',
       fullName: 'Törölt Profil',
       membershipStatus: 'MEMBER',
-      deletedAt: new Date('2026-07-01T00:00:00Z'),
+      archivedAt: new Date('2026-07-01T00:00:00Z'),
     },
   ])
   return migrated.db

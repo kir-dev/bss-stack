@@ -104,8 +104,8 @@ function MemberAdminPage() {
               <section>
                 <h2 className="mb-2 font-bold text-(--bss-text)">
                   Profilok ({data.summary.active} aktív
-                  {data.summary.deleted > 0 &&
-                    `, ${data.summary.deleted} törölt`}
+                  {data.summary.archived > 0 &&
+                    `, ${data.summary.archived} archivált`}
                   ) — csak olvashatóan
                 </h2>
                 <p className="mb-2 text-sm text-(--bss-text-secondary)">
@@ -174,7 +174,7 @@ function EndpointSection() {
           "isLeadership": false,
           "joinedSemester": "2021/2022/1"
       }},
-      { "op": "delete", "sub": "57" }
+      { "op": "archive", "sub": "57" }
     ]
   }'`}
         </pre>
@@ -183,8 +183,8 @@ function EndpointSection() {
           ezen keresztül kapcsolódik a tag a bejelentkezéséhez és a
           stáblistákhoz. A <code>mode: &quot;replace&quot;</code> +{' '}
           <code>members</code> alakkal a teljes névsor cserélhető: ami kimarad,
-          az törlésre kerül. A <code>x-bss-delivery-id</code> fejléc opcionális;
-          ha megadod, ugyanaz a kérés kétszer nem fut le. A{' '}
+          az archiválásra kerül. A <code>x-bss-delivery-id</code> fejléc
+          opcionális; ha megadod, ugyanaz a kérés kétszer nem fut le. A{' '}
           <code>joinedSemester</code> alakja <code>ÉÉÉÉ/ÉÉÉÉ/N</code>, ahol{' '}
           <code>N</code> 1 (őszi) vagy 2 (tavaszi) félév.
         </p>
@@ -438,7 +438,7 @@ const deliveryColumns: Array<AdminColumn<DiagnosticsDelivery>> = [
     header: 'Eredmény',
     render: (row) =>
       row.status === 'ok'
-        ? `${row.operationCount} művelet — ${row.createdCount} új, ${row.updatedCount} módosítás, ${row.deletedCount} törlés, ${row.restoredCount} visszaállítás`
+        ? `${row.operationCount} művelet — ${row.createdCount} új, ${row.updatedCount} módosítás, ${row.archivedCount} archiválás, ${row.restoredCount} visszaállítás`
         : '—',
   },
   {
@@ -483,11 +483,11 @@ const profileColumns: Array<AdminColumn<DiagnosticsProfile>> = [
     key: 'state',
     header: 'Állapot',
     render: (row) =>
-      row.deletedAt === null ? (
+      row.archivedAt === null ? (
         'Aktív'
       ) : (
         <span className="text-red-500">
-          Törölve ({formatAdminDateTimeHu(row.deletedAt)})
+          Archiválva ({formatAdminDateTimeHu(row.archivedAt)})
         </span>
       ),
   },

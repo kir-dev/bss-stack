@@ -31,9 +31,9 @@ export interface PublicMemberCard {
 
 export interface ActiveMemberBlocks {
   leadership: Array<PublicMemberCard>
-  studioMembers: Array<PublicMemberCard>
-  studioCandidates: Array<PublicMemberCard>
-  studioApplicants: Array<PublicMemberCard>
+  members: Array<PublicMemberCard>
+  member_candidates: Array<PublicMemberCard>
+  member_candiate_candidates: Array<PublicMemberCard>
   seniorActive: Array<PublicMemberCard>
 }
 
@@ -51,7 +51,7 @@ export async function getActiveMemberBlocks(
       status: memberCache.membershipStatus,
     })
     .from(memberCache)
-    .where(isNull(memberCache.deletedAt))
+    .where(isNull(memberCache.archivedAt))
     .orderBy(asc(memberCache.fullName), asc(memberCache.sub))
 
   const toCard = (row: (typeof rows)[number]): PublicMemberCard => ({
@@ -64,13 +64,13 @@ export async function getActiveMemberBlocks(
 
   return {
     leadership: rows.filter((row) => row.isLeadership).map(toCard),
-    studioMembers: rows
+    members: rows
       .filter((row) => !row.isLeadership && row.status === 'MEMBER')
       .map(toCard),
-    studioCandidates: rows
+    member_candidates: rows
       .filter((row) => row.status === 'MEMBER_CANDIDATE')
       .map(toCard),
-    studioApplicants: rows
+    member_candiate_candidates: rows
       .filter((row) => row.status === 'MEMBER_CANDIDATE_CANDIDATE')
       .map(toCard),
     seniorActive: rows
@@ -83,6 +83,10 @@ export type ArchiveKind = 'archived'
 
 const ARCHIVE_STATUS: Record<ArchiveKind, MembershipStatus> = {
   archived: 'ALUMNI',
+}
+
+const ARCHIVE_TITLES: Record<ArchiveKind, string> = {
+  archived: 'Dolgoztak még velünk',
 }
 
 export interface MemberListPage {
@@ -107,7 +111,7 @@ export async function getMemberArchivePage(
       : 1
 
   const condition = and(
-    isNull(memberCache.deletedAt),
+    isNull(memberCache.archivedAt),
     eq(memberCache.membershipStatus, status),
   )
   const [rows, countRows] = await Promise.all([
@@ -136,7 +140,7 @@ export async function getMemberArchivePage(
     total,
     page,
     totalPages: Math.ceil(total / MEMBER_PAGE_SIZE),
-    title: MEMBERSHIP_STATUS_LABELS[status],
+    title: ARCHIVE_TITLES[kind],
   }
 }
 
@@ -160,7 +164,7 @@ export async function getMemberProfile(
     .select()
     .from(memberCache)
     .where(
-      and(eq(memberCache.username, username), isNull(memberCache.deletedAt)),
+      and(eq(memberCache.username, username), isNull(memberCache.archivedAt)),
     )
     .limit(1)
   const member = rows.at(0)
