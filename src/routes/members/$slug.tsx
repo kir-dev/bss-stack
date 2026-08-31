@@ -193,6 +193,7 @@ function MemberProfilePage() {
             <span className="text-(--members-data)">
               {profile.statusLabel}
               {profile.isLeadership ? ', Vezetőség' : ''}
+              {profile.archived ? ', Archivált' : ''}
             </span>
           </p>
           {profile.joinedSemester !== null && (

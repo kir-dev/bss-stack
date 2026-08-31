@@ -41,6 +41,7 @@ export interface MemberHit {
   fullName: string
   nickname: string | null
   avatarUrl: string | null
+  archived: boolean | null
 }
 
 export interface TagHit {
@@ -203,7 +204,7 @@ async function searchMembersRaw(
   limit: number,
 ): Promise<Array<SearchScoredRow<MemberHit>>> {
   const rows = await executor.execute(sql`
-    select m.sub, m.username, m.full_name as "fullName", m.nickname, m.avatar_url as "avatarUrl",
+    select m.sub, m.username, m.full_name as "fullName", m.nickname, m.avatar_url as "avatarUrl", m.archived_at as "archived",
       greatest(
         case when bss_norm(m.full_name) = bss_norm(${query}) then 100 else 0 end,
         case when bss_norm(coalesce(m.nickname, '')) = bss_norm(${query}) and m.nickname is not null then 95 else 0 end,
@@ -213,8 +214,7 @@ async function searchMembersRaw(
         case when coalesce(bss_norm(m.introduction), '') like '%' || bss_norm(${query}) || '%' then 20 else 0 end
       ) as score
     from member_cache m
-    where m.archived_at is null
-      and (
+    where (
         bss_norm(m.full_name) like '%' || bss_norm(${query}) || '%'
         or bss_norm(coalesce(m.nickname, '')) like '%' || bss_norm(${query}) || '%'
         or coalesce(bss_norm(m.introduction), '') like '%' || bss_norm(${query}) || '%'
@@ -231,6 +231,7 @@ async function searchMembersRaw(
         fullName: row.fullName,
         nickname: row.nickname,
         avatarUrl: row.avatarUrl,
+        archived: row.archived !== null,
       },
       score: Number(row.score),
     }),

@@ -1,4 +1,4 @@
-import { and, asc, eq, isNull, sql } from 'drizzle-orm'
+import { and, asc, eq, isNotNull, isNull, sql } from 'drizzle-orm'
 import type { Viewer } from '#/server/auth/viewer.ts'
 import { formatAcademicSemester } from '#/server/members/member-fields.ts'
 import { memberCache, staffRoles, videoStaff, videos } from '#/db/schema.ts'
@@ -102,7 +102,6 @@ export async function getMemberArchivePage(
   kind: ArchiveKind,
   params: { page?: number } = {},
 ): Promise<MemberListPage> {
-  const status = ARCHIVE_STATUS[kind]
   const page =
     params.page !== undefined &&
     Number.isInteger(params.page) &&
@@ -110,10 +109,7 @@ export async function getMemberArchivePage(
       ? params.page
       : 1
 
-  const condition = and(
-    isNull(memberCache.archivedAt),
-    eq(memberCache.membershipStatus, status),
-  )
+  const condition = isNotNull(memberCache.archivedAt)
   const [rows, countRows] = await Promise.all([
     executor
       .select({
@@ -153,7 +149,8 @@ export interface MemberProfile {
   statusLabel: string
   isLeadership: boolean
   joinedSemester: string | null
-  introduction: string | null
+  introduction: string | null,
+  archived: boolean
 }
 
 export async function getMemberProfile(
@@ -163,9 +160,7 @@ export async function getMemberProfile(
   const rows = await executor
     .select()
     .from(memberCache)
-    .where(
-      and(eq(memberCache.username, username), isNull(memberCache.archivedAt)),
-    )
+    .where(eq(memberCache.username, username))
     .limit(1)
   const member = rows.at(0)
   if (member === undefined) {
@@ -184,6 +179,7 @@ export async function getMemberProfile(
       member.joinedSemester,
     ),
     introduction: member.introduction,
+    archived: member.archivedAt !== null,
   }
 }
 
