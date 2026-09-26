@@ -3,7 +3,7 @@
 openapi: "3.1.0"
 info:
   title: "BSS member update webhook"
-  version: "1.0.0"
+  version: "2.0.0"
   description: "This file is generated — do not edit by hand. Regenerate with `pnpm openapi:generate`."
 servers:
 - url: "https://bss.kir-dev.hu"
@@ -58,12 +58,11 @@ paths:
                   - op: "upsert"
                     member:
                       sub: "42"
-                      username: "gipsz.jakab"
                       fullName: "Gipsz Jakab"
                       nickname: "Pitypang"
                       avatarUrl: null
                       membershipStatus: "MEMBER"
-                      isLeadership: false
+                      leadershipRole: "Stúdióvezető"
                       joinedSemester: "2021/2022/1"
                   - op: "archive"
                     sub: "57"
@@ -73,12 +72,11 @@ paths:
                   mode: "replace"
                   members:
                   - sub: "42"
-                    username: "gipsz.jakab"
                     fullName: "Gipsz Jakab"
                     nickname: "Pitypang"
                     avatarUrl: null
                     membershipStatus: "MEMBER"
-                    isLeadership: false
+                    leadershipRole: "Stúdióvezető"
                     joinedSemester: "2021/2022/1"
       responses:
         "200":
@@ -101,12 +99,6 @@ paths:
                 "$ref": "#/components/schemas/Error"
         "405":
           description: "Only POST requests are accepted."
-          content:
-            application/json:
-              schema:
-                "$ref": "#/components/schemas/Error"
-        "409":
-          description: "One of the supplied usernames already belongs to another member."
           content:
             application/json:
               schema:
@@ -138,7 +130,6 @@ components:
       description: "Unknown fields are ignored rather than rejected. `introduction` is not part of the contract for now: a push never overwrites the bio stored in the database."
       required:
       - "sub"
-      - "username"
       - "fullName"
       - "membershipStatus"
       properties:
@@ -148,12 +139,6 @@ components:
           description: "The value of the Authentik OIDC `sub` claim. This is what ties the member to their login, to the credit lists and to editorial data."
           examples:
           - "42"
-        username:
-          type: "string"
-          maxLength: 200
-          description: "Unique username; also the last path segment of the public profile URL."
-          examples:
-          - "gipsz.jakab"
         fullName:
           type: "string"
           maxLength: 200
@@ -181,17 +166,18 @@ components:
           - "MEMBER_CANDIDATE_CANDIDATE"
           - "MEMBER_CANDIDATE"
           - "MEMBER"
-          - "ACTIVE_ALUMNI"
           - "ALUMNI"
           description: "Membership status. It decides which public list the member appears on; it grants NO permissions."
           examples:
           - "MEMBER"
-        isLeadership:
-          type: "boolean"
-          default: false
-          description: "Only controls whether the member is shown in the public leadership block. Actual permissions come from Authentik group membership."
+        leadershipRole:
+          type:
+          - "string"
+          - "null"
+          maxLength: 200
+          description: "Leadership position as free text (e.g. `Stúdióvezető`). When set, the member is shown in the public leadership block with this text next to their name; an omitted, null or empty value takes them out of it. Grants NO permissions: those come from Authentik group membership."
           examples:
-          - false
+          - "Stúdióvezető"
         joinedSemester:
           type:
           - "string"
@@ -202,12 +188,11 @@ components:
           - "2021/2022/1"
       examples:
       - sub: "42"
-        username: "gipsz.jakab"
         fullName: "Gipsz Jakab"
         nickname: "Pitypang"
         avatarUrl: null
         membershipStatus: "MEMBER"
-        isLeadership: false
+        leadershipRole: "Stúdióvezető"
         joinedSemester: "2021/2022/1"
     UpsertOperation:
       type: "object"
@@ -334,7 +319,6 @@ components:
           - "bad_request"
           - "unauthorized"
           - "method_not_allowed"
-          - "conflict"
           - "payload_too_large"
           - "internal"
         message:

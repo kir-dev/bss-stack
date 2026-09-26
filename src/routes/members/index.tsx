@@ -2,7 +2,9 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { useQuery } from '@tanstack/react-query'
 import { getActiveMemberBlocks } from '#/server/pages/members.ts'
+import type { PublicMemberCard } from '#/server/pages/members.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
+import { memberSlug } from '#/lib/member-slug.ts'
 
 const loadActiveMembers = createServerFn({ method: 'GET' }).handler(
   async () => {
@@ -56,10 +58,7 @@ function MembersPage() {
             title="Vezetőség"
             members={blocksQuery.data.leadership}
           />
-          <MemberBlock
-            title="Stúdiósok"
-            members={blocksQuery.data.members}
-          />
+          <MemberBlock title="Stúdiósok" members={blocksQuery.data.members} />
           <MemberBlock
             title="Stúdiósjelöltek"
             members={blocksQuery.data.member_candidates}
@@ -93,13 +92,7 @@ export function MemberBlock({
   members,
 }: {
   title: string
-  members: Array<{
-    sub: string
-    username: string
-    fullName: string
-    nickname: string | null
-    avatarUrl: string | null
-  }>
+  members: Array<PublicMemberCard>
 }) {
   if (members.length === 0) {
     return null
@@ -114,7 +107,7 @@ export function MemberBlock({
           <Link
             key={member.sub}
             to="/members/$slug"
-            params={{ slug: member.username }}
+            params={{ slug: memberSlug(member) }}
             className="hover-lift flex w-[178px] flex-col items-center border border-(--card-border) bg-(--members-card-bg) p-3 text-center shadow-[0_2px_2px_rgba(0,0,0,0.2)]"
           >
             <img
@@ -127,6 +120,11 @@ export function MemberBlock({
             </p>
             {member.nickname !== null && (
               <p className="text-(--bss-text-secondary)">„{member.nickname}”</p>
+            )}
+            {member.leadershipRole !== null && (
+              <p className="text-sm text-(--bss-text-secondary)">
+                {member.leadershipRole}
+              </p>
             )}
           </Link>
         ))}

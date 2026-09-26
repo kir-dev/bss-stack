@@ -27,6 +27,7 @@ import {
   createAuthSession,
   deleteAuthSession,
   findActiveAuthSession,
+  getDefaultDb,
 } from '#/server/auth/session-store.ts'
 import type { Database } from '#/server/auth/session-store.ts'
 import {
@@ -40,9 +41,11 @@ import {
 } from '#/server/auth/session-cookies.ts'
 import type { CookieSpec } from '#/server/auth/session-cookies.ts'
 import type { Clock } from '#/lib/clock.ts'
+import { systemClock } from '#/lib/clock.ts'
 import { getCachedOobConfig } from '#/server/config/load.ts'
 import type { OobConfig } from '#/server/config/oob-schema.ts'
 import { viewerFromSession } from '#/server/auth/viewer.ts'
+import { syncMemberUsername } from '#/server/members/username.ts'
 
 const TXN_MAX_AGE_MS = OIDC_TXN_TTL_SECONDS * 1000
 
@@ -225,6 +228,22 @@ export function createAuthRouteHandlers(
         },
         { db: deps.db, clock: deps.clock },
       )
+
+      // The claim falls back to `sub` when Authentik sends no
+      // preferred_username; that fallback is not a real name to store.
+      if (identity.username !== identity.sub) {
+        try {
+          await syncMemberUsername(
+            deps.db ?? (await getDefaultDb()),
+            identity.sub,
+            identity.username,
+            (deps.clock ?? systemClock).now(),
+          )
+        } catch (error) {
+          // A stale profile URL must not block the login itself.
+          logAuthFailure('A felhasználónév mentése nem sikerült', error)
+        }
+      }
 
       const secure = isSecureRequest(request)
       return redirectResponse(transaction.returnTo, [

@@ -37,7 +37,7 @@ export interface EventHit {
 
 export interface MemberHit {
   sub: string
-  username: string
+  username: string | null
   fullName: string
   nickname: string | null
   avatarUrl: string | null

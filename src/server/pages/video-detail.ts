@@ -18,7 +18,7 @@ export interface VideoDetailStaffEntry {
   roleId: string
   roleName: string
   displayOrder: number
-  members: Array<{ sub: string; username: string; fullName: string }>
+  members: Array<{ sub: string; username: string | null; fullName: string }>
 }
 
 export interface RelatedVideoItem {
@@ -39,6 +39,7 @@ export interface VideoDetail {
   hqUrl: string | null
   lqUrl: string | null
   thumbnailUrl: string | null
+  keyframeUrl: string | null
   recordedAt: string | null
   publishedAt: Date | null
   event: {
@@ -152,6 +153,7 @@ export async function getVideoDetail(
       slug: item.slug,
       title: item.title,
       thumbnailUrl: videoAssetUrls(item).thumbnailUrl,
+      keyframeUrl: videoAssetUrls(item).keyframeUrl,
     })),
   }
 }

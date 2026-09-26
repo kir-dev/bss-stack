@@ -1,6 +1,7 @@
 import { and, desc, eq, isNull } from 'drizzle-orm'
 import { events, memberCache, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
+import { memberSlug } from '#/lib/member-slug.ts'
 
 export interface SitemapEntry {
   path: string
@@ -48,6 +49,7 @@ export async function getSitemapEntries(
   // Only live profiles (same rule as the public list).
   const memberRows = await executor
     .select({
+      sub: memberCache.sub,
       username: memberCache.username,
       updatedAt: memberCache.updatedAt,
     })
@@ -56,7 +58,7 @@ export async function getSitemapEntries(
 
   for (const row of memberRows) {
     entries.push({
-      path: `/members/${row.username}`,
+      path: `/members/${memberSlug(row)}`,
       lastmod: row.updatedAt.toISOString(),
     })
   }

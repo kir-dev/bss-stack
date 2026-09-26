@@ -24,7 +24,6 @@ export const MEMBERSHIP_STATUS_LABELS: Record<string, string> = {
   MEMBER_CANDIDATE_CANDIDATE: 'Stúdiósjelölt-jelölt',
   MEMBER_CANDIDATE: 'Stúdiósjelölt',
   MEMBER: 'Stúdiós',
-  ACTIVE_ALUMNI: 'Aktív öregtag',
   ALUMNI: 'Öregtag',
 }
 

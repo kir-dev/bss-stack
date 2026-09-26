@@ -62,7 +62,9 @@ Megjegyzések:
 - A tagadatokat az alkalmazás birtokolja: a `POST /api/webhooks/members`
   végpontra beküldött frissítések írják őket (lásd
   [`docs/member-webhook.md`](docs/member-webhook.md)). Authentikből automatikus
-  szinkron nincs — az Authentik már csak a bejelentkezést és a csoportokat adja.
+  szinkron nincs — az Authentik a bejelentkezést, a csoportokat és a
+  felhasználónevet adja (ez utóbbit belépéskor mentjük; addig a profil URL-je a
+  `sub`).
 - A webhook OpenAPI 3.1 leírása generált:
   [`docs/api/members-webhook.openapi.yaml`](docs/api/members-webhook.openapi.yaml).
   Kézzel ne szerkeszd — `pnpm openapi:generate` írja újra a szerver

@@ -183,7 +183,11 @@ export interface EventDetailData {
     total: number
   }
 
-  staffMembers: Array<{ username: string; fullName: string }>
+  staffMembers: Array<{
+    sub: string
+    username: string | null
+    fullName: string
+  }>
 }
 
 /**
@@ -288,6 +292,7 @@ export async function getEventDetail(
       total: countRows.at(0)?.count ?? 0,
     },
     staffMembers: staffRows.map((row) => ({
+      sub: row.sub,
       username: row.username,
       fullName: row.fullName,
     })),

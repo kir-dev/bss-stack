@@ -1,4 +1,4 @@
-import { and, asc, eq, isNotNull, isNull, sql } from 'drizzle-orm'
+import { asc, eq, isNotNull, isNull, or, sql } from 'drizzle-orm'
 import type { Viewer } from '#/server/auth/viewer.ts'
 import { formatAcademicSemester } from '#/server/members/member-fields.ts'
 import { memberCache, staffRoles, videoStaff, videos } from '#/db/schema.ts'
@@ -15,18 +15,22 @@ export const MEMBERSHIP_STATUS_LABELS: Record<MembershipStatus, string> = {
   MEMBER_CANDIDATE_CANDIDATE: 'Stúdiósjelölt-jelölt',
   MEMBER_CANDIDATE: 'Stúdiósjelölt',
   MEMBER: 'Stúdiós',
-  ACTIVE_ALUMNI: 'Aktív öregtag',
   ALUMNI: 'Öregtag',
 }
+
+/** An alumnus who is not archived counts as an active one. */
+const ACTIVE_ALUMNI_LABEL = 'Aktív öregtag'
 
 export { formatAcademicSemester }
 
 export interface PublicMemberCard {
   sub: string
-  username: string
+  username: string | null
   fullName: string
   nickname: string | null
   avatarUrl: string | null
+  /** Set only on leadership block cards. */
+  leadershipRole: string | null
 }
 
 export interface ActiveMemberBlocks {
@@ -47,7 +51,7 @@ export async function getActiveMemberBlocks(
       fullName: memberCache.fullName,
       nickname: memberCache.nickname,
       avatarUrl: memberCache.avatarUrl,
-      isLeadership: memberCache.isLeadership,
+      leadershipRole: memberCache.leadershipRole,
       status: memberCache.membershipStatus,
     })
     .from(memberCache)
@@ -60,12 +64,17 @@ export async function getActiveMemberBlocks(
     fullName: row.fullName,
     nickname: row.nickname,
     avatarUrl: row.avatarUrl,
+    leadershipRole: null,
   })
 
   return {
-    leadership: rows.filter((row) => row.isLeadership).map(toCard),
+    // Positions are free text, so there is nothing to rank them by: the
+    // leadership block keeps the name order of every other block.
+    leadership: rows
+      .filter((row) => row.leadershipRole !== null)
+      .map((row) => ({ ...toCard(row), leadershipRole: row.leadershipRole })),
     members: rows
-      .filter((row) => !row.isLeadership && row.status === 'MEMBER')
+      .filter((row) => row.leadershipRole === null && row.status === 'MEMBER')
       .map(toCard),
     member_candidates: rows
       .filter((row) => row.status === 'MEMBER_CANDIDATE')
@@ -73,17 +82,11 @@ export async function getActiveMemberBlocks(
     member_candiate_candidates: rows
       .filter((row) => row.status === 'MEMBER_CANDIDATE_CANDIDATE')
       .map(toCard),
-    seniorActive: rows
-      .filter((row) => row.status === 'ACTIVE_ALUMNI')
-      .map(toCard),
+    seniorActive: rows.filter((row) => row.status === 'ALUMNI').map(toCard),
   }
 }
 
 export type ArchiveKind = 'archived'
-
-const ARCHIVE_STATUS: Record<ArchiveKind, MembershipStatus> = {
-  archived: 'ALUMNI',
-}
 
 const ARCHIVE_TITLES: Record<ArchiveKind, string> = {
   archived: 'Dolgoztak még velünk',
@@ -132,7 +135,7 @@ export async function getMemberArchivePage(
 
   const total = countRows.at(0)?.count ?? 0
   return {
-    items: rows,
+    items: rows.map((row) => ({ ...row, leadershipRole: null })),
     total,
     page,
     totalPages: Math.ceil(total / MEMBER_PAGE_SIZE),
@@ -142,25 +145,28 @@ export async function getMemberArchivePage(
 
 export interface MemberProfile {
   sub: string
-  username: string
+  username: string | null
   fullName: string
   nickname: string | null
   avatarUrl: string | null
   statusLabel: string
-  isLeadership: boolean
+  leadershipRole: string | null
   joinedSemester: string | null
-  introduction: string | null,
+  introduction: string | null
   archived: boolean
 }
 
 export async function getMemberProfile(
   executor: Executor,
-  username: string,
+  slug: string,
 ): Promise<MemberProfile | null> {
+  // Profiles are addressed by username once known, by `sub` until then; an
+  // exact username match wins should a username ever equal another's `sub`.
   const rows = await executor
     .select()
     .from(memberCache)
-    .where(eq(memberCache.username, username))
+    .where(or(eq(memberCache.username, slug), eq(memberCache.sub, slug)))
+    .orderBy(sql`${memberCache.username} = ${slug} desc nulls last`)
     .limit(1)
   const member = rows.at(0)
   if (member === undefined) {
@@ -172,8 +178,11 @@ export async function getMemberProfile(
     fullName: member.fullName,
     nickname: member.nickname,
     avatarUrl: member.avatarUrl,
-    statusLabel: MEMBERSHIP_STATUS_LABELS[member.membershipStatus],
-    isLeadership: member.isLeadership,
+    statusLabel:
+      member.membershipStatus === 'ALUMNI' && member.archivedAt === null
+        ? ACTIVE_ALUMNI_LABEL
+        : MEMBERSHIP_STATUS_LABELS[member.membershipStatus],
+    leadershipRole: member.leadershipRole,
     joinedSemester: formatAcademicSemester(
       member.joinedYear,
       member.joinedSemester,

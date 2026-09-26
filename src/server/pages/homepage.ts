@@ -10,6 +10,7 @@ export interface HomepageVideoCard {
   slug: string
   title: string
   thumbnailUrl: string | null
+  keyframeUrl: string | null
 }
 
 export interface HomepageHeroVideo extends HomepageVideoCard {
@@ -52,6 +53,7 @@ export async function getHomepagePage(
     slug: video.slug,
     title: video.title,
     thumbnailUrl: videoAssetUrls(video).thumbnailUrl,
+    keyframeUrl: videoAssetUrls(video).keyframeUrl,
   })
 
   // The homepage runs as an anonymous viewer, so the fallback cover image can

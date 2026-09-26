@@ -68,6 +68,7 @@ export async function handleSearch(
         startDate: item.startDate,
       })),
       members: results.members.map(({ item }) => ({
+        sub: item.sub,
         username: item.username,
         fullName: item.fullName,
         nickname: item.nickname,

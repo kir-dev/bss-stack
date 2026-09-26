@@ -1,15 +1,13 @@
 import { createFileRoute, Link } from '@tanstack/react-router'
 import { createServerFn } from '@tanstack/react-start'
 import { getRequest } from '@tanstack/react-start/server'
-import {
-  MIN_QUERY_LENGTH,
-  search,
-  type MemberHit,
-} from '#/server/search/service.ts'
+import { MIN_QUERY_LENGTH, search } from '#/server/search/service.ts'
+import type { MemberHit } from '#/server/search/service.ts'
 import { getVideoListPage } from '#/server/pages/video-list.ts'
 import { resolveViewerStateFromRequest } from '#/server/pages/viewer.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import Thumbnail from '#/components/Thumbnail.tsx'
+import { memberSlug } from '#/lib/member-slug.ts'
 
 const SEARCH_TABS = [
   { key: 'all', label: 'Összes' },
@@ -297,7 +295,7 @@ function MemberRow(props: { member: MemberHit }) {
   return (
     <li key={member.sub}>
       <HitLink
-        href={`/members/${member.username}`}
+        href={`/members/${memberSlug(member)}`}
         label={`${member.fullName} ${member.archived ? '(Archivált)' : ''}`}
       />
     </li>

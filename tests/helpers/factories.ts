@@ -108,11 +108,7 @@ export function buildTag(overrides: Partial<TagFixture> = {}): TagFixture {
 }
 
 export type MembershipStatus =
-  | 'MEMBER'
-  | 'MEMBER_CANDIDATE'
-  | 'MEMBER_CANDIDATE_CANDIDATE'
-  | 'ACTIVE_ALUMNI'
-  | 'ALUMNI'
+  'MEMBER' | 'MEMBER_CANDIDATE' | 'MEMBER_CANDIDATE_CANDIDATE' | 'ALUMNI'
 
 export interface MemberFixture {
   sub: string
@@ -121,7 +117,7 @@ export interface MemberFixture {
   nickname: string | null
   avatarUrl: string | null
   membershipStatus: MembershipStatus
-  isLeadership: boolean
+  leadershipRole: string | null
   joinedYear: number | null
   joinedSemester: 'spring' | 'autumn' | null
   introduction: string | null
@@ -139,7 +135,7 @@ export function buildMember(
     nickname: overrides.nickname ?? 'Teszti',
     avatarUrl: null,
     membershipStatus: overrides.membershipStatus ?? 'MEMBER',
-    isLeadership: overrides.isLeadership ?? false,
+    leadershipRole: overrides.leadershipRole ?? null,
     joinedYear: overrides.joinedYear ?? 2023,
     joinedSemester: overrides.joinedSemester ?? 'autumn',
     introduction: overrides.introduction ?? null,

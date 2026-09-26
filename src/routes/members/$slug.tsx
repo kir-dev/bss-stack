@@ -16,19 +16,20 @@ import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import { formatCalendarDateHu } from '#/lib/format-date.ts'
 import { formatAcademicSemesterHu } from '#/lib/academic-semester.ts'
+import { memberSlug } from '#/lib/member-slug.ts'
 
 const loadMemberProfile = createServerFn({ method: 'GET' })
   .validator((slug: string) => slug)
-  .handler(async ({ data: username }) => {
+  .handler(async ({ data: slug }) => {
     const db = await getDefaultDb()
-    return getMemberProfile(db, username)
+    return getMemberProfile(db, slug)
   })
 
 const loadMemberMeta = createServerFn({ method: 'GET' })
   .validator((slug: string) => slug)
-  .handler(async ({ data: username }) => {
+  .handler(async ({ data: slug }) => {
     const db = await getDefaultDb()
-    const profile = await getMemberProfile(db, username)
+    const profile = await getMemberProfile(db, slug)
     if (profile === null) {
       return null
     }
@@ -36,23 +37,17 @@ const loadMemberMeta = createServerFn({ method: 'GET' })
       profile.introduction?.slice(0, 300) ??
       `${profile.fullName} profilja a Budavári Schönherz Stúdióban (${profile.statusLabel}).`
     return {
-      canonical: `${getRequestUrl().origin}/members/${profile.username}`,
+      canonical: `${getRequestUrl().origin}/members/${memberSlug(profile)}`,
       description,
     }
   })
 
 const loadMemberActivity = createServerFn({ method: 'GET' })
-  .validator(
-    (input: { username: string; limit: number; offset: number }) => input,
-  )
+  .validator((input: { sub: string; limit: number; offset: number }) => input)
   .handler(async ({ data }) => {
     const { viewer } = await resolveViewerStateFromRequest(getRequest())
     const db = await getDefaultDb()
-    const profile = await getMemberProfile(db, data.username)
-    if (profile === null) {
-      return { items: [], total: 0 }
-    }
-    return getMemberActivity(db, viewer, profile.sub, {
+    return getMemberActivity(db, viewer, data.sub, {
       limit: data.limit,
       offset: data.offset,
     })
@@ -109,10 +104,10 @@ function MemberProfilePage() {
   const level = viewerQuery.data?.level ?? 'anonymous'
 
   const firstPageQuery = useQuery({
-    queryKey: ['member-activity', profile.username, 0, level],
+    queryKey: ['member-activity', profile.sub, 0, level],
     queryFn: () =>
       loadMemberActivity({
-        data: { username: profile.username, limit: pageSize, offset: 0 },
+        data: { sub: profile.sub, limit: pageSize, offset: 0 },
       }),
   })
 
@@ -137,7 +132,7 @@ function MemberProfilePage() {
   function setView(nextView: 'year' | 'role') {
     void navigate({
       to: '/members/$slug',
-      params: { slug: profile.username },
+      params: { slug: memberSlug(profile) },
       search: (prev) => ({
         ...prev,
         view: nextView === 'year' ? undefined : nextView,
@@ -148,14 +143,14 @@ function MemberProfilePage() {
   async function loadMore() {
     const nextOffset = rows.length
     const result = await loadMemberActivity({
-      data: { username: profile.username, limit: pageSize, offset: nextOffset },
+      data: { sub: profile.sub, limit: pageSize, offset: nextOffset },
     })
     setExtraRows((prev) => [...prev, ...result.items])
   }
 
   return (
     <main className="site-width my-[4dvh]">
-      <title>{`{profile.fullName} | BSS`}</title>
+      <title>{`${profile.fullName} | BSS`}</title>
       <meta name="description" content={meta.description} />
       <link rel="canonical" href={meta.canonical} />
       <meta property="og:title" content={profile.fullName} />
@@ -192,7 +187,9 @@ function MemberProfilePage() {
             </span>
             <span className="text-(--members-data)">
               {profile.statusLabel}
-              {profile.isLeadership ? ', Vezetőség' : ''}
+              {profile.leadershipRole !== null
+                ? `, ${profile.leadershipRole}`
+                : ''}
               {profile.archived ? ', Archivált' : ''}
             </span>
           </p>
@@ -236,7 +233,7 @@ function MemberProfilePage() {
               onClick={() => setView('year')}
               className={`nav-link font-semibold ${view === 'year' ? 'text-(--orange)' : 'text-(--bss-text-secondary)'}`}
             >
-              Év nézet
+              Évek szerint
             </button>
             <button
               type="button"
@@ -245,7 +242,7 @@ function MemberProfilePage() {
               onClick={() => setView('role')}
               className={`nav-link font-semibold ${view === 'role' ? 'text-(--orange)' : 'text-(--bss-text-secondary)'}`}
             >
-              Szerep nézet
+              Szerep szerint
             </button>
           </div>
         </div>

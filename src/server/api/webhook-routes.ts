@@ -8,9 +8,7 @@ import { isUniqueViolation } from '#/server/shared/pg-error.ts'
 import { TextValidationError } from '#/server/shared/text.ts'
 import {
   applyMemberIngest,
-  MemberIngestConflictError,
   parseMemberIngestPayload,
-  toIngestConflict,
 } from '#/server/members/ingest.ts'
 import type { IngestMode, IngestResult } from '#/server/members/ingest.ts'
 import {
@@ -236,7 +234,6 @@ export async function handleMemberWebhook(
       return applied
     })
   } catch (rawError) {
-    const error = toIngestConflict(rawError)
     if (isUniqueViolation(rawError, 'delivery')) {
       return json(200, {
         ok: true,
@@ -244,17 +241,6 @@ export async function handleMemberWebhook(
         deliveryId,
         message: 'Ez a delivery azonosító már fel lett dolgozva.',
       })
-    }
-    if (error instanceof MemberIngestConflictError) {
-      await recordRejection(
-        db,
-        client.id,
-        payload.mode,
-        deliveryId,
-        error.message,
-        now,
-      )
-      return json(409, { error: 'conflict', message: error.message })
     }
     const message =
       rawError instanceof Error ? rawError.message : String(rawError)

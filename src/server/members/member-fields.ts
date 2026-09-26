@@ -115,16 +115,6 @@ export const MEMBER_FIELD_SPECS: readonly MemberFieldSpec[] = [
     example: '42',
   },
   {
-    name: 'username',
-    type: 'string',
-    required: true,
-    nullable: false,
-    maxLength: 200,
-    description:
-      'Unique username; also the last path segment of the public profile URL.',
-    example: 'gipsz.jakab',
-  },
-  {
     name: 'fullName',
     type: 'string',
     required: true,
@@ -163,14 +153,14 @@ export const MEMBER_FIELD_SPECS: readonly MemberFieldSpec[] = [
     example: 'MEMBER',
   },
   {
-    name: 'isLeadership',
-    type: 'boolean',
+    name: 'leadershipRole',
+    type: 'string',
     required: false,
-    nullable: false,
-    default: false,
+    nullable: true,
+    maxLength: 200,
     description:
-      'Only controls whether the member is shown in the public leadership block. Actual permissions come from Authentik group membership.',
-    example: false,
+      'Leadership position as free text (e.g. `Stúdióvezető`). When set, the member is shown in the public leadership block with this text next to their name; an omitted, null or empty value takes them out of it. Grants NO permissions: those come from Authentik group membership.',
+    example: 'Stúdióvezető',
   },
   {
     name: 'joinedSemester',
