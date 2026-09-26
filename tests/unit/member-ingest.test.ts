@@ -5,7 +5,6 @@ const statuses = [
   'MEMBER_CANDIDATE_CANDIDATE',
   'MEMBER_CANDIDATE',
   'MEMBER',
-  'ACTIVE_ALUMNI',
   'ALUMNI',
 ] as const
 
@@ -35,9 +34,66 @@ describe('membership webhook tagsági státusz', () => {
     }
   })
 
+  it('a megszűnt ACTIVE_ALUMNI értéket elutasítja', () => {
+    expect(() => parseMemberIngestPayload(payload('ACTIVE_ALUMNI'))).toThrow(
+      /membershipStatus/,
+    )
+  })
+
   it('a korábbi kisbetűs értékeket elutasítja', () => {
     expect(() => parseMemberIngestPayload(payload('studio_member'))).toThrow(
       /membershipStatus/,
     )
+  })
+})
+
+function rolePayload(leadershipRole: unknown) {
+  return {
+    operations: [
+      {
+        op: 'upsert',
+        member: {
+          sub: 'sub-1',
+          username: 'tag',
+          fullName: 'Teszt Tag',
+          membershipStatus: 'MEMBER',
+          leadershipRole,
+        },
+      },
+    ],
+  }
+}
+
+function parsedRole(leadershipRole: unknown): string | null {
+  const operation = parseMemberIngestPayload(rolePayload(leadershipRole))
+    .operations[0]
+  if (operation.op !== 'upsert') {
+    throw new Error('upsert műveletet vártunk')
+  }
+  return operation.member.leadershipRole
+}
+
+describe('membership webhook vezetőségi pozíció', () => {
+  it('szabad szöveges pozíciót fogad el', () => {
+    expect(parsedRole('Stúdióvezető-helyettes')).toBe('Stúdióvezető-helyettes')
+  })
+
+  it('levágja a felesleges szóközöket', () => {
+    expect(parsedRole('  IT felelős  ')).toBe('IT felelős')
+  })
+
+  it('elhagyva, null vagy üres szöveg esetén nincs pozíció', () => {
+    expect(parsedRole(undefined)).toBeNull()
+    expect(parsedRole(null)).toBeNull()
+    expect(parsedRole('   ')).toBeNull()
+  })
+
+  it('a 200 karakternél hosszabb pozíciót elutasítja', () => {
+    expect(() => parsedRole('x'.repeat(201))).toThrow(/legfeljebb 200/)
+  })
+
+  it('nem szöveges értéket elutasít', () => {
+    expect(() => parsedRole(true)).toThrow(/leadershipRole/)
+    expect(() => parsedRole(['PR felelős'])).toThrow(/leadershipRole/)
   })
 })

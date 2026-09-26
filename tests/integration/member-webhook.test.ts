@@ -15,6 +15,7 @@ import {
   getMemberProfile,
 } from '#/server/pages/members.ts'
 import { FakeClock } from '#/lib/clock.ts'
+import { syncMemberUsername } from '#/server/members/username.ts'
 import type { Database } from '#/server/auth/session-store.ts'
 
 const hasTestDatabase = Boolean(process.env.TEST_DATABASE_URL)
@@ -94,12 +95,11 @@ async function push(
 function member(overrides: Record<string, unknown> = {}) {
   return {
     sub: '42',
-    username: 'gipsz.jakab',
     fullName: 'Gipsz Jakab',
     nickname: 'Pitypang',
     avatarUrl: null,
     membershipStatus: 'MEMBER',
-    isLeadership: false,
+    leadershipRole: null,
     joinedSemester: '2019/2020/1',
     ...overrides,
   }
@@ -320,7 +320,6 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
           op: 'upsert',
           member: member({
             sub: '43',
-            username: 'nagy.eva',
             fullName: 'Nagy Éva',
           }),
         },
@@ -343,9 +342,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
       operations: [{ op: 'upsert', member: member() }],
     })
     const beforeBlocks = await getActiveMemberBlocks(ctx.db)
-    expect(beforeBlocks.members.some((card) => card.sub === '42')).toBe(
-      true,
-    )
+    expect(beforeBlocks.members.some((card) => card.sub === '42')).toBe(true)
 
     clock.advanceMinutes(1)
     const archived = await push(ctx, clock, token, {
@@ -354,10 +351,11 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
     expect(archived.payload['result']).toMatchObject({ archived: 1 })
 
     const afterBlocks = await getActiveMemberBlocks(ctx.db)
-    expect(afterBlocks.members.some((card) => card.sub === '42')).toBe(
-      false,
-    )
-    expect(await getMemberProfile(ctx.db, 'gipsz.jakab')).toBeNull()
+    expect(afterBlocks.members.some((card) => card.sub === '42')).toBe(false)
+    // The profile stays reachable (marked archived) and lands on the archive page.
+    expect((await getMemberProfile(ctx.db, '42'))?.archived).toBe(true)
+    const archive = await getMemberArchivePage(ctx.db, 'archived')
+    expect(archive.items.map((card) => card.sub)).toContain('42')
 
     // The row itself survives, so staff credits stay resolvable.
     const rows = await memberRows(ctx.db)
@@ -394,7 +392,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
     })
     expect(restored.payload['result']).toMatchObject({ restored: 1 })
 
-    const profile = await getMemberProfile(ctx.db, 'gipsz.jakab')
+    const profile = await getMemberProfile(ctx.db, '42')
     expect(profile?.fullName).toBe('Gipsz Jakab')
   })
 
@@ -410,7 +408,6 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
           op: 'upsert',
           member: member({
             sub: '43',
-            username: 'nagy.eva',
             fullName: 'Nagy Éva',
           }),
         },
@@ -420,9 +417,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
     clock.advanceMinutes(1)
     const replaced = await push(ctx, clock, token, {
       mode: 'replace',
-      members: [
-        member({ sub: '43', username: 'nagy.eva', fullName: 'Nagy Éva' }),
-      ],
+      members: [member({ sub: '43', fullName: 'Nagy Éva' })],
     })
     // Replace retires everything absent from the payload — including the three
     // admin fixture profiles. That is the point of the mode.
@@ -454,10 +449,24 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
       ],
     })
 
+    // An unarchived ALUMNI is an active alumnus; only archiving moves them to
+    // the archive page, and their status is kept there.
     const blocks = await getActiveMemberBlocks(ctx.db)
     expect(blocks.members.some((card) => card.sub === '42')).toBe(false)
+    expect(blocks.seniorActive.map((card) => card.sub)).toEqual(['42'])
+    expect((await getMemberArchivePage(ctx.db, 'archived')).items).toHaveLength(
+      0,
+    )
+
+    clock.advanceMinutes(1)
+    await push(ctx, clock, token, {
+      operations: [{ op: 'archive', sub: '42' }],
+    })
+    const afterArchive = await getActiveMemberBlocks(ctx.db)
+    expect(afterArchive.seniorActive).toHaveLength(0)
     const archive = await getMemberArchivePage(ctx.db, 'archived')
     expect(archive.items.map((card) => card.sub)).toEqual(['42'])
+    expect((await getMemberProfile(ctx.db, '42'))?.statusLabel).toBe('Öregtag')
   })
 
   it('a félév ÉÉÉÉ/ÉÉÉÉ/N alakban megy be és ugyanúgy jön vissza', async () => {
@@ -471,7 +480,6 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
           op: 'upsert',
           member: member({
             sub: '80',
-            username: 'oszi',
             joinedSemester: '2021/2022/1',
           }),
         },
@@ -479,7 +487,6 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
           op: 'upsert',
           member: member({
             sub: '81',
-            username: 'tavaszi',
             joinedSemester: '2021/2022/2',
           }),
         },
@@ -487,25 +494,24 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
           op: 'upsert',
           member: member({
             sub: '82',
-            username: 'nincs',
             joinedSemester: null,
           }),
         },
       ],
     })
 
-    expect((await getMemberProfile(ctx.db, 'oszi'))?.joinedSemester).toBe(
+    expect((await getMemberProfile(ctx.db, '80'))?.joinedSemester).toBe(
       '2021/2022/1',
     )
-    expect((await getMemberProfile(ctx.db, 'tavaszi'))?.joinedSemester).toBe(
+    expect((await getMemberProfile(ctx.db, '81'))?.joinedSemester).toBe(
       '2021/2022/2',
     )
-    expect((await getMemberProfile(ctx.db, 'nincs'))?.joinedSemester).toBeNull()
+    expect((await getMemberProfile(ctx.db, '82'))?.joinedSemester).toBeNull()
 
     // Internally the semester is still a calendar year plus spring/autumn.
     const rows = await memberRows(ctx.db)
-    const autumn = rows.find((row) => row.username === 'oszi')
-    const spring = rows.find((row) => row.username === 'tavaszi')
+    const autumn = rows.find((row) => row.sub === '80')
+    const spring = rows.find((row) => row.sub === '81')
     expect(autumn?.joinedYear).toBe(2021)
     expect(autumn?.joinedSemester).toBe('autumn')
     expect(spring?.joinedYear).toBe(2022)
@@ -513,7 +519,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
 
     const diagnostics = await getMemberDiagnostics(ctx.db)
     expect(
-      diagnostics.profiles.find((profile) => profile.username === 'oszi')
+      diagnostics.profiles.find((profile) => profile.sub === '80')
         ?.joinedSemester,
     ).toBe('2021/2022/1')
   })
@@ -543,7 +549,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
     })
     expect(updated.payload['result']).toMatchObject({ updated: 1 })
 
-    const profile = await getMemberProfile(ctx.db, 'gipsz.jakab')
+    const profile = await getMemberProfile(ctx.db, '42')
     expect(profile?.fullName).toBe('Gipsz Jakab Péter')
     expect(profile?.introduction).toBe('Korábban rögzített bemutatkozás.')
   })
@@ -563,7 +569,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook műveletek', () => {
     })
     // Not rejected, but not stored either.
     expect(response.status).toBe(200)
-    const profile = await getMemberProfile(ctx.db, 'gipsz.jakab')
+    const profile = await getMemberProfile(ctx.db, '42')
     expect(profile?.introduction).toBeNull()
   })
 
@@ -601,7 +607,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook validáció', () => {
         {
           op: 'upsert',
           member: member({
-            username: '',
+            fullName: '',
             membershipStatus: 'nincs-ilyen',
             joinedSemester: '2021 ősz',
           }),
@@ -610,7 +616,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook validáció', () => {
     })
     expect(response.status).toBe(400)
     const problems = response.payload['problems'] as string[]
-    expect(problems.some((p) => p.includes('username'))).toBe(true)
+    expect(problems.some((p) => p.includes('fullName'))).toBe(true)
     expect(problems.some((p) => p.includes('membershipStatus'))).toBe(true)
     expect(problems.some((p) => p.includes('joinedSemester'))).toBe(true)
 
@@ -660,29 +666,39 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook validáció', () => {
     )
   })
 
-  it('ütköző felhasználónévre 409, nem 500', async () => {
-    const ctx = await setupAdminApiTest('bss whconflict')
+  it('a felhasználónév nem a webhookból jön, hanem a belépéskor az Authentikből', async () => {
+    const ctx = await setupAdminApiTest('bss whusername')
     const clock = new FakeClock('2026-08-24T10:00:00Z')
     const { token } = await createClient(ctx, clock)
 
-    await push(ctx, clock, token, {
-      operations: [{ op: 'upsert', member: member() }],
-    })
-    clock.advanceMinutes(1)
-    const conflict = await push(ctx, clock, token, {
+    // A leftover `username` from an old client is ignored, not rejected.
+    const created = await push(ctx, clock, token, {
       operations: [
-        {
-          op: 'upsert',
-          member: member({ sub: '99', fullName: 'Másik Ember' }),
-        },
+        { op: 'upsert', member: { ...member(), username: 'regi.nev' } },
+        { op: 'upsert', member: member({ sub: '43', fullName: 'Nagy Éva' }) },
       ],
     })
-    expect(conflict.status).toBe(409)
+    expect(created.status).toBe(200)
+    expect((await getMemberProfile(ctx.db, '42'))?.username).toBeNull()
+    expect(await getMemberProfile(ctx.db, 'regi.nev')).toBeNull()
 
-    // The colliding push left the existing member untouched.
-    const rows = await memberRows(ctx.db)
-    expect(rows.filter((row) => row.username === 'gipsz.jakab')).toHaveLength(1)
-    expect(rows.some((row) => row.sub === '99')).toBe(false)
+    await syncMemberUsername(ctx.db, '42', 'gipsz.jakab', clock.now())
+    expect((await getMemberProfile(ctx.db, 'gipsz.jakab'))?.sub).toBe('42')
+    // The `sub` keeps working, so links shared before the first login stay valid.
+    expect((await getMemberProfile(ctx.db, '42'))?.username).toBe('gipsz.jakab')
+
+    // A name already taken stays with its holder instead of failing the login.
+    await syncMemberUsername(ctx.db, '43', 'gipsz.jakab', clock.now())
+    expect((await getMemberProfile(ctx.db, '43'))?.username).toBeNull()
+
+    // A later push does not wipe the stored username.
+    clock.advanceMinutes(1)
+    await push(ctx, clock, token, {
+      operations: [
+        { op: 'upsert', member: member({ fullName: 'Gipsz Jakab Új' }) },
+      ],
+    })
+    expect((await getMemberProfile(ctx.db, '42'))?.username).toBe('gipsz.jakab')
   })
 })
 
@@ -731,7 +747,7 @@ describe.skipIf(!hasTestDatabase)('tagfrissítő webhook idempotencia', () => {
       ctx,
       clock,
       token,
-      { operations: [{ op: 'upsert', member: member({ username: '' }) }] },
+      { operations: [{ op: 'upsert', member: member({ fullName: '' }) }] },
       { deliveryId: 'delivery-2' },
     )
     expect(rejected.status).toBe(400)
@@ -762,7 +778,6 @@ describe.skipIf(!hasTestDatabase)('tagadminisztráció diagnosztikája', () => {
           op: 'upsert',
           member: member({
             sub: '43',
-            username: 'nagy.eva',
             fullName: 'Nagy Éva',
           }),
         },

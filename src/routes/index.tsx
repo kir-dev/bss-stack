@@ -246,7 +246,7 @@ function HeroCard({ video }: { video: HomepageVideoCard | null }) {
       className="group card-surface hover-lift block"
     >
       {/* The hero is the most important image on the page: load it eagerly. */}
-      <Thumbnail src={video.thumbnailUrl} alt={video.title} loading="eager" />
+      <Thumbnail src={video.keyframeUrl} alt={video.title} loading="eager" />
       <span className="block truncate px-2 py-2 text-xl font-bold text-(--bss-text-secondary) group-hover:text-(--orange)">
         {video.title}
       </span>
@@ -310,7 +310,7 @@ function VideoCard({ video }: { video: HomepageVideoCard }) {
       params={{ slug: video.slug }}
       className="group card-surface hover-lift block"
     >
-      <Thumbnail src={video.thumbnailUrl} alt={video.title} />
+      <Thumbnail src={video.keyframeUrl} alt={video.title} />
       <span className="block truncate px-2 py-1 text-(--bss-text-secondary) group-hover:text-(--orange)">
         {video.title}
       </span>

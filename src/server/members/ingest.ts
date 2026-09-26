@@ -11,19 +11,17 @@ import {
 } from './member-fields.ts'
 import type { MemberFieldSpec } from './member-fields.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
-import { isUniqueViolation } from '#/server/shared/pg-error.ts'
 import { TextValidationError } from '#/server/shared/text.ts'
 
 export type IngestMode = 'operations' | 'replace'
 
 export interface MemberInput {
   sub: string
-  username: string
   fullName: string
   nickname: string | null
   avatarUrl: string | null
   membershipStatus: MembershipStatusKey
-  isLeadership: boolean
+  leadershipRole: string | null
   /** Internal form derived from the `ÉÉÉÉ/ÉÉÉÉ/N` payload field. */
   joinedYear: number | null
   joinedSemester: SemesterKey | null
@@ -49,21 +47,12 @@ export interface IngestResult {
   ignored: number
 }
 
-/** A payload that would break a database invariant (e.g. a duplicate username). */
-export class MemberIngestConflictError extends Error {
-  constructor(message: string) {
-    super(message)
-    this.name = 'MemberIngestConflictError'
-  }
-}
-
 const COMPARED_FIELDS = [
-  'username',
   'fullName',
   'nickname',
   'avatarUrl',
   'membershipStatus',
-  'isLeadership',
+  'leadershipRole',
   'joinedYear',
   'joinedSemester',
 ] as const
@@ -178,7 +167,6 @@ function parseMember(
 
   return {
     sub: typeof values['sub'] === 'string' ? values['sub'] : '',
-    username: typeof values['username'] === 'string' ? values['username'] : '',
     fullName: typeof values['fullName'] === 'string' ? values['fullName'] : '',
     nickname:
       typeof values['nickname'] === 'string' ? values['nickname'] : null,
@@ -187,7 +175,10 @@ function parseMember(
     membershipStatus: (typeof values['membershipStatus'] === 'string'
       ? values['membershipStatus']
       : 'MEMBER') as MembershipStatusKey,
-    isLeadership: values['isLeadership'] === true,
+    leadershipRole:
+      typeof values['leadershipRole'] === 'string'
+        ? values['leadershipRole']
+        : null,
     joinedYear,
     joinedSemester,
   }
@@ -381,12 +372,11 @@ export async function applyMemberIngest(
     if (existing === undefined) {
       await executor.insert(memberCache).values({
         sub: member.sub,
-        username: member.username,
         fullName: member.fullName,
         nickname: member.nickname,
         avatarUrl: member.avatarUrl,
         membershipStatus: member.membershipStatus,
-        isLeadership: member.isLeadership,
+        leadershipRole: member.leadershipRole,
         joinedYear: member.joinedYear,
         joinedSemester: member.joinedSemester,
         createdAt: now,
@@ -408,12 +398,11 @@ export async function applyMemberIngest(
     await executor
       .update(memberCache)
       .set({
-        username: member.username,
         fullName: member.fullName,
         nickname: member.nickname,
         avatarUrl: member.avatarUrl,
         membershipStatus: member.membershipStatus,
-        isLeadership: member.isLeadership,
+        leadershipRole: member.leadershipRole,
         joinedYear: member.joinedYear,
         joinedSemester: member.joinedSemester,
         updatedAt: now,
@@ -456,14 +445,4 @@ export async function applyMemberIngest(
     await executor.insert(auditLog).values(audits)
   }
   return result
-}
-
-/** Maps a username collision to a caller-fixable 409 instead of a 500. */
-export function toIngestConflict(error: unknown): unknown {
-  if (isUniqueViolation(error, 'username')) {
-    return new MemberIngestConflictError(
-      'A megadott felhasználónevek egyike már egy másik taghoz tartozik. A tagnév egyedi kell legyen.',
-    )
-  }
-  return error
 }

@@ -46,7 +46,6 @@ export const membershipStatusEnum = pgEnum('membership_status', [
   'MEMBER_CANDIDATE_CANDIDATE',
   'MEMBER_CANDIDATE',
   'MEMBER',
-  'ACTIVE_ALUMNI',
   'ALUMNI',
 ])
 
@@ -91,12 +90,20 @@ export const memberCache = pgTable(
   'member_cache',
   {
     sub: varchar('sub', { length: 255 }).primaryKey(),
-    username: varchar('username', { length: 200 }).notNull(),
+    /**
+     * Authentik `preferred_username`, stored at login; null until the member
+     * first logs in. Profile URLs fall back to `sub` while it is missing.
+     */
+    username: varchar('username', { length: 200 }),
     fullName: varchar('full_name', { length: 200 }).notNull(),
     nickname: varchar('nickname', { length: 200 }),
     avatarUrl: varchar('avatar_url', { length: 2048 }),
     membershipStatus: membershipStatusEnum('membership_status').notNull(),
-    isLeadership: boolean('is_leadership').notNull().default(false),
+    /**
+     * Free-text leadership position; a non-null value puts the member in the
+     * public leadership block. Grants no permissions.
+     */
+    leadershipRole: varchar('leadership_role', { length: 200 }),
     joinedYear: integer('joined_year'),
     joinedSemester: semesterEnum('joined_semester'),
     introduction: varchar('introduction', { length: 10_000 }),

@@ -97,7 +97,8 @@ Szabályok:
 - publikált videónál kötelező az `encodingGroup`, a `baseFilename`, valamint
   legalább az egyik minőségjelző (`hasHq` vagy `hasLq`);
 - publikált eseménynél kötelező `startDate`; `endDate >= startDate`;
-- a `staff[].username` a tagtábla felhasználónevére mutat — a betöltés előtt
+- a `staff[].username` a tagtábla felhasználónevére (vagy, ha a tag még nem
+  lépett be, a `sub`-jára) mutat — a betöltés előtt
 
 ### Betöltés
 

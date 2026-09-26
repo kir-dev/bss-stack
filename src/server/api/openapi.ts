@@ -18,7 +18,7 @@ export const MEMBER_WEBHOOK_OPENAPI_PATH =
 export const OPENAPI_VERSION = '3.1.0'
 
 /** Bumped by hand when the wire contract changes in a way clients must notice. */
-export const MEMBER_WEBHOOK_API_VERSION = '1.0.0'
+export const MEMBER_WEBHOOK_API_VERSION = '2.0.0'
 
 export type JsonValue =
   string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue }
@@ -180,9 +180,6 @@ export function buildMemberWebhookOpenApi(): JsonValue {
               'Missing, unknown or revoked token, or one with a wrong secret.',
             ),
             '405': errorSchema('Only POST requests are accepted.'),
-            '409': errorSchema(
-              'One of the supplied usernames already belongs to another member.',
-            ),
             '413': errorSchema(
               `The request body exceeds ${MAX_BODY_BYTES} bytes.`,
             ),
@@ -322,7 +319,6 @@ export function buildMemberWebhookOpenApi(): JsonValue {
                 'bad_request',
                 'unauthorized',
                 'method_not_allowed',
-                'conflict',
                 'payload_too_large',
                 'internal',
               ],

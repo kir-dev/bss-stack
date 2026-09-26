@@ -171,7 +171,7 @@ function EndpointSection() {
           "nickname": "Pitypang",
           "avatarUrl": null,
           "membershipStatus": "MEMBER",
-          "isLeadership": false,
+          "leadershipRole": "Stúdióvezető",
           "joinedSemester": "2021/2022/1"
       }},
       { "op": "archive", "sub": "57" }
@@ -462,7 +462,11 @@ const profileColumns: Array<AdminColumn<DiagnosticsProfile>> = [
       </>
     ),
   },
-  { key: 'username', header: 'Felhasználónév', render: (row) => row.username },
+  {
+    key: 'username',
+    header: 'Felhasználónév',
+    render: (row) => row.username ?? '—',
+  },
   {
     key: 'status',
     header: 'Tagsági státusz',
@@ -472,7 +476,7 @@ const profileColumns: Array<AdminColumn<DiagnosticsProfile>> = [
   {
     key: 'leadership',
     header: 'Vezetőség',
-    render: (row) => (row.isLeadership ? 'Igen' : '—'),
+    render: (row) => row.leadershipRole ?? '—',
   },
   {
     key: 'joined',

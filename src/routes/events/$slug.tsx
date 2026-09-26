@@ -15,6 +15,7 @@ import {
   formatEventIntervalHu,
 } from '#/lib/format-date.ts'
 import Thumbnail from '#/components/Thumbnail.tsx'
+import { memberSlug } from '#/lib/member-slug.ts'
 
 const loadEventDetail = createServerFn({ method: 'GET' })
   .validator((input: { slug: string; page?: number }) => input)
@@ -126,10 +127,10 @@ function EventDetailPageComponent() {
           </h2>
           <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-1">
             {detail.staffMembers.map((member) => (
-              <li key={member.username}>
+              <li key={member.sub}>
                 <Link
                   to="/members/$slug"
-                  params={{ slug: member.username }}
+                  params={{ slug: memberSlug(member) }}
                   className="underline hover:text-(--orange)"
                 >
                   {member.fullName}

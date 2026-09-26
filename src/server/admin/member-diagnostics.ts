@@ -7,11 +7,12 @@ import type { WebhookClientRecord } from '#/server/webhooks/clients.ts'
 
 export interface DiagnosticsProfile {
   sub: string
-  username: string
+  /** Null until the member first logs in. */
+  username: string | null
   fullName: string
   nickname: string | null
   membershipStatus: string
-  isLeadership: boolean
+  leadershipRole: string | null
   joinedSemester: string | null
   updatedAt: Date
   /** Archived: hidden from every public listing, credits preserved. */
@@ -103,7 +104,7 @@ export async function getMemberDiagnostics(
       fullName: profile.fullName,
       nickname: profile.nickname,
       membershipStatus: profile.membershipStatus,
-      isLeadership: profile.isLeadership,
+      leadershipRole: profile.leadershipRole,
       joinedSemester: formatAcademicSemester(
         profile.joinedYear,
         profile.joinedSemester,

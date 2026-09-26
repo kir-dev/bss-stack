@@ -1,4 +1,4 @@
-import { eq, inArray } from 'drizzle-orm'
+import { eq, inArray, or } from 'drizzle-orm'
 import type { Clock } from '#/lib/clock.ts'
 import { systemClock } from '#/lib/clock.ts'
 import {
@@ -57,6 +57,10 @@ function valuesDiffer(
   )
 }
 
+/**
+ * A staff entry names a member by username or, for members who have not
+ * logged in yet (so have no username), by `sub`.
+ */
 async function resolveMemberSubs(
   executor: Executor,
   usernames: readonly string[],
@@ -66,8 +70,20 @@ async function resolveMemberSubs(
   const rows = await executor
     .select({ sub: memberCache.sub, username: memberCache.username })
     .from(memberCache)
-    .where(inArray(memberCache.username, unique))
-  const map = new Map(rows.map((row) => [row.username, row.sub]))
+    .where(
+      or(
+        inArray(memberCache.username, unique),
+        inArray(memberCache.sub, unique),
+      ),
+    )
+  const map = new Map<string, string>()
+  for (const row of rows) {
+    map.set(row.sub, row.sub)
+  }
+  // Usernames win over a `sub` that happens to look the same.
+  for (const row of rows) {
+    if (row.username !== null) map.set(row.username, row.sub)
+  }
   const missing = unique.filter((username) => !map.has(username))
   if (missing.length > 0) {
     throw new SeedImportError([

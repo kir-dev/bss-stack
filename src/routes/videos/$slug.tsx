@@ -14,6 +14,7 @@ import VideoDetailPlayer from '#/components/VideoDetailPlayer.tsx'
 import { formatCalendarDateHu, formatDateHu } from '#/lib/format-date.ts'
 import Thumbnail from '#/components/Thumbnail.tsx'
 import { parseVideoStartTime } from '#/lib/video-time.ts'
+import { memberSlug } from '#/lib/member-slug.ts'
 
 const loadVideoDetail = createServerFn({ method: 'GET' })
   .validator((slug: string) => slug)
@@ -91,7 +92,7 @@ function VideoDetailPage() {
               videoUrl={detail.videoUrl}
               hqUrl={detail.hqUrl}
               lqUrl={detail.lqUrl}
-              posterUrl={detail.thumbnailUrl}
+              posterUrl={detail.keyframeUrl ?? detail.thumbnailUrl}
               title={detail.title}
               startTime={startTime}
             />
@@ -190,7 +191,7 @@ function VideoDetailPage() {
                     {index > 0 && ', '}
                     <Link
                       to="/members/$slug"
-                      params={{ slug: member.username }}
+                      params={{ slug: memberSlug(member) }}
                       className="underline hover:text-(--orange)"
                     >
                       {member.fullName}

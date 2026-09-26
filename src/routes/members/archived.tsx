@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query'
 import { loadArchiveMembersServer } from '#/server/pages/member-archive-fn.ts'
 import { parseSearchPage } from '#/server/shared/pagination.ts'
 import { EmptyState } from '#/components/PageStates.tsx'
+import { memberSlug } from '#/lib/member-slug.ts'
 
 export const Route = createFileRoute('/members/archived')({
   validateSearch: (search: Record<string, unknown>) => ({
@@ -65,7 +66,7 @@ function ArchivedMembersPage() {
                   <Link
                     key={member.sub}
                     to="/members/$slug"
-                    params={{ slug: member.username }}
+                    params={{ slug: memberSlug(member) }}
                     className="flex w-[178px] flex-col items-center border border-(--card-border) bg-(--members-card-bg) p-3 text-center shadow-[0_2px_2px_rgba(0,0,0,0.2)]"
                   >
                     <img

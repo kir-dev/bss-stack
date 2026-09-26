@@ -44,7 +44,7 @@ async function seedMember(db: Database, username: string): Promise<string> {
     fullName: `${username} Teljes Neve`,
     nickname: username,
     membershipStatus: 'MEMBER',
-    isLeadership: false,
+    leadershipRole: null,
   })
   return sub
 }

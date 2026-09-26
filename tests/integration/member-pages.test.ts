@@ -39,11 +39,11 @@ async function seedMember(
   db: NodePgDatabase<Record<string, never>>,
   overrides: Partial<typeof memberCache.$inferInsert> & {
     sub: string
-    username: string
+    username: string | null
   },
 ): Promise<void> {
   await db.insert(memberCache).values({
-    fullName: overrides.username,
+    fullName: overrides.username ?? overrides.sub,
     membershipStatus: 'MEMBER',
     ...overrides,
   })
@@ -56,7 +56,7 @@ describe.skipIf(!hasTestDatabase)('BSS-023: aktív tagoldal blokkjai', () => {
       sub: 'lead',
       username: 'vezeto',
       fullName: 'Vezető Erika',
-      isLeadership: true,
+      leadershipRole: 'Stúdióvezető',
       membershipStatus: 'MEMBER',
     })
     await seedMember(db, {
@@ -78,10 +78,24 @@ describe.skipIf(!hasTestDatabase)('BSS-023: aktív tagoldal blokkjai', () => {
       membershipStatus: 'MEMBER_CANDIDATE',
     })
     await seedMember(db, {
+      sub: 'm6',
+      username: 'jelölt-jelölt',
+      fullName: 'Jelölt-jelölt Dóra',
+      membershipStatus: 'MEMBER_CANDIDATE_CANDIDATE',
+    })
+    await seedMember(db, {
       sub: 'm4',
       username: 'oregtag',
       fullName: 'Öregtag Dénes',
-      membershipStatus: 'ACTIVE_ALUMNI',
+      membershipStatus: 'ALUMNI',
+    })
+    // Archived alumni belong on the archive page, not among the active ones.
+    await seedMember(db, {
+      sub: 'm5',
+      username: 'archiv-oregtag',
+      fullName: 'Archív Öregtag',
+      membershipStatus: 'ALUMNI',
+      archivedAt: new Date('2026-07-01T00:00:00Z'),
     })
 
     const blocks = await getActiveMemberBlocks(db)
@@ -89,40 +103,88 @@ describe.skipIf(!hasTestDatabase)('BSS-023: aktív tagoldal blokkjai', () => {
       'vezeto',
     ])
     // A vezetőségi tag (stúdiós státuszával együtt) nem ismétlődik a stúdiósoknál.
-    expect(blocks.members.map((member) => member.username)).toEqual([
-      'studios',
-    ])
+    expect(blocks.members.map((member) => member.username)).toEqual(['studios'])
     expect(blocks.member_candidates.map((member) => member.username)).toEqual([
       'jelolt',
     ])
-    expect(blocks.member_candiate_candidates.map((member) => member.username)).toEqual([
-      'jelölt-jelölt',
-    ])
+    expect(
+      blocks.member_candiate_candidates.map((member) => member.username),
+    ).toEqual(['jelölt-jelölt'])
     expect(blocks.seniorActive.map((member) => member.username)).toEqual([
       'oregtag',
     ])
   })
 })
 
+describe.skipIf(!hasTestDatabase)('vezetőségi pozíció', () => {
+  it('a pozíciót szabad szövegként adja vissza a Vezetőség blokkban', async () => {
+    const db = await setupDb()
+    await seedMember(db, {
+      sub: 'lead',
+      username: 'studiovezeto',
+      fullName: 'Aaa Elsőnév',
+      leadershipRole: 'Stúdióvezető',
+    })
+    await seedMember(db, {
+      sub: 'deputy',
+      username: 'helyettes',
+      fullName: 'Zzz Utolsónév',
+      leadershipRole: 'Stúdióvezető-helyettes, Főszerkesztő',
+    })
+
+    const blocks = await getActiveMemberBlocks(db)
+    expect(
+      blocks.leadership.map((member) => [
+        member.username,
+        member.leadershipRole,
+      ]),
+    ).toEqual([
+      ['studiovezeto', 'Stúdióvezető'],
+      ['helyettes', 'Stúdióvezető-helyettes, Főszerkesztő'],
+    ])
+  })
+
+  it('pozíció nélkül nincs a Vezetőség blokkban', async () => {
+    const db = await setupDb()
+    await seedMember(db, {
+      sub: 'm1',
+      username: 'studios',
+      fullName: 'Stúdiós Béla',
+    })
+
+    const blocks = await getActiveMemberBlocks(db)
+    expect(blocks.leadership).toHaveLength(0)
+    expect(blocks.members.map((member) => member.leadershipRole)).toEqual([
+      null,
+    ])
+  })
+})
+
 describe.skipIf(!hasTestDatabase)('BSS-023: archív aloldal', () => {
-  it('öregtagok 50-es lapozással', async () => {
+  it('csak az archivált tagok, státusztól függetlenül', async () => {
     const db = await setupDb()
     for (let index = 0; index < 3; index += 1) {
       await seedMember(db, {
         sub: `arch-${index}`,
         username: `archivalt-${index}`,
         fullName: `Archivált ${index}`,
-        membershipStatus: 'ALUMNI',
+        membershipStatus: index === 0 ? 'MEMBER' : 'ALUMNI',
+        archivedAt: new Date('2026-07-01T00:00:00Z'),
       })
     }
+    await seedMember(db, {
+      sub: 'active-alumni',
+      username: 'aktiv-oregtag',
+      membershipStatus: 'ALUMNI',
+    })
     const archived = await getMemberArchivePage(db, 'archived')
     expect(archived.total).toBe(3)
-    expect(archived.title).toBe('Öregtag')
+    expect(archived.title).toBe('Dolgoztak még velünk')
   })
 })
 
 describe.skipIf(!hasTestDatabase)('BSS-023: tagprofil', () => {
-  it('profiladatok; törölt tagnak nincs publikus profil', async () => {
+  it('profiladatok; az archivált tag profilja archiváltként látszik', async () => {
     const db = await setupDb()
     await seedMember(db, {
       sub: 'prof-1',
@@ -150,8 +212,42 @@ describe.skipIf(!hasTestDatabase)('BSS-023: tagprofil', () => {
     })
     // Email és mobil mező a sémában sincs; a válasz kulcsai ezt tükrözik.
     expect(Object.keys(profile ?? {})).not.toContain('email')
-    expect(await getMemberProfile(db, 'rejtett')).toBeNull()
+    expect((await getMemberProfile(db, 'rejtett'))?.archived).toBe(true)
     expect(await getMemberProfile(db, 'nincs-ilyen')).toBeNull()
+  })
+
+  it('felhasználónév nélkül a sub-bal is elérhető', async () => {
+    const db = await setupDb()
+    await seedMember(db, {
+      sub: 'authentik-sub-1',
+      username: null,
+      fullName: 'Még Nem Lépett Be',
+    })
+
+    const profile = await getMemberProfile(db, 'authentik-sub-1')
+    expect(profile).toMatchObject({ sub: 'authentik-sub-1', username: null })
+  })
+
+  it('nem archivált öregtag aktív öregtag, az archivált csak öregtag', async () => {
+    const db = await setupDb()
+    await seedMember(db, {
+      sub: 'alumni-1',
+      username: 'aktiv-oregtag',
+      membershipStatus: 'ALUMNI',
+    })
+    await seedMember(db, {
+      sub: 'alumni-2',
+      username: 'archiv-oregtag',
+      membershipStatus: 'ALUMNI',
+      archivedAt: new Date('2026-07-01T00:00:00Z'),
+    })
+
+    expect((await getMemberProfile(db, 'aktiv-oregtag'))?.statusLabel).toBe(
+      'Aktív öregtag',
+    )
+    expect((await getMemberProfile(db, 'archiv-oregtag'))?.statusLabel).toBe(
+      'Öregtag',
+    )
   })
 })
 
