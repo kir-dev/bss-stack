@@ -37,7 +37,7 @@ export interface ActiveMemberBlocks {
   leadership: Array<PublicMemberCard>
   members: Array<PublicMemberCard>
   member_candidates: Array<PublicMemberCard>
-  member_candiate_candidates: Array<PublicMemberCard>
+  member_candidate_candidates: Array<PublicMemberCard>
   seniorActive: Array<PublicMemberCard>
 }
 
@@ -79,7 +79,7 @@ export async function getActiveMemberBlocks(
     member_candidates: rows
       .filter((row) => row.status === 'MEMBER_CANDIDATE')
       .map(toCard),
-    member_candiate_candidates: rows
+    member_candidate_candidates: rows
       .filter((row) => row.status === 'MEMBER_CANDIDATE_CANDIDATE')
       .map(toCard),
     seniorActive: rows.filter((row) => row.status === 'ALUMNI').map(toCard),
