@@ -65,7 +65,7 @@ function MembersPage() {
           />
           <MemberBlock
             title="Stúdiósjelölt-jelöltek"
-            members={blocksQuery.data.member_candiate_candidates}
+            members={blocksQuery.data.member_candidate_candidates}
           />
           <MemberBlock
             title="Aktív öregtagok"

@@ -108,7 +108,7 @@ describe.skipIf(!hasTestDatabase)('BSS-023: aktív tagoldal blokkjai', () => {
       'jelolt',
     ])
     expect(
-      blocks.member_candiate_candidates.map((member) => member.username),
+      blocks.member_candidate_candidates.map((member) => member.username),
     ).toEqual(['jelölt-jelölt'])
     expect(blocks.seniorActive.map((member) => member.username)).toEqual([
       'oregtag',
