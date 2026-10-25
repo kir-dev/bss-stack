@@ -110,6 +110,8 @@ export const MEMBER_FIELD_SPECS: readonly MemberFieldSpec[] = [
     required: true,
     nullable: false,
     maxLength: 255,
+    // It ends the profile URL, where `.` and `..` would resolve to another page.
+    pattern: '^(?!\\.\\.?$)',
     description:
       'The value of the Authentik OIDC `sub` claim. This is what ties the member to their login, to the credit lists and to editorial data.',
     example: '42',

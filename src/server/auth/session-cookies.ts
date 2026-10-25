@@ -47,8 +47,15 @@ function parseCookies(header: string): Map<string, string> {
     }
     const name = part.slice(0, separator).trim()
     const value = part.slice(separator + 1).trim()
-    if (name !== '') {
+    if (name === '') {
+      continue
+    }
+    // Other sites on the parent domain can set cookies too; one we cannot
+    // decode must not break reading ours.
+    try {
       cookies.set(name, decodeURIComponent(value))
+    } catch {
+      continue
     }
   }
   return cookies

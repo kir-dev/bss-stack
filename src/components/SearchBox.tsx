@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from '@tanstack/react-router'
-import { memberSlug } from '#/lib/member-slug.ts'
+import { memberProfilePath } from '#/lib/member-slug.ts'
 
 interface SearchResults {
   videos: Array<{ slug: string; title: string }>
@@ -86,7 +86,7 @@ export default function SearchBox() {
     ...results.members.map((member) => ({
       kind: 'member' as const,
       label: `${member.fullName}`,
-      href: `/members/${memberSlug(member)}`,
+      href: memberProfilePath(member),
     })),
     ...results.tags.map((tag) => ({
       kind: 'tag' as const,

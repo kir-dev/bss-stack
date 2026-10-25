@@ -338,6 +338,8 @@ describe.skipIf(!hasTestDatabase)('BSS-006: OIDC belépés és session', () => {
       'https://rossz.example.com',
       '//rossz.example.com',
       'javascript:alert(1)',
+      '/\t/rossz.example.com',
+      '/\n/rossz.example.com',
     ]) {
       const response = await runLogin(handlers, evil)
       expect(response.status).toBe(302)

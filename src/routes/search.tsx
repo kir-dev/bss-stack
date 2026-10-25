@@ -292,10 +292,13 @@ function MemberRow(props: { member: MemberHit }) {
   const { member } = props
   return (
     <li key={member.sub}>
-      <HitLink
-        href={`/members/${memberSlug(member)}`}
-        label={`${member.fullName} ${member.archived ? '(Archivált)' : ''}`}
-      />
+      <Link
+        to="/members/$slug"
+        params={{ slug: memberSlug(member) }}
+        className="underline hover:text-(--orange)"
+      >
+        {`${member.fullName} ${member.archived ? '(Archivált)' : ''}`}
+      </Link>
     </li>
   )
 }
@@ -336,12 +339,7 @@ function HitLink({ href, label }: { href: string; label: string }) {
       ? { to: '/videos/$slug' as const, slug: href.replace('/videos/', '') }
       : href.startsWith('/events/')
         ? { to: '/events/$slug' as const, slug: href.replace('/events/', '') }
-        : href.startsWith('/members/')
-          ? {
-              to: '/members/$slug' as const,
-              slug: href.replace('/members/', ''),
-            }
-          : null
+        : null
 
   if (internal !== null) {
     return (

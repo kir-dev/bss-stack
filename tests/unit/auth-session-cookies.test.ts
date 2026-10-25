@@ -63,6 +63,14 @@ describe('cookie kiolvasás', () => {
     expect(readCookieValue(request, 'nincsilyen')).toBeNull()
   })
 
+  it('egy hibásan kódolt idegen cookie nem akadályozza a többi kiolvasását', () => {
+    const request = requestWithCookies(
+      `masik=50%; ${SESSION_COOKIE_NAME}=sess-123`,
+    )
+    expect(readCookieValue(request, SESSION_COOKIE_NAME)).toBe('sess-123')
+    expect(readCookieValue(request, 'masik')).toBeNull()
+  })
+
   it('cookie fejléc nélkül nullát ad', () => {
     expect(
       readCookieValue(

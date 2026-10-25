@@ -1,7 +1,8 @@
 import { and, desc, eq, isNull } from 'drizzle-orm'
 import { events, memberCache, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
-import { memberSlug } from '#/lib/member-slug.ts'
+import { memberProfilePath } from '#/lib/member-slug.ts'
+import { escapeHtml } from '#/server/api/http.ts'
 
 export interface SitemapEntry {
   path: string
@@ -67,7 +68,7 @@ export async function getSitemapEntries(
 
   for (const row of memberRows) {
     entries.push({
-      path: `/members/${memberSlug(row)}`,
+      path: memberProfilePath(row),
       lastmod: row.updatedAt.toISOString(),
     })
   }
@@ -80,7 +81,7 @@ export function sitemapXml(entries: SitemapEntry[], origin: string): string {
     .map((entry) => {
       const lastmod =
         entry.lastmod === null ? '' : `<lastmod>${entry.lastmod}</lastmod>`
-      return `  <url><loc>${origin}${entry.path}</loc>${lastmod}</url>`
+      return `  <url><loc>${escapeHtml(`${origin}${entry.path}`)}</loc>${lastmod}</url>`
     })
     .join('\n')
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls}\n</urlset>\n`

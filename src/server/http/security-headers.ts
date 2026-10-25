@@ -42,6 +42,53 @@ export function securityHeaders(
   }
 }
 
+// Responses that do not need the OOB config (robots.txt, the sitemap, the API)
+// must not fail without it; no media can load then anyway, so the CSP leaves it
+// out. The failure is logged and remembered: the config is read once per
+// process, so retrying it on every request would only repeat the disk read.
+let mediaHostFallback: string | null = null
+
+function configuredMediaHost(): string {
+  if (mediaHostFallback !== null) {
+    return mediaHostFallback
+  }
+  try {
+    return getCachedOobConfig().media.host
+  } catch (error) {
+    console.error(
+      '[security-headers] Az OOB config nem tölthető be, a CSP médiahost nélkül megy ki:',
+      error,
+    )
+    mediaHostFallback = ''
+    return mediaHostFallback
+  }
+}
+
+/** Adds the baseline headers that the response does not set itself. */
+export function withSecurityHeaders(
+  response: Response,
+  mediaHost?: string,
+): Response {
+  const headers = new Headers(response.headers)
+  // The CSP (and the media host it needs) is built only if the response does
+  // not bring its own, like the sitemap does.
+  const baseline = securityHeaders(
+    headers.has('content-security-policy')
+      ? ''
+      : (mediaHost ?? configuredMediaHost()),
+  )
+  for (const [name, value] of Object.entries(baseline)) {
+    if (!headers.has(name)) {
+      headers.set(name, value)
+    }
+  }
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  })
+}
+
 export function robotsTxt(origin: string): string {
   return [
     'User-agent: *',

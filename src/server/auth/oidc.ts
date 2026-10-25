@@ -2,6 +2,7 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto'
 import { systemClock } from '#/lib/clock.ts'
 import type { Clock } from '#/lib/clock.ts'
 import type { OidcClientConfig, OobConfig } from '#/server/config/oob-schema.ts'
+import { trimTrailingSlashes } from '#/server/shared/trailing-slashes.ts'
 
 export const DISCOVERY_CACHE_TTL_MS = 60 * 60 * 1000
 export const DISCOVERY_TIMEOUT_MS = 5_000
@@ -172,7 +173,7 @@ export async function fetchDiscovery(
 }
 
 function normalizeIssuer(value: string): string {
-  return value.trim().replace(/\/+$/, '')
+  return trimTrailingSlashes(value.trim())
 }
 
 function parseDiscovery(raw: unknown): OidcDiscovery {

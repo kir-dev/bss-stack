@@ -16,7 +16,7 @@ import { fetchViewerState } from '#/server/pages/viewer-fn.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import { formatCalendarDateHu } from '#/lib/format-date.ts'
 import { formatAcademicSemesterHu } from '#/lib/academic-semester.ts'
-import { memberSlug } from '#/lib/member-slug.ts'
+import { memberProfilePath, memberSlug } from '#/lib/member-slug.ts'
 import { SITE_NAME, pageHead } from '#/lib/seo.ts'
 
 const ACTIVITY_PAGE_SIZE = 50
@@ -90,7 +90,7 @@ export const Route = createFileRoute('/members/$slug')({
           description:
             loaderData.profile.introduction ??
             `${loaderData.profile.fullName} profilja a ${SITE_NAME}ban (${loaderData.profile.statusLabel}).`,
-          path: `/members/${memberSlug(loaderData.profile)}`,
+          path: memberProfilePath(loaderData.profile),
           image: loaderData.profile.avatarUrl,
           type: 'profile',
           twitterCard: 'summary',

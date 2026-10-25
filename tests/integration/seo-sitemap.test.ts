@@ -1,9 +1,9 @@
 import { afterAll, describe, expect, it } from 'vitest'
 import type { Database } from '#/server/auth/session-store.ts'
-import { events, videos } from '#/db/schema.ts'
+import { events, memberCache, videos } from '#/db/schema.ts'
 import { getSitemapEntries, sitemapXml } from '#/server/pages/sitemap.ts'
 import { createMigratedTestDatabase } from '../helpers/test-db.ts'
-import { buildEvent, buildVideo } from '../helpers/factories.ts'
+import { buildEvent, buildMember, buildVideo } from '../helpers/factories.ts'
 
 const hasTestDatabase = Boolean(process.env.TEST_DATABASE_URL)
 
@@ -89,6 +89,29 @@ describe.skipIf(!hasTestDatabase)(
       expect(paths).not.toContain('/videos/archivalt-video')
       expect(paths).not.toContain('/videos/lomtar-video')
       expect(paths).not.toContain('/events/piszkozat-esemeny')
+    })
+
+    it('a még be nem lépett tag profilútvonala URL-kódolt sub', async () => {
+      const db = await setupDb()
+      const sub = 'x</loc><h:script>&'
+      await db
+        .insert(memberCache)
+        .values({ ...buildMember({ sub }), username: null })
+
+      const paths = (await getSitemapEntries(db)).map((entry) => entry.path)
+
+      expect(paths).toContain(`/members/${encodeURIComponent(sub)}`)
+    })
+
+    it('a sitemap XML a speciális karaktereket entitásként írja ki', () => {
+      const xml = sitemapXml(
+        [{ path: '/members/a&b<c>', lastmod: null }],
+        'http://localhost:3000',
+      )
+      expect(xml).toContain(
+        '<loc>http://localhost:3000/members/a&amp;b&lt;c&gt;</loc>',
+      )
+      expect(xml).not.toContain('<c>')
     })
 
     it('a sitemap XML abszolút URL-eket ad', () => {
