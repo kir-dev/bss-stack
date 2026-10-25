@@ -1,3 +1,6 @@
 allowBuilds:
   esbuild: true
   unrs-resolver: true
+overrides:
+  # @tailwindcss/typography pins a vulnerable 6.0.10 (GHSA quadratic selector parsing)
+  postcss-selector-parser: ^7.1.6
