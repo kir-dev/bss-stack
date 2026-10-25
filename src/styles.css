@@ -1,9 +1,9 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
 @import 'tailwindcss';
 @import 'tw-animate-css';
 @import 'shadcn/tailwind.css';
 @import '@fontsource-variable/geist';
+@import '@fontsource-variable/montserrat/wght.css';
+@import '@fontsource-variable/montserrat/wght-italic.css';
 
 @font-face {
   font-family: 'Bank Gothic';
@@ -27,9 +27,10 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-  --font-montserrat: 'Montserrat', ui-sans-serif, system-ui, sans-serif;
+  --font-montserrat:
+    'Montserrat Variable', ui-sans-serif, system-ui, sans-serif;
   --font-bank-gothic:
-    'Bank Gothic', Montserrat, ui-sans-serif, system-ui, sans-serif;
+    'Bank Gothic', 'Montserrat Variable', ui-sans-serif, system-ui, sans-serif;
 }
 
 :root {
@@ -152,8 +153,7 @@ html {
 }
 
 body {
-  background-image:
-    var(--bg-pattern), linear-gradient(var(--bg), var(--bg));
+  background-image: var(--bg-pattern), linear-gradient(var(--bg), var(--bg));
   background-repeat: repeat;
   background-position: center top;
   -webkit-font-smoothing: antialiased;
@@ -373,8 +373,7 @@ body {
 @utility site-width {
   --site-gutter: 1rem;
   width: calc(
-    100% -
-      max(var(--site-gutter), env(safe-area-inset-left)) -
+    100% - max(var(--site-gutter), env(safe-area-inset-left)) -
       max(var(--site-gutter), env(safe-area-inset-right))
   );
   max-width: 96rem;
