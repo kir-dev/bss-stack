@@ -1,6 +1,13 @@
 import { Client } from 'pg'
 import { createHash } from 'node:crypto'
 
+// pg's Client has unref() at runtime; @types/pg does not declare it.
+declare module 'pg' {
+  interface Client {
+    unref: () => void
+  }
+}
+
 export interface AdvisoryLock {
   release: () => Promise<void>
 }
@@ -38,6 +45,9 @@ export function createPgLockManager(
       connectingClient ??= (async () => {
         const client = await (options.clientFactory ?? getDefaultLockClient)()
         await client.connect()
+        // The idle lock connection must not keep Node running once the
+        // server has closed; ending the session releases its locks anyway.
+        client.unref()
         sharedClient = client
         return client
       })()

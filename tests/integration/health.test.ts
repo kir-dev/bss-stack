@@ -41,6 +41,21 @@ describe.skipIf(!hasTestDatabase)('BSS-010: health végpontok', () => {
     expect(body['migrations']).toBe('ok')
   })
 
+  it('futó induláskori migráció alatt migrations=pending és 503', async () => {
+    const migrated = await createMigratedTestDatabase('bss_health_pending')
+    databases.push(migrated.database)
+    poolCleanups.push(() => migrated.pool.end())
+
+    const response = await readinessResponse({
+      db: migrated.db,
+      startupMigrations: 'running',
+    })
+    expect(response.status).toBe(503)
+    const body = JSON.parse(await response.text()) as Record<string, unknown>
+    expect(body['database']).toBe('ok')
+    expect(body['migrations']).toBe('pending')
+  })
+
   it('elérhetetlen adatbázisnál 503, titkok és részletes hiba nélkül', async () => {
     const response = await readinessResponse({
       db: undefined as unknown as NodePgDatabase<Record<string, never>>,

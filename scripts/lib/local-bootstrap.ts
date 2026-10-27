@@ -1,7 +1,10 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { randomBytes } from 'node:crypto'
 import { join } from 'node:path'
-import { validateOobConfig } from '#/server/config/oob-schema.ts'
+import {
+  DEFAULT_SEED_PATH,
+  validateOobConfig,
+} from '#/server/config/oob-schema.ts'
 import type { OobConfig } from '#/server/config/oob-schema.ts'
 
 export const OOB_DIR = 'oob'
@@ -378,7 +381,7 @@ export function renderOobConfig(secrets: LocalSecrets): unknown {
       host: 'https://v.bsstudio.hu',
     },
     seed: {
-      path: 'oob/seed.json',
+      path: DEFAULT_SEED_PATH,
     },
   }
 }

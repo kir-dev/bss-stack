@@ -11,7 +11,7 @@ try {
   )
   console.log(`  Authentik issuer: ${config.authentik.issuerUrl}`)
   console.log(
-    `  Csoportok: admin=${config.authentik.groups.admin}, stúdiós=${config.authentik.groups.studio}, jelölt=${config.authentik.groups.studioCandidate}, jelölt-jelölt=${config.authentik.groups.studioCandidateCandidate}, vezetőség=${config.authentik.groups.leadership}, öregtag=${config.authentik.groups.alumni}`,
+    `  Csoportok: admin=${config.authentik.groups.admin}, stúdiós=${config.authentik.groups.studio}, jelölt=${config.authentik.groups.studioCandidate}, jelölt jelölt=${config.authentik.groups.studioCandidateCandidate}, vezetőség=${config.authentik.groups.leadership}, öregtag=${config.authentik.groups.alumni}`,
   )
   console.log(
     `  AuthSCH: ${config.authsch === null ? 'kikapcsolva' : config.authsch.issuerUrl}`,

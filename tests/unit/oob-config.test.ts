@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  DEFAULT_SEED_PATH,
   OobConfigError,
   validateOobConfig,
 } from '#/server/config/oob-schema.ts'
@@ -25,8 +26,21 @@ describe('OOB config validáció', () => {
       expect(problems.some((p) => p.startsWith('authentik:'))).toBe(true)
       expect(problems.some((p) => p.startsWith('youtube:'))).toBe(true)
       expect(problems.some((p) => p.startsWith('media:'))).toBe(true)
-      expect(problems.some((p) => p.startsWith('seed:'))).toBe(true)
     }
+  })
+
+  it('a seed szekció opcionális; hiányában az alapértelmezett helyet használja', () => {
+    const config = validateOobConfig({
+      ...buildRawOobConfig(),
+      seed: undefined,
+    })
+    expect(config.seed.path).toBe(DEFAULT_SEED_PATH)
+  })
+
+  it('nem objektum seed szekcióra hibát dob', () => {
+    expect(() =>
+      validateOobConfig({ ...buildRawOobConfig(), seed: 'oob/seed.json' }),
+    ).toThrow(/seed: objektum kell legyen/)
   })
 
   it('üres titok nem elfogadott, félkonfigurált auth mód nincs', () => {

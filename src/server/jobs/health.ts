@@ -1,11 +1,13 @@
 import { sql } from 'drizzle-orm'
 import type { Database } from '#/server/auth/session-store.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
+import { getStartupMigrationState } from '#/db/migrate.ts'
+import type { StartupMigrationState } from '#/db/migrate.ts'
 
 export interface HealthStatus {
   status: 'ok' | 'error'
   database?: 'ok' | 'error' | 'unknown'
-  migrations?: 'ok' | 'missing' | 'unknown'
+  migrations?: 'ok' | 'missing' | 'pending' | 'unknown'
 }
 
 /**
@@ -22,7 +24,10 @@ export function livenessResponse(): Response {
  * or connection data (does not leak secrets).
  */
 export async function readinessResponse(
-  options: { db?: Database | null } = {},
+  options: {
+    db?: Database | null
+    startupMigrations?: StartupMigrationState
+  } = {},
 ): Promise<Response> {
   const status: HealthStatus = {
     status: 'error',
@@ -37,6 +42,13 @@ export async function readinessResponse(
     }
     await database.execute(sql`select 1`)
     status.database = 'ok'
+
+    // Most tables already exist while a startup run applies newer migrations.
+    const startupMigrations =
+      options.startupMigrations ?? getStartupMigrationState()
+    if (startupMigrations === 'running') {
+      return jsonHealth({ ...status, migrations: 'pending' }, 503)
+    }
 
     // The migration status can be checked via the presence of key tables:
     const requiredTables = [

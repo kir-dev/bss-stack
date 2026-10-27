@@ -181,6 +181,8 @@ export function startBackgroundRunner(
     timer = setTimeout(() => {
       void tickAll().finally(scheduleNextTick)
     }, 60_000)
+    // The schedule must not keep Node running once the server has closed.
+    timer.unref()
   }
 
   const tickAll = async (): Promise<JobRunRecord[]> => {

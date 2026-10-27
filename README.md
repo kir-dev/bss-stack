@@ -43,6 +43,8 @@ pnpm build
 Notes:
 
 - `pnpm infra:bootstrap` never overwrites existing secrets.
+- The production server applies pending migrations itself, on its first
+  request, and exits if they fail.
 - The app owns member data: it is written by updates sent to
   `POST /api/webhooks/members`. There is no automatic sync from Authentik —
   Authentik provides login, groups and the username (stored on login; until

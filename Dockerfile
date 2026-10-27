@@ -21,6 +21,7 @@ ENV HOST=0.0.0.0
 ENV PORT=3000
 
 COPY --from=build --chown=node:node /app/.output ./.output
+COPY --from=build --chown=node:node /app/drizzle ./drizzle
 
 USER node
 

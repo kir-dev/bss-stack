@@ -14,7 +14,7 @@ Az alkalmazás három bemenete out-of-band, azaz nem a git repóban érkezik. Hi
   - AuthSCH OIDC kapcsolat (`authsch`, lásd lent);
   - médiahost (`media.host`, jelenleg `https://v.bsstudio.hu`);
   - YouTube oEmbed végpont;
-  - seed JSON helye.
+  - seed JSON helye (opcionális).
 
 ### AuthSCH belépés 
 
@@ -42,7 +42,7 @@ Lokális fejlesztésben a titkokat a bootstrap script generálja (`pnpm infra:bo
 
 ## 3. Előre kinyert seed JSON
 
-- Helye: a config `seed.path` mezője által megadott fájl (alapból `oob/seed.json`, gitignore-olt).
+- Helye: a config `seed.path` mezője által megadott fájl (alapból `oob/seed.json`, gitignore-olt). A `seed` szekció elhagyható: csak a `pnpm db:seed` olvassa, a szerver nem.
 - A scraper kimenete; személyes adatot és médiát nem tartalmaz, álneveket használ.
 - Formátumverzió: `1`. Példa: [`docs/examples/seed.example.json`](./examples/seed.example.json).
 

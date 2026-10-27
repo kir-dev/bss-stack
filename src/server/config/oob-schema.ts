@@ -6,6 +6,8 @@ export const MEMBERSHIP_STATUS_KEYS = [
   'ALUMNI',
 ] as const
 
+export const DEFAULT_SEED_PATH = 'oob/seed.json'
+
 export type MembershipStatusKey = (typeof MEMBERSHIP_STATUS_KEYS)[number]
 
 export type SemesterKey = 'spring' | 'autumn'
@@ -43,6 +45,10 @@ export interface OobConfig {
     host: string
     allowedHosts: string[]
   }
+  /**
+   * Seed JSON for `pnpm db:seed`; the server never reads it. Optional:
+   * without it the path is DEFAULT_SEED_PATH.
+   */
   seed: {
     path: string
   }
@@ -145,9 +151,6 @@ export function validateOobConfig(raw: unknown): OobConfig {
   if (!isRecord(raw.media)) {
     problems.push('media: kötelező szekció hiányzik.')
   }
-  if (!isRecord(raw.seed)) {
-    problems.push('seed: kötelező szekció hiányzik.')
-  }
 
   if (problems.length > 0) {
     throw new OobConfigError(problems)
@@ -156,7 +159,6 @@ export function validateOobConfig(raw: unknown): OobConfig {
   const authentik = raw.authentik as Record<string, unknown>
   const youtube = raw.youtube as Record<string, unknown>
   const media = raw.media as Record<string, unknown>
-  const seed = raw.seed as Record<string, unknown>
 
   validateOidcClient(authentik, 'authentik', problems)
 
@@ -236,7 +238,14 @@ export function validateOobConfig(raw: unknown): OobConfig {
     }
   }
 
-  requireString(seed, 'seed.path', problems)
+  const seed = raw.seed
+  if (seed !== undefined && seed !== null) {
+    if (!isRecord(seed)) {
+      problems.push('seed: objektum kell legyen (vagy hagyd el).')
+    } else {
+      requireString(seed, 'seed.path', problems)
+    }
+  }
 
   if (problems.length > 0) {
     throw new OobConfigError(problems)
@@ -260,7 +269,7 @@ export function validateOobConfig(raw: unknown): OobConfig {
       allowedHosts: [mediaHostname],
     },
     seed: {
-      path: seed['path'] as string,
+      path: isRecord(seed) ? (seed['path'] as string) : DEFAULT_SEED_PATH,
     },
   }
 }

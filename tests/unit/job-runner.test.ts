@@ -198,7 +198,7 @@ describe('BSS-010: PostgreSQL lock kapcsolat', () => {
     const connect = vi.fn(async () => undefined)
     const query = vi.fn(async () => ({ rows: [{ locked: false }] }))
     const end = vi.fn(async () => undefined)
-    const client = { connect, query, end } as unknown as Client
+    const client = { connect, query, end, unref: vi.fn() } as unknown as Client
     const manager = createPgLockManager({
       clientFactory: async () => client,
     })
@@ -225,6 +225,7 @@ describe('BSS-010: PostgreSQL lock kapcsolat', () => {
     const healthyClient = {
       connect: healthyConnect,
       query: healthyQuery,
+      unref: vi.fn(),
     } as unknown as Client
     const clientFactory = vi
       .fn<() => Promise<Client>>()

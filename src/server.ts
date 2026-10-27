@@ -13,6 +13,7 @@ import {
 import { getSitemapEntries, sitemapXml } from '#/server/pages/sitemap.ts'
 import { getDefaultDb } from '#/server/auth/session-store.ts'
 import { createLiveTransitionJob } from '#/server/homepage/live.ts'
+import { ensureStartupMigrations } from '#/db/migrate.ts'
 
 const ssrHandler = createStartHandler(defaultStreamHandler)
 
@@ -30,6 +31,26 @@ function ensureBackgroundRunner(): void {
       console.error('[jobs] A háttérfutató indítása nem sikerült:', error)
     }
   }
+}
+
+function startupMigrations(): Promise<void> {
+  if (!import.meta.env.PROD) {
+    return Promise.resolve()
+  }
+  return ensureStartupMigrations().catch((error: unknown) => {
+    console.error(
+      '[migrations] Az adatbázis migrálása nem sikerült, a szerver leáll:',
+      error,
+    )
+    process.exit(1)
+  })
+}
+
+let startup: Promise<void> | null = null
+
+function ensureStartup(): Promise<void> {
+  startup ??= startupMigrations().then(ensureBackgroundRunner)
+  return startup
 }
 
 function isApiPath(pathname: string): boolean {
@@ -85,7 +106,11 @@ export default {
     }
     // Started by the first request of any kind, so scheduled lives go live
     // even if nobody touches the API after a restart.
-    ensureBackgroundRunner()
+    const started = ensureStartup()
+    // Health checks answer during the run; /health/ready reports it pending.
+    if (!pathname.startsWith('/health/')) {
+      await started
+    }
     return withSecurityHeaders(await routeRequest(request, pathname))
   },
 }
