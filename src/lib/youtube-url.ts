@@ -47,6 +47,13 @@ export function buildYoutubeNocookieEmbedUrl(videoId: string): string {
   return `https://www.youtube-nocookie.com/embed/${videoId}`
 }
 
+export function youtubeImageUrl(
+  videoId: string,
+  name: 'mqdefault' | 'hqdefault' | 'maxresdefault',
+): string {
+  return `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/${name}.jpg`
+}
+
 export function youtubeAutoplayUrl(
   embedUrl: string,
   startSeconds?: number,

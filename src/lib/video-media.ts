@@ -1,4 +1,7 @@
-import { buildYoutubeNocookieEmbedUrl } from '#/lib/youtube-url.ts'
+import {
+  buildYoutubeNocookieEmbedUrl,
+  youtubeImageUrl,
+} from '#/lib/youtube-url.ts'
 
 export const VIDEO_ENCODING_GROUPS = ['4a3_SD', '16a9_SD', '16a9_HD'] as const
 
@@ -109,11 +112,10 @@ function youtubeAssetUrls(videoId: string | null): VideoAssetUrls {
   if (videoId === null) {
     return NO_ASSETS
   }
-  const imageBase = `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}`
   return {
     ...NO_ASSETS,
-    thumbnailUrl: `${imageBase}/mqdefault.jpg`,
-    keyframeUrl: `${imageBase}/hqdefault.jpg`,
+    thumbnailUrl: youtubeImageUrl(videoId, 'mqdefault'),
+    keyframeUrl: youtubeImageUrl(videoId, 'hqdefault'),
     embedUrl: buildYoutubeNocookieEmbedUrl(videoId),
   }
 }
