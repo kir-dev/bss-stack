@@ -164,6 +164,49 @@ describe.skipIf(!hasTestDatabase)('BSS-028: piszkozat és publikálás', () => {
     expect(detail?.status).toBe('draft')
   })
 
+  it('mediaSource és youtubeUrl mentése; ismeretlen forrás 400', async () => {
+    const ctx = await setupAdminApiTest('bss vidyoutube')
+    const created = await handleAdminVideoRoutes(
+      jsonRequest(ctx.memberToken, '/api/admin/videos', {
+        title: 'YouTube-os videó',
+      }),
+      'create',
+      undefined,
+      depsFor(ctx),
+    )
+    const videoId = String((await responseBody(created)).payload['id'])
+
+    const saved = await handleAdminVideoRoutes(
+      jsonRequest(ctx.memberToken, `/api/admin/videos/${videoId}/update`, {
+        version: 1,
+        mediaSource: 'youtube',
+        youtubeUrl: 'https://www.youtube.com/watch?v=aBcDeFgHiJk',
+      }),
+      'update',
+      videoId,
+      depsFor(ctx),
+    )
+    expect(saved.status).toBe(200)
+    expect(await getAdminVideoDetail(ctx.db, videoId)).toMatchObject({
+      mediaSource: 'youtube',
+      youtubeVideoId: 'aBcDeFgHiJk',
+      encodingGroup: null,
+      hasHq: false,
+      hasLq: false,
+    })
+
+    const unknown = await handleAdminVideoRoutes(
+      jsonRequest(ctx.memberToken, `/api/admin/videos/${videoId}/update`, {
+        version: 2,
+        mediaSource: 'vimeo',
+      }),
+      'update',
+      videoId,
+      depsFor(ctx),
+    )
+    expect(unknown.status).toBe(400)
+  })
+
   it('publikálás kötelező mezőket és médiát ellenőriz; sikeres esetben publikált lesz', async () => {
     const ctx = await setupAdminApiTest('bss vidpublish')
 

@@ -12,7 +12,10 @@ import { TextValidationError } from '#/server/shared/text.ts'
 import { FakeClock } from '#/lib/clock.ts'
 import { events, memberCache, tags, videoTags, videos } from '#/db/schema.ts'
 import { createMigratedTestDatabase } from '../helpers/test-db.ts'
-import { TEST_MEDIA_CONFIG } from '../helpers/oob-config.ts'
+import {
+  TEST_MEDIA_CONFIG,
+  TEST_YOUTUBE_CONFIG,
+} from '../helpers/oob-config.ts'
 import { installFetchMock } from '../helpers/http-mock.ts'
 
 const databases: Array<{ drop: () => Promise<void> }> = []
@@ -48,7 +51,7 @@ const memberViewer: Viewer = {
 }
 
 function deps(viewer: Viewer) {
-  return { viewer, clock, mediaConfig }
+  return { viewer, clock, mediaConfig, youtubeConfig: TEST_YOUTUBE_CONFIG }
 }
 
 async function setupDb(): Promise<NodePgDatabase<Record<string, never>>> {

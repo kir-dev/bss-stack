@@ -22,6 +22,9 @@ export const TEST_MEDIA_HOST = 'https://v.bsstudio.hu'
 export const TEST_MEDIA_CONFIG = {
   allowedHosts: [new URL(TEST_MEDIA_HOST).hostname],
 } as const
+export const TEST_YOUTUBE_CONFIG = {
+  oEmbedEndpoint: 'https://www.youtube.com/oembed',
+}
 
 export function buildRawOobConfig(
   overrides: DeepPartial<RawOobConfig> = {},

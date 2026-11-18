@@ -35,9 +35,22 @@ import {
   slugify,
 } from '#/server/shared/slug.ts'
 import { invalidateHomepageReferences } from './highlight-invalidation.ts'
-import { VIDEO_ENCODING_GROUPS } from '#/lib/video-media.ts'
+import {
+  VIDEO_ENCODING_GROUPS,
+  VIDEO_MEDIA_SOURCES,
+} from '#/lib/video-media.ts'
 import { videoAssetUrls } from '#/server/media/video-media.ts'
-import type { VideoEncodingGroup } from '#/lib/video-media.ts'
+import type {
+  VideoEncodingGroup,
+  VideoMediaSource,
+  VideoMediaSourceKind,
+} from '#/lib/video-media.ts'
+import {
+  normalizeYoutubeVideoId,
+  youtubeUrlWarning,
+} from '#/lib/youtube-url.ts'
+import { validateYoutubeVideo } from '#/server/media/youtube.ts'
+import type { OobConfig } from '#/server/config/oob-schema.ts'
 
 export type VideoVisibility = 'public' | 'schonherz' | 'bss'
 
@@ -52,6 +65,7 @@ export interface VideoDeps {
   viewer: Viewer
   clock?: Clock
   mediaConfig: MediaConfig
+  youtubeConfig: OobConfig['youtube']
   fetchImpl?: typeof fetch
 }
 
@@ -64,6 +78,8 @@ export interface VideoInput {
   hasHq?: boolean
   hasLq?: boolean
   baseFilename?: string | null
+  mediaSource?: VideoMediaSourceKind
+  youtubeUrl?: string | null
   visibility?: VideoVisibility
   recordedAt?: string | null
   eventId?: string | null
@@ -172,6 +188,41 @@ function validatedChanges(input: VideoInput): Record<string, unknown> {
   return changes
 }
 
+/** Always clears the other source's fields, so a row never carries both. */
+function mediaSourceChanges(
+  input: VideoInput,
+  currentSource: VideoMediaSourceKind,
+): Record<string, unknown> {
+  const mediaSource = input.mediaSource ?? currentSource
+  if (!VIDEO_MEDIA_SOURCES.includes(mediaSource)) {
+    throw new TextValidationError(['Érvénytelen médiaforrás.'])
+  }
+  const changes: Record<string, unknown> = { mediaSource }
+
+  if (mediaSource === 'server') {
+    changes.youtubeVideoId = null
+    return changes
+  }
+
+  if (input.youtubeUrl !== undefined) {
+    const trimmed = input.youtubeUrl?.trim() ?? ''
+    if (trimmed === '') {
+      changes.youtubeVideoId = null
+    } else {
+      const videoId = normalizeYoutubeVideoId(trimmed)
+      if (videoId === null) {
+        throw new TextValidationError([youtubeUrlWarning(trimmed) ?? ''])
+      }
+      changes.youtubeVideoId = videoId
+    }
+  }
+  changes.encodingGroup = null
+  changes.hasHq = false
+  changes.hasLq = false
+  changes.baseFilename = null
+  return changes
+}
+
 function eventRangeWarning(
   event: typeof events.$inferSelect,
   recordedAt: string,
@@ -255,7 +306,10 @@ export async function createVideoDraft(
 
     // The other draft fields can also be given at creation time (even an
     // invalid media URL can be saved — publishing validates it).
-    const changes = validatedChanges({ ...input, title })
+    const changes = {
+      ...validatedChanges({ ...input, title }),
+      ...mediaSourceChanges(input, 'server'),
+    }
 
     const inserted = await tx
       .insert(videos)
@@ -270,6 +324,8 @@ export async function createVideoDraft(
         hasHq: (changes.hasHq as boolean | undefined) ?? false,
         hasLq: (changes.hasLq as boolean | undefined) ?? false,
         baseFilename: (changes.baseFilename as string | null) ?? null,
+        mediaSource: changes.mediaSource as VideoMediaSourceKind,
+        youtubeVideoId: (changes.youtubeVideoId as string | null) ?? null,
         recordedAt: (changes.recordedAt as string | null) ?? null,
         visibility: 'public',
         status: 'draft',
@@ -315,7 +371,16 @@ export async function updateVideo(
       throw new StaleWriteError('videó')
     }
 
-    const changes = validatedChanges(input)
+    const changes = {
+      ...validatedChanges(input),
+      ...mediaSourceChanges(input, locked.mediaSource),
+    }
+    if (locked.status === 'published') {
+      const problems = mediaPreconditionProblems({ ...locked, ...changes })
+      if (problems.length > 0) {
+        throw new TextValidationError(problems)
+      }
+    }
     const warnings: string[] = []
 
     if (input.eventId !== undefined) {
@@ -418,11 +483,13 @@ interface PublishPreconditions {
   multiDayEventRequiresDate: boolean
 }
 
-function publishPreconditions(
-  row: typeof videos.$inferSelect,
-): PublishPreconditions {
+function mediaPreconditionProblems(row: VideoMediaSource): string[] {
+  if (row.mediaSource === 'youtube') {
+    return row.youtubeVideoId === null
+      ? ['YouTube URL: publikáláshoz kötelező.']
+      : []
+  }
   const problems: string[] = []
-  if (row.title.trim() === '') problems.push('Cím: kötelező mező.')
   if (row.encodingGroup === null) {
     problems.push('Videóprofil: publikáláshoz kötelező.')
   }
@@ -432,6 +499,15 @@ function publishPreconditions(
   if (row.baseFilename === null || row.baseFilename === '') {
     problems.push('Alapfájlnév: publikáláshoz kötelező.')
   }
+  return problems
+}
+
+function publishPreconditions(
+  row: typeof videos.$inferSelect,
+): PublishPreconditions {
+  const problems: string[] = []
+  if (row.title.trim() === '') problems.push('Cím: kötelező mező.')
+  problems.push(...mediaPreconditionProblems(row))
 
   return {
     problems,
@@ -474,27 +550,17 @@ export async function publishVideo(
     ])
   }
 
-  const mediaUrls = videoAssetUrls(preloaded)
-  const mediaToValidate = [
-    { kind: 'video' as const, url: mediaUrls.hqUrl },
-    { kind: 'video' as const, url: mediaUrls.lqUrl },
-    { kind: 'thumbnail' as const, url: mediaUrls.thumbnailUrl },
-  ]
-  for (const { kind, url } of mediaToValidate) {
-    if (url === null) continue
-    const shape = checkMediaUrlShape(url, kind, deps.mediaConfig)
-    if (!shape.ok) {
-      throw new TextValidationError(shape.problems)
-    }
-    const result = await validateMediaForPublish({
-      url,
-      kind,
-      mediaConfig: deps.mediaConfig,
-      fetchImpl: deps.fetchImpl,
-    })
+  if (preloaded.mediaSource === 'youtube') {
+    const result = await validateYoutubeVideo(
+      `https://www.youtube.com/watch?v=${preloaded.youtubeVideoId ?? ''}`,
+      deps.youtubeConfig,
+      { fetchImpl: deps.fetchImpl },
+    )
     if (!result.ok) {
       throw new TextValidationError(result.problems)
     }
+  } else {
+    await validateServerMedia(preloaded, deps)
   }
 
   return executor.transaction(async (tx) => {
@@ -547,6 +613,34 @@ export async function publishVideo(
     }
     return { row, warnings }
   })
+}
+
+async function validateServerMedia(
+  row: typeof videos.$inferSelect,
+  deps: VideoDeps,
+): Promise<void> {
+  const mediaUrls = videoAssetUrls(row)
+  const mediaToValidate = [
+    { kind: 'video' as const, url: mediaUrls.hqUrl },
+    { kind: 'video' as const, url: mediaUrls.lqUrl },
+    { kind: 'thumbnail' as const, url: mediaUrls.thumbnailUrl },
+  ]
+  for (const { kind, url } of mediaToValidate) {
+    if (url === null) continue
+    const shape = checkMediaUrlShape(url, kind, deps.mediaConfig)
+    if (!shape.ok) {
+      throw new TextValidationError(shape.problems)
+    }
+    const result = await validateMediaForPublish({
+      url,
+      kind,
+      mediaConfig: deps.mediaConfig,
+      fetchImpl: deps.fetchImpl,
+    })
+    if (!result.ok) {
+      throw new TextValidationError(result.problems)
+    }
+  }
 }
 
 export async function archiveVideo(
@@ -881,6 +975,8 @@ function snapshotVideo(
     hasHq: row.hasHq,
     hasLq: row.hasLq,
     baseFilename: row.baseFilename,
+    mediaSource: row.mediaSource,
+    youtubeVideoId: row.youtubeVideoId,
     visibility: row.visibility,
     status: row.status,
     eventId: row.eventId,
