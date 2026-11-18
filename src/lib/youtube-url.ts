@@ -44,6 +44,10 @@ export function normalizeYoutubeVideoId(rawUrl: string): string | null {
   }
 }
 
+export function buildYoutubeNocookieEmbedUrl(videoId: string): string {
+  return `https://www.youtube-nocookie.com/embed/${videoId}`
+}
+
 /** Validation warning for the live form, or `null` if the URL is fine. */
 export function youtubeUrlWarning(rawUrl: string): string | null {
   const trimmed = rawUrl.trim()

@@ -401,3 +401,31 @@ describe.skipIf(!hasTestDatabase)('BSS-018: részletes videószűrés', () => {
     expect(schonherzPage.total).toBe(1)
   })
 })
+
+describe.skipIf(!hasTestDatabase)('YouTube-videók a keresésben', () => {
+  it('YouTube-videó találata YouTube-bélyegképet kap', async () => {
+    const db = await setupDb()
+    await seedVideo(db, {
+      slug: 'youtube-archiv',
+      title: 'YouTube archív',
+      mediaSource: 'youtube',
+      youtubeVideoId: 'aBcDeFgHiJk',
+      encodingGroup: null,
+      hasHq: false,
+      hasLq: false,
+      baseFilename: null,
+    })
+
+    const result = await search(db, anonViewer, 'YouTube archív')
+    expect(result.videos[0]?.item.thumbnailUrl).toBe(
+      'https://i.ytimg.com/vi/aBcDeFgHiJk/mqdefault.jpg',
+    )
+
+    const detailed = await searchVideosDetailed(db, { viewer: anonViewer })
+    expect(detailed.items[0]).toMatchObject({
+      slug: 'youtube-archiv',
+      thumbnailUrl: 'https://i.ytimg.com/vi/aBcDeFgHiJk/mqdefault.jpg',
+      keyframeUrl: 'https://i.ytimg.com/vi/aBcDeFgHiJk/hqdefault.jpg',
+    })
+  })
+})

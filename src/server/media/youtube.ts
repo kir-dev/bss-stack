@@ -13,10 +13,6 @@ export interface YoutubeCheckResult {
   problems: string[]
 }
 
-export function buildYoutubeNocookieEmbedUrl(videoId: string): string {
-  return `https://www.youtube-nocookie.com/embed/${videoId}`
-}
-
 /**
  * oEmbed check (on save and on activation): the video ID is looked up
  * against the oEmbed endpoint; only a 200 response is accepted.

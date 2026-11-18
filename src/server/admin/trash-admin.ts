@@ -44,6 +44,8 @@ export async function getTrashPage(
         title: videos.title,
         encodingGroup: videos.encodingGroup,
         baseFilename: videos.baseFilename,
+        mediaSource: videos.mediaSource,
+        youtubeVideoId: videos.youtubeVideoId,
         trashedAt: videos.trashedAt,
         trashedByName: memberCache.fullName,
         version: videos.version,

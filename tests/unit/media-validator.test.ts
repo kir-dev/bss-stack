@@ -8,8 +8,8 @@ import {
   isAllowedMediaHost,
   validateMediaForPublish,
 } from '#/server/media/validator.ts'
+import { buildYoutubeNocookieEmbedUrl } from '#/lib/youtube-url.ts'
 import {
-  buildYoutubeNocookieEmbedUrl,
   normalizeYoutubeVideoId,
   validateYoutubeVideo,
 } from '#/server/media/youtube.ts'

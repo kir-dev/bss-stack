@@ -11,7 +11,10 @@ import {
 } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 import { videoAssetUrls } from '#/server/media/video-media.ts'
-import type { VideoEncodingGroup } from '#/lib/video-media.ts'
+import type {
+  VideoEncodingGroup,
+  VideoMediaSourceKind,
+} from '#/lib/video-media.ts'
 
 export interface AdminVideoDetail {
   id: string
@@ -24,6 +27,8 @@ export interface AdminVideoDetail {
   hasHq: boolean
   hasLq: boolean
   baseFilename: string | null
+  mediaSource: VideoMediaSourceKind
+  youtubeVideoId: string | null
   videoUrl: string | null
   thumbnailUrl: string | null
   visibility: string
@@ -57,6 +62,8 @@ export async function getAdminVideoDetail(
       hasHq: videos.hasHq,
       hasLq: videos.hasLq,
       baseFilename: videos.baseFilename,
+      mediaSource: videos.mediaSource,
+      youtubeVideoId: videos.youtubeVideoId,
       visibility: videos.visibility,
       status: videos.status,
       eventId: videos.eventId,

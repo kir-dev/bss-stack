@@ -307,3 +307,24 @@ describe.skipIf(!hasTestDatabase)('BSS-021: magyar dátumformátum', () => {
     )
   })
 })
+
+describe.skipIf(!hasTestDatabase)('YouTube-videó részletoldala', () => {
+  it('YouTube-videó részlete beágyazási URL-t ad, MP4 nélkül', async () => {
+    const db = await setupDb()
+    await seedVideo(db, {
+      slug: 'youtube-reszlet',
+      mediaSource: 'youtube',
+      youtubeVideoId: 'aBcDeFgHiJk',
+      encodingGroup: null,
+      hasHq: false,
+      hasLq: false,
+      baseFilename: null,
+    })
+
+    const detail = await getVideoDetail(db, anonymous, 'youtube-reszlet')
+    expect(detail).toMatchObject({
+      embedUrl: 'https://www.youtube-nocookie.com/embed/aBcDeFgHiJk',
+      videoUrl: null,
+    })
+  })
+})

@@ -222,6 +222,8 @@ function VideoEditor({
 
   const mediaUrls = videoAssetUrls(
     {
+      mediaSource: detail.mediaSource,
+      youtubeVideoId: detail.youtubeVideoId,
       encodingGroup:
         form.encodingGroup === ''
           ? null
