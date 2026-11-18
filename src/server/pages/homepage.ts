@@ -17,6 +17,7 @@ export interface HomepageHeroVideo extends HomepageVideoCard {
   videoUrl: string | null
   hqUrl: string | null
   lqUrl: string | null
+  embedUrl: string | null
 }
 
 export interface HomepageEventCard {

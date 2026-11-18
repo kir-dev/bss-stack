@@ -14,6 +14,7 @@ import { stringInput } from '#/server/shared/server-fn-input.ts'
 import { getVideoDetail } from '#/server/pages/video-detail.ts'
 import { resolvePublicSlug } from '#/server/pages/slug-route.ts'
 import VideoDetailPlayer from '#/components/VideoDetailPlayer.tsx'
+import YoutubePlayer from '#/components/YoutubePlayer.tsx'
 import { formatCalendarDateHu, formatDateHu } from '#/lib/format-date.ts'
 import Thumbnail from '#/components/Thumbnail.tsx'
 import { parseVideoStartTime } from '#/lib/video-time.ts'
@@ -23,6 +24,7 @@ import { pageHead } from '#/lib/seo.ts'
 import type { PageSeoImage } from '#/lib/seo.ts'
 import { probePngSize } from '#/server/media/image-size.ts'
 import type { VideoDetail } from '#/server/pages/video-detail.ts'
+import { YOUTUBE_KEYFRAME_SIZE } from '#/lib/video-media.ts'
 
 // Matches the "További videók" grid inside the max-w-5xl content column.
 const RELATED_THUMBNAIL_SIZES =
@@ -63,6 +65,9 @@ const loadVideoDetail = createServerFn({ method: 'GET' })
 async function shareImage(detail: VideoDetail): Promise<PageSeoImage | null> {
   if (detail.keyframeUrl === null) {
     return null
+  }
+  if (detail.embedUrl !== null) {
+    return { url: detail.keyframeUrl, ...YOUTUBE_KEYFRAME_SIZE }
   }
   const size = await probePngSize(detail.keyframeUrl)
   if (size === null) {
@@ -119,6 +124,7 @@ function videoJsonLd(detail: VideoDetail): Array<Record<string, unknown>> {
       thumbnailUrl: thumbnailUrls,
       uploadDate,
       ...(detail.videoUrl !== null ? { contentUrl: detail.videoUrl } : {}),
+      ...(detail.embedUrl !== null ? { embedUrl: detail.embedUrl } : {}),
       inLanguage: 'hu',
       ...(detail.tags.length > 0
         ? { keywords: detail.tags.map((tag) => tag.name).join(', ') }
@@ -140,7 +146,17 @@ function VideoDetailPage() {
   return (
     <main className="flex-1">
       <div className="flex w-full justify-center bg-black">
-        {detail.videoUrl !== null ? (
+        {detail.embedUrl !== null ? (
+          <div className="w-full max-w-6xl">
+            <YoutubePlayer
+              videoId={detail.id}
+              embedUrl={detail.embedUrl}
+              posterUrl={detail.keyframeUrl}
+              title={detail.title}
+              startTime={startTime}
+            />
+          </div>
+        ) : detail.videoUrl !== null ? (
           <div className="w-full max-w-6xl">
             <VideoDetailPlayer
               videoId={detail.id}

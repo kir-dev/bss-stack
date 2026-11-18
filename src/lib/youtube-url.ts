@@ -47,6 +47,19 @@ export function buildYoutubeNocookieEmbedUrl(videoId: string): string {
   return `https://www.youtube-nocookie.com/embed/${videoId}`
 }
 
+export function youtubeAutoplayUrl(
+  embedUrl: string,
+  startSeconds?: number,
+): string {
+  const url = new URL(embedUrl)
+  url.searchParams.set('autoplay', '1')
+  const start = Math.floor(startSeconds ?? 0)
+  if (Number.isFinite(start) && start > 0) {
+    url.searchParams.set('start', String(start))
+  }
+  return url.toString()
+}
+
 /** Validation warning for the live form, or `null` if the URL is fine. */
 export function youtubeUrlWarning(rawUrl: string): string | null {
   const trimmed = rawUrl.trim()

@@ -13,6 +13,7 @@ import { formatEventIntervalHu } from '#/lib/format-date.ts'
 import { liveRefetchInterval } from '#/lib/live-refetch.ts'
 import Thumbnail from '#/components/Thumbnail.tsx'
 import VideoDetailPlayer from '#/components/VideoDetailPlayer.tsx'
+import YoutubePlayer from '#/components/YoutubePlayer.tsx'
 import {
   SkeletonLine,
   ThumbnailCardSkeleton,
@@ -284,11 +285,15 @@ function HeroCard({ video }: { video: HomepageVideoCard | null }) {
 }
 
 function HeroPlayer({ video }: { video: HomepageHeroVideo }) {
-  if (video.videoUrl === null) {
-    return <HeroCard video={video} />
-  }
-  return (
-    <div className="card-surface [&_video]:aspect-video [&_video]:w-full">
+  const player =
+    video.embedUrl !== null ? (
+      <YoutubePlayer
+        videoId={video.id}
+        embedUrl={video.embedUrl}
+        posterUrl={video.keyframeUrl}
+        title={video.title}
+      />
+    ) : video.videoUrl !== null ? (
       <VideoDetailPlayer
         videoId={video.id}
         videoUrl={video.videoUrl}
@@ -297,6 +302,13 @@ function HeroPlayer({ video }: { video: HomepageHeroVideo }) {
         posterUrl={video.keyframeUrl}
         title={video.title}
       />
+    ) : null
+  if (player === null) {
+    return <HeroCard video={video} />
+  }
+  return (
+    <div className="card-surface [&_video]:aspect-video [&_video]:w-full">
+      {player}
       <Link
         to="/videos/$slug"
         params={{ slug: video.slug }}
