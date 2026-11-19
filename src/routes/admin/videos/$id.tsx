@@ -258,21 +258,6 @@ function VideoEditor({
     setForm((prev) => ({ ...prev, ...partial }))
   }
 
-  /** The server clears the other source's fields on save, so the form does too. */
-  function changeMediaSource(mediaSource: VideoMediaSourceKind) {
-    patch(
-      mediaSource === 'youtube'
-        ? {
-            mediaSource,
-            encodingGroup: '',
-            hasHq: false,
-            hasLq: false,
-            baseFilename: '',
-          }
-        : { mediaSource, youtubeUrl: '' },
-    )
-  }
-
   async function call(
     action: string,
     body: Record<string, unknown>,
@@ -523,7 +508,7 @@ function VideoEditor({
             label="Forrás"
             value={form.mediaSource}
             onChange={(value) =>
-              changeMediaSource(value as VideoMediaSourceKind)
+              patch({ mediaSource: value as VideoMediaSourceKind })
             }
             options={MEDIA_SOURCE_OPTIONS}
           />
