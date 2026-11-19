@@ -196,7 +196,7 @@ describe.skipIf(!hasTestDatabase)('BSS-019: nézői állapot kérésből', () =>
       {
         memberSub: 'sub-123',
         username: 'teszt-tag',
-        groups: ['tag-dev'],
+        groups: [testConfig.authentik.groups.studio],
         accessToken: null,
       },
       { db },
