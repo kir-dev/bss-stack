@@ -259,6 +259,31 @@ describe.skipIf(!hasTestDatabase)('BSS-034: idempotens seed importer', () => {
     expect(row.description).toBe('Új leírás a seedből')
   })
 
+  it('YouTube-ra váltott seedvideó újrafuttatáskor visszakapja a szerveres médiát', async () => {
+    const db = await setupDb()
+    await seedMember(db, 'tag-dev-seed')
+    await importSeed(db, { seed: validateSeedJson(baseSeed(), config.media) })
+    await db.update(videos).set({
+      mediaSource: 'youtube',
+      youtubeVideoId: 'aBcDeFgHiJk',
+      encodingGroup: null,
+      hasHq: false,
+      hasLq: false,
+      baseFilename: null,
+    })
+
+    const result = await importSeed(db, {
+      seed: validateSeedJson(baseSeed(), config.media),
+    })
+    expect(result.updatedVideos).toBe(1)
+    expect((await db.select().from(videos))[0]).toMatchObject({
+      mediaSource: 'server',
+      youtubeVideoId: null,
+      encodingGroup: '16a9_HD',
+      baseFilename: 'galanyito',
+    })
+  })
+
   it('hiányzó stábtag-felhasználónál magyar hiba szól a szinkronról', async () => {
     const db = await setupDb()
     await expect(() =>
