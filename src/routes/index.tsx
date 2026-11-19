@@ -288,6 +288,7 @@ function HeroPlayer({ video }: { video: HomepageHeroVideo }) {
   const player =
     video.embedUrl !== null ? (
       <YoutubePlayer
+        key={video.id}
         videoId={video.id}
         embedUrl={video.embedUrl}
         posterUrl={video.keyframeUrl}

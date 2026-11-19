@@ -149,6 +149,7 @@ function VideoDetailPage() {
         {detail.embedUrl !== null ? (
           <div className="w-full max-w-6xl">
             <YoutubePlayer
+              key={detail.id}
               videoId={detail.id}
               embedUrl={detail.embedUrl}
               posterUrl={detail.keyframeUrl}
