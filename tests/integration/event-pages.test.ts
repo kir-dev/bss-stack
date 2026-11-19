@@ -250,3 +250,30 @@ describe.skipIf(!hasTestDatabase)('BSS-022: eseményrészlet', () => {
     expect(await getEventDetail(db, anonymous, 'nincs-ilyen')).toBeNull()
   })
 })
+
+describe.skipIf(!hasTestDatabase)('YouTube-videók az eseményoldalakon', () => {
+  it('csak YouTube-videóval rendelkező esemény is kap borítóképet', async () => {
+    const db = await setupDb()
+    const event = await seedEvent(db, { slug: 'regi-projekt' })
+    await seedVideo(db, {
+      slug: 'regi-projekt-1',
+      eventId: event.id,
+      mediaSource: 'youtube',
+      youtubeVideoId: 'aBcDeFgHiJk',
+      encodingGroup: null,
+      hasHq: false,
+      hasLq: false,
+      baseFilename: null,
+    })
+
+    const list = await getEventListPage(db, anonymous)
+    expect(list.items[0]?.thumbnailUrl).toBe(
+      'https://i.ytimg.com/vi/aBcDeFgHiJk/mqdefault.jpg',
+    )
+
+    const detail = await getEventDetail(db, anonymous, 'regi-projekt')
+    expect(detail?.videos.items[0]?.keyframeUrl).toBe(
+      'https://i.ytimg.com/vi/aBcDeFgHiJk/hqdefault.jpg',
+    )
+  })
+})

@@ -269,6 +269,8 @@ export async function importSeed(
         hasHq: seedVideo.hasHq,
         hasLq: seedVideo.hasLq,
         baseFilename: seedVideo.baseFilename,
+        mediaSource: 'server' as const,
+        youtubeVideoId: null,
         visibility: seedVideo.visibility,
         status: seedVideo.status,
         eventId:

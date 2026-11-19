@@ -6,7 +6,10 @@ import {
   videoAssetUrls,
   videoThumbnailUrl,
 } from '#/server/media/video-media.ts'
-import type { VideoEncodingGroup } from '#/lib/video-media.ts'
+import type {
+  VideoEncodingGroup,
+  VideoMediaSourceKind,
+} from '#/lib/video-media.ts'
 
 export const MIN_QUERY_LENGTH = 2
 const TRIGRAM_THRESHOLD = 0.3
@@ -106,6 +109,7 @@ async function searchVideosRaw(
     with q as (select ${query} as text)
     select v.id, v.slug, v.title, v.published_at as "publishedAt",
       v.encoding_group as "encodingGroup", v.base_filename as "baseFilename",
+      v.media_source as "mediaSource", v.youtube_video_id as "youtubeVideoId",
       greatest(
         case when bss_norm(v.title) = bss_norm(q.text) then 100 else 0 end,
         case when bss_norm(v.title) like bss_norm(q.text) || '%' then 80 else 0 end,
@@ -367,6 +371,7 @@ export async function searchVideosDetailed(
   const rows = await executor.execute(sql`
     select v.id, v.slug, v.title, v.encoding_group as "encodingGroup",
       v.base_filename as "baseFilename",
+      v.media_source as "mediaSource", v.youtube_video_id as "youtubeVideoId",
       v.published_at as "publishedAt", v.recorded_at as "recordedAt", v.view_count as "viewCount",
       count(*) over() as total
     from videos v
@@ -382,8 +387,17 @@ export async function searchVideosDetailed(
   const first = rawRows.at(0)
   return {
     items: rawRows.map(
-      ({ total: _total, encodingGroup, baseFilename, ...item }) => {
+      ({
+        total: _total,
+        encodingGroup,
+        baseFilename,
+        mediaSource,
+        youtubeVideoId,
+        ...item
+      }) => {
         const { thumbnailUrl, keyframeUrl } = videoAssetUrls({
+          mediaSource,
+          youtubeVideoId,
           encodingGroup,
           baseFilename,
           hasHq: false,
@@ -399,4 +413,6 @@ export async function searchVideosDetailed(
 interface VideoMediaRow {
   encodingGroup: VideoEncodingGroup | null
   baseFilename: string | null
+  mediaSource: VideoMediaSourceKind
+  youtubeVideoId: string | null
 }

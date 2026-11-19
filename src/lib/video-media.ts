@@ -1,8 +1,22 @@
+import {
+  buildYoutubeNocookieEmbedUrl,
+  youtubeImageUrl,
+} from '#/lib/youtube-url.ts'
+
 export const VIDEO_ENCODING_GROUPS = ['4a3_SD', '16a9_SD', '16a9_HD'] as const
 
 export type VideoEncodingGroup = (typeof VIDEO_ENCODING_GROUPS)[number]
 
+export const VIDEO_MEDIA_SOURCES = ['server', 'youtube'] as const
+
+export type VideoMediaSourceKind = (typeof VIDEO_MEDIA_SOURCES)[number]
+
+/** Size of YouTube's `hqdefault` image, which letterboxes 16:9 videos. */
+export const YOUTUBE_KEYFRAME_SIZE = { width: 480, height: 360 } as const
+
 export interface VideoMediaSource {
+  mediaSource: VideoMediaSourceKind
+  youtubeVideoId: string | null
   encodingGroup: VideoEncodingGroup | null
   hasHq: boolean
   hasLq: boolean
@@ -16,6 +30,17 @@ export interface VideoAssetUrls {
   thumbnailUrl: string | null
   keyframeUrl: string | null
   mobileUrl: string | null
+  embedUrl: string | null
+}
+
+const NO_ASSETS: VideoAssetUrls = {
+  videoUrl: null,
+  hqUrl: null,
+  lqUrl: null,
+  thumbnailUrl: null,
+  keyframeUrl: null,
+  mobileUrl: null,
+  embedUrl: null,
 }
 
 const STORAGE_DIRECTORIES: Record<VideoEncodingGroup, string> = {
@@ -38,17 +63,14 @@ export function videoAssetUrls(
   source: VideoMediaSource,
   mediaHost: string,
 ): VideoAssetUrls {
+  if (source.mediaSource === 'youtube') {
+    return youtubeAssetUrls(source.youtubeVideoId)
+  }
+
   const { encodingGroup, hasHq, hasLq } = source
   const baseFilename = source.baseFilename?.trim() ?? ''
   if (encodingGroup === null || baseFilename === '') {
-    return {
-      videoUrl: null,
-      hqUrl: null,
-      lqUrl: null,
-      thumbnailUrl: null,
-      keyframeUrl: null,
-      mobileUrl: null,
-    }
+    return NO_ASSETS
   }
 
   const lowQualityUrl = assetUrl(
@@ -82,6 +104,19 @@ export function videoAssetUrls(
       `${baseFilename}_lq.png`,
     ),
     mobileUrl: hasLq ? lowQualityUrl : null,
+    embedUrl: null,
+  }
+}
+
+function youtubeAssetUrls(videoId: string | null): VideoAssetUrls {
+  if (videoId === null) {
+    return NO_ASSETS
+  }
+  return {
+    ...NO_ASSETS,
+    thumbnailUrl: youtubeImageUrl(videoId, 'mqdefault'),
+    keyframeUrl: youtubeImageUrl(videoId, 'hqdefault'),
+    embedUrl: buildYoutubeNocookieEmbedUrl(videoId),
   }
 }
 

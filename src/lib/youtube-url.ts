@@ -4,6 +4,8 @@
  * it lives here; the network oEmbed check stays in the server-side module.
  */
 
+const VIDEO_ID_PATTERN = /^[A-Za-z0-9_-]{6,20}$/
+
 export function normalizeYoutubeVideoId(rawUrl: string): string | null {
   try {
     const url = new URL(rawUrl)
@@ -15,18 +17,15 @@ export function normalizeYoutubeVideoId(rawUrl: string): string | null {
     const isShort = hostname === 'youtu.be'
 
     if (isShort) {
-      const parts = url.pathname.split('/').filter(Boolean)
-      if (parts.length === 0) {
-        return null
-      }
-      return parts[0]
+      const id = url.pathname.split('/').filter(Boolean).at(0)
+      return id !== undefined && VIDEO_ID_PATTERN.test(id) ? id : null
     }
     if (!isYoutube) {
       return null
     }
     if (url.pathname === '/watch') {
       const v = url.searchParams.get('v')
-      if (v !== null && /^[A-Za-z0-9_-]{6,20}$/.test(v)) {
+      if (v !== null && VIDEO_ID_PATTERN.test(v)) {
         return v
       }
       return null
@@ -35,13 +34,37 @@ export function normalizeYoutubeVideoId(rawUrl: string): string | null {
     for (const segment of ['live', 'embed', 'shorts']) {
       if (parts[0] === segment) {
         const id = parts.at(1)
-        return id !== undefined && /^[A-Za-z0-9_-]{6,20}$/.test(id) ? id : null
+        return id !== undefined && VIDEO_ID_PATTERN.test(id) ? id : null
       }
     }
     return null
   } catch {
     return null
   }
+}
+
+export function buildYoutubeNocookieEmbedUrl(videoId: string): string {
+  return `https://www.youtube-nocookie.com/embed/${videoId}`
+}
+
+export function youtubeImageUrl(
+  videoId: string,
+  name: 'mqdefault' | 'hqdefault' | 'maxresdefault',
+): string {
+  return `https://i.ytimg.com/vi/${encodeURIComponent(videoId)}/${name}.jpg`
+}
+
+export function youtubeAutoplayUrl(
+  embedUrl: string,
+  startSeconds?: number,
+): string {
+  const url = new URL(embedUrl)
+  url.searchParams.set('autoplay', '1')
+  const start = Math.floor(startSeconds ?? 0)
+  if (Number.isFinite(start) && start > 0) {
+    url.searchParams.set('start', String(start))
+  }
+  return url.toString()
 }
 
 /** Validation warning for the live form, or `null` if the URL is fine. */

@@ -20,6 +20,7 @@ import { setManualRelatedVideos } from '#/server/videos/related.ts'
 import type { MediaConfig } from '#/server/media/validator.ts'
 import { jsonResponse, readJsonBody, runAdminHandler } from './http.ts'
 import { isUuid } from '#/lib/uuid.ts'
+import type { VideoMediaSourceKind } from '#/lib/video-media.ts'
 
 export interface AdminVideoRouteDeps {
   db?: Database
@@ -61,6 +62,7 @@ export async function handleAdminVideoRoutes(
       viewer,
       clock: deps.clock ?? systemClock,
       mediaConfig,
+      youtubeConfig: (deps.config ?? getCachedOobConfig()).youtube,
       fetchImpl: deps.fetchImpl,
     }
 
@@ -97,6 +99,8 @@ export async function handleAdminVideoRoutes(
             hasHq: optionalBoolean(body['hasHq'], 'hasHq'),
             hasLq: optionalBoolean(body['hasLq'], 'hasLq'),
             baseFilename: optionalNullableString(body['baseFilename']),
+            mediaSource: optionalMediaSource(body['mediaSource']),
+            youtubeUrl: optionalNullableString(body['youtubeUrl']),
             visibility: optionalVisibility(body['visibility']),
             recordedAt: optionalNullableString(body['recordedAt']),
             eventId: optionalNullableId(body['eventId'], 'eventId'),
@@ -254,6 +258,12 @@ function optionalEncodingGroup(
     return value
   }
   throw badRequest('Érvénytelen videóprofil.')
+}
+
+function optionalMediaSource(value: unknown): VideoMediaSourceKind | undefined {
+  if (value === undefined) return undefined
+  if (value === 'server' || value === 'youtube') return value
+  throw badRequest('Érvénytelen médiaforrás.')
 }
 
 function optionalBoolean(value: unknown, field: string): boolean | undefined {

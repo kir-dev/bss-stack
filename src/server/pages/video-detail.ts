@@ -41,6 +41,7 @@ export interface VideoDetail {
   lqUrl: string | null
   thumbnailUrl: string | null
   keyframeUrl: string | null
+  embedUrl: string | null
   recordedAt: string | null
   publishedAt: Date | null
   event: {

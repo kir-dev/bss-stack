@@ -147,6 +147,8 @@ export async function latestVisibleThumbnailByEvent(
       eventId: videos.eventId,
       encodingGroup: videos.encodingGroup,
       baseFilename: videos.baseFilename,
+      mediaSource: videos.mediaSource,
+      youtubeVideoId: videos.youtubeVideoId,
     })
     .from(videos)
     .where(
@@ -154,8 +156,7 @@ export async function latestVisibleThumbnailByEvent(
         eq(videos.status, 'published'),
         inArray(videos.eventId, eventIds),
         visibleVideoCondition(viewer),
-        sql`${videos.encodingGroup} is not null`,
-        sql`${videos.baseFilename} is not null`,
+        sql`((${videos.mediaSource} = 'server' and ${videos.encodingGroup} is not null and ${videos.baseFilename} is not null) or (${videos.mediaSource} = 'youtube' and ${videos.youtubeVideoId} is not null))`,
       ),
     )
     .orderBy(videos.eventId, desc(videos.publishedAt), desc(videos.id))
@@ -243,6 +244,8 @@ export async function getEventDetail(
         title: videos.title,
         encodingGroup: videos.encodingGroup,
         baseFilename: videos.baseFilename,
+        mediaSource: videos.mediaSource,
+        youtubeVideoId: videos.youtubeVideoId,
         recordedAt: videos.recordedAt,
       })
       .from(videos)

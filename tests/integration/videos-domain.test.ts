@@ -32,9 +32,13 @@ import {
   videos,
 } from '#/db/schema.ts'
 import { createTag } from '#/server/catalog/tags.ts'
+import { youtubeUrlWarning } from '#/lib/youtube-url.ts'
 import { createMigratedTestDatabase } from '../helpers/test-db.ts'
 import { installFetchMock } from '../helpers/http-mock.ts'
-import { TEST_MEDIA_CONFIG } from '../helpers/oob-config.ts'
+import {
+  TEST_MEDIA_CONFIG,
+  TEST_YOUTUBE_CONFIG,
+} from '../helpers/oob-config.ts'
 
 const databases: Array<{ drop: () => Promise<void> }> = []
 const poolCleanups: Array<() => Promise<void>> = []
@@ -64,7 +68,7 @@ const leaderViewer: Viewer = {
 }
 
 function deps(viewer: Viewer) {
-  return { viewer, clock, mediaConfig }
+  return { viewer, clock, mediaConfig, youtubeConfig: TEST_YOUTUBE_CONFIG }
 }
 
 async function setupDb(): Promise<NodePgDatabase<Record<string, never>>> {
@@ -623,6 +627,214 @@ describe.skipIf(!hasTestDatabase)('BSS-014: napi lomtártörlés', () => {
     expect(job.name).toBe('video-trash-purge-daily')
     expect(job.intervalMs).toBe(24 * 60 * 60 * 1000)
     await job.run({ clock, trigger: 'tick' })
+  })
+})
+
+describe.skipIf(!hasTestDatabase)('YouTube-forrású videók', () => {
+  const YOUTUBE_PROBLEM = 'YouTube URL: publikáláshoz kötelező.'
+
+  function oEmbedRoutes(status: number) {
+    return [
+      {
+        method: 'GET',
+        urlPattern: /www\.youtube\.com\/oembed/,
+        respond: () => ({ status, body: { title: 'Régi projekt' } }),
+      },
+    ]
+  }
+
+  async function publishedYoutubeVideo(
+    db: NodePgDatabase<Record<string, never>>,
+  ): Promise<typeof videos.$inferSelect> {
+    const draft = await createVideoDraft(db, deps(memberViewer), {
+      title: 'Publikált YouTube-videó',
+      mediaSource: 'youtube',
+      youtubeUrl: 'https://youtu.be/aBcDeFgHiJk',
+    })
+    const mock = installFetchMock(oEmbedRoutes(200))
+    try {
+      const result = await publishVideo(
+        db,
+        deps(memberViewer),
+        draft.id,
+        draft.version,
+      )
+      return result.row
+    } finally {
+      mock.restore()
+    }
+  }
+
+  it('a YouTube URL bármely alakból azonosítóként mentődik, a szerveres mezők törlődnek', async () => {
+    const db = await setupDb()
+    const created = await createVideoDraft(db, deps(memberViewer), {
+      title: 'Létrehozáskor YouTube',
+      mediaSource: 'youtube',
+      youtubeUrl: 'https://www.youtube.com/watch?v=aBcDeFgHiJk&t=30s',
+    })
+    expect(created).toMatchObject({
+      mediaSource: 'youtube',
+      youtubeVideoId: 'aBcDeFgHiJk',
+    })
+
+    const draft = await createVideoDraft(db, deps(memberViewer), {
+      title: 'Régi projekt',
+      encodingGroup: '16a9_HD',
+      hasHq: true,
+      hasLq: true,
+      baseFilename: 'x',
+    })
+    const { row } = await updateVideo(
+      db,
+      deps(memberViewer),
+      draft.id,
+      draft.version,
+      { mediaSource: 'youtube', youtubeUrl: 'https://youtu.be/aBcDeFgHiJk' },
+    )
+    expect(row).toMatchObject({
+      mediaSource: 'youtube',
+      youtubeVideoId: 'aBcDeFgHiJk',
+      encodingGroup: null,
+      hasHq: false,
+      hasLq: false,
+      baseFilename: null,
+    })
+  })
+
+  it('értelmezhetetlen YouTube URL mentése elutasítva', async () => {
+    const db = await setupDb()
+    const draft = await createVideoDraft(db, deps(memberViewer), {
+      title: 'Lejátszási lista',
+    })
+    const playlistUrl = 'https://www.youtube.com/playlist?list=PL123'
+    await expect(
+      updateVideo(db, deps(memberViewer), draft.id, draft.version, {
+        mediaSource: 'youtube',
+        youtubeUrl: playlistUrl,
+      }),
+    ).rejects.toMatchObject({
+      name: 'TextValidationError',
+      problems: [youtubeUrlWarning(playlistUrl)],
+    })
+  })
+
+  it('szerveres forrásnál a YouTube URL nem mentődik és nem is ellenőrződik', async () => {
+    const db = await setupDb()
+    const draft = await createVideoDraft(db, deps(memberViewer), {
+      title: 'Szerveres videó',
+    })
+    const first = await updateVideo(
+      db,
+      deps(memberViewer),
+      draft.id,
+      draft.version,
+      { mediaSource: 'server', youtubeUrl: 'https://youtu.be/aBcDeFgHiJk' },
+    )
+    expect(first.row.youtubeVideoId).toBeNull()
+
+    const second = await updateVideo(
+      db,
+      deps(memberViewer),
+      draft.id,
+      first.row.version,
+      { mediaSource: 'server', youtubeUrl: 'nem link' },
+    )
+    expect(second.row).toMatchObject({
+      mediaSource: 'server',
+      youtubeVideoId: null,
+    })
+  })
+
+  it('YouTube-videó publikálása oEmbed-ellenőrzéssel, médiaszerver-kérés nélkül', async () => {
+    const db = await setupDb()
+    const draft = await createVideoDraft(db, deps(memberViewer), {
+      title: 'YouTube publikálás',
+      mediaSource: 'youtube',
+    })
+    await expect(
+      publishVideo(db, deps(memberViewer), draft.id, draft.version),
+    ).rejects.toMatchObject({ problems: [YOUTUBE_PROBLEM] })
+
+    const linked = await updateVideo(
+      db,
+      deps(memberViewer),
+      draft.id,
+      draft.version,
+      { youtubeUrl: 'https://www.youtube.com/watch?v=aBcDeFgHiJk' },
+    )
+
+    const missing = installFetchMock(oEmbedRoutes(404))
+    try {
+      await expect(
+        publishVideo(db, deps(memberViewer), draft.id, linked.row.version),
+      ).rejects.toMatchObject({
+        problems: [
+          'A YouTube videó nem elérhető az oEmbed ellenőrzésen (törölt vagy hibás azonosító).',
+        ],
+      })
+    } finally {
+      missing.restore()
+    }
+
+    const found = installFetchMock(oEmbedRoutes(200))
+    try {
+      const published = await publishVideo(
+        db,
+        deps(memberViewer),
+        draft.id,
+        linked.row.version,
+      )
+      expect(published.row.status).toBe('published')
+      const calls = found.calls()
+      expect(calls.length).toBeGreaterThan(0)
+      for (const call of calls) {
+        const url = new URL(call.url)
+        expect(`${url.origin}${url.pathname}`).toBe(
+          'https://www.youtube.com/oembed',
+        )
+      }
+    } finally {
+      found.restore()
+    }
+  })
+
+  it('publikált videó módosítása nem hagyhatja teljes média nélkül', async () => {
+    const db = await setupDb()
+    const mock = installFetchMock(okMediaRoutes)
+    let server: typeof videos.$inferSelect
+    try {
+      server = await publishedVideo(db, { title: 'Publikált szerveres' })
+    } finally {
+      mock.restore()
+    }
+    await expect(
+      updateVideo(db, deps(memberViewer), server.id, server.version, {
+        mediaSource: 'youtube',
+      }),
+    ).rejects.toMatchObject({ problems: [YOUTUBE_PROBLEM] })
+    await expect(
+      updateVideo(db, deps(memberViewer), server.id, server.version, {
+        baseFilename: '',
+      }),
+    ).rejects.toMatchObject({
+      problems: ['Alapfájlnév: publikáláshoz kötelező.'],
+    })
+
+    const youtube = await publishedYoutubeVideo(db)
+    await expect(
+      updateVideo(db, deps(memberViewer), youtube.id, youtube.version, {
+        youtubeUrl: '',
+      }),
+    ).rejects.toMatchObject({ problems: [YOUTUBE_PROBLEM] })
+
+    const unchanged = await db
+      .select()
+      .from(videos)
+      .where(eq(videos.id, server.id))
+    expect(unchanged.at(0)).toMatchObject({
+      mediaSource: 'server',
+      baseFilename: 'published-video',
+    })
   })
 })
 

@@ -101,7 +101,7 @@ describe.skipIf(!hasTestDatabase)('BSS-025: kereső végpont', () => {
       {
         memberSub: 'member-sub',
         username: 'tag',
-        groups: ['tag-dev'],
+        groups: [testConfig.authentik.groups.studio],
         accessToken: null,
       },
       { db },

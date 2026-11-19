@@ -106,4 +106,42 @@ describe.skipIf(!hasTestDatabase)('új adatbázisséma és migrációs alap', ()
       await client.end()
     }
   }, 30_000)
+
+  it('a videó forrása kizárólagos: YouTube-forrás szerveres médiamezők nélkül, szerveres forrás YouTube-azonosító nélkül', async () => {
+    const { client } = await createMigratedDatabase()
+    try {
+      const defaulted = await client.query<{
+        media_source: string
+        youtube_video_id: string | null
+      }>(
+        "INSERT INTO videos (slug, title) VALUES ('alap','Alap') RETURNING media_source, youtube_video_id",
+      )
+      expect(defaulted.rows[0]).toEqual({
+        media_source: 'server',
+        youtube_video_id: null,
+      })
+
+      await client.query(
+        "INSERT INTO videos (slug, title, media_source, youtube_video_id) VALUES ('yt','YT','youtube','aBcDeFgHiJk')",
+      )
+
+      await expect(
+        client.query(
+          "INSERT INTO videos (slug, title, media_source, youtube_video_id, base_filename) VALUES ('yt-fajlnev','X','youtube','aBcDeFgHiJk','x')",
+        ),
+      ).rejects.toThrow(/check/i)
+      await expect(
+        client.query(
+          "INSERT INTO videos (slug, title, media_source, youtube_video_id, has_hq) VALUES ('yt-hq','X','youtube','aBcDeFgHiJk',true)",
+        ),
+      ).rejects.toThrow(/check/i)
+      await expect(
+        client.query(
+          "INSERT INTO videos (slug, title, media_source, youtube_video_id) VALUES ('szerver-yt','X','server','aBcDeFgHiJk')",
+        ),
+      ).rejects.toThrow(/check/i)
+    } finally {
+      await client.end()
+    }
+  }, 30_000)
 })

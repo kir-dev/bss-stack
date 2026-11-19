@@ -1,5 +1,5 @@
 import { and, desc, eq, gte, lte, ne, or, sql } from 'drizzle-orm'
-import { buildYoutubeNocookieEmbedUrl } from '#/server/media/youtube.ts'
+import { buildYoutubeNocookieEmbedUrl } from '#/lib/youtube-url.ts'
 import { events, liveStreams, videos } from '#/db/schema.ts'
 import type { Executor } from '#/server/shared/db-executor.ts'
 import { getHighlightedVideoId } from './highlight.ts'

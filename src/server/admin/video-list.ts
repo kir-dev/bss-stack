@@ -121,6 +121,8 @@ export async function getAdminVideoList(
       title: videos.title,
       encodingGroup: videos.encodingGroup,
       baseFilename: videos.baseFilename,
+      mediaSource: videos.mediaSource,
+      youtubeVideoId: videos.youtubeVideoId,
       status: videos.status,
       visibility: videos.visibility,
       eventId: videos.eventId,

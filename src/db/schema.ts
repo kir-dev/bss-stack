@@ -29,6 +29,11 @@ export const videoEncodingGroupEnum = pgEnum('video_encoding_group', [
   '16a9_HD',
 ])
 
+export const videoMediaSourceEnum = pgEnum('video_media_source', [
+  'server',
+  'youtube',
+])
+
 export const contentStatusEnum = pgEnum('content_status', [
   'draft',
   'published',
@@ -235,6 +240,10 @@ export const videos = pgTable(
     hasHq: boolean('has_hq').notNull().default(false),
     hasLq: boolean('has_lq').notNull().default(false),
     baseFilename: varchar('base_filename', { length: 255 }),
+    mediaSource: videoMediaSourceEnum('media_source')
+      .notNull()
+      .default('server'),
+    youtubeVideoId: varchar('youtube_video_id', { length: 64 }),
     visibility: visibilityEnum('visibility').notNull().default('public'),
     status: contentStatusEnum('status').notNull().default('draft'),
     eventId: uuid('event_id').references(() => events.id, {
@@ -278,6 +287,14 @@ export const videos = pgTable(
     check(
       'videos_trash_needs_timestamp_check',
       sql`${table.status} <> 'trash' or ${table.trashedAt} is not null`,
+    ),
+    check(
+      'videos_youtube_id_source_check',
+      sql`${table.mediaSource} = 'youtube' or ${table.youtubeVideoId} is null`,
+    ),
+    check(
+      'videos_server_media_source_check',
+      sql`${table.mediaSource} = 'server' or (${table.encodingGroup} is null and ${table.baseFilename} is null and not ${table.hasHq} and not ${table.hasLq})`,
     ),
   ],
 )

@@ -26,6 +26,7 @@ import {
   FormMessage,
   LoginRequiredBanner,
   ValidationProblems,
+  WarningList,
 } from '#/components/admin/Alerts.tsx'
 import { AdminSearchSelect } from '#/components/admin/SearchSelect.tsx'
 import { StaffListEditor } from '#/components/admin/StaffListEditor.tsx'
@@ -35,13 +36,23 @@ import { VISIBILITY_OPTIONS, videoStatusLabel } from '#/lib/admin-labels.ts'
 import { formatAdminDateTimeHu } from '#/lib/format-date.ts'
 import { videoAssetUrls } from '#/lib/video-media.ts'
 import {
+  normalizeYoutubeVideoId,
+  youtubeUrlWarning,
+} from '#/lib/youtube-url.ts'
+import {
   parseSongList,
   serializeSongList,
   stripSongDashes,
 } from '#/lib/song-list.ts'
 import type { SearchSelectOption } from '#/components/admin/SearchSelect.tsx'
 import type { SongEntry } from '#/lib/song-list.ts'
+import type { VideoMediaSourceKind } from '#/lib/video-media.ts'
 import type { AdminVideoDetail } from '#/server/admin/video-detail.ts'
+
+const MEDIA_SOURCE_OPTIONS: Array<SearchSelectOption> = [
+  { value: 'server', label: 'Videószerver' },
+  { value: 'youtube', label: 'YouTube' },
+]
 
 const loadAdminVideoEditor = createServerFn({ method: 'GET' })
   .middleware([adminFnMiddleware])
@@ -76,6 +87,8 @@ interface EditorForm {
   description: string
   guests: string
   songs: string
+  mediaSource: VideoMediaSourceKind
+  youtubeUrl: string
   encodingGroup: string
   hasHq: boolean
   hasLq: boolean
@@ -93,6 +106,11 @@ function formFromDetail(detail: AdminVideoDetail): EditorForm {
     description: detail.description ?? '',
     guests: detail.guests ?? '',
     songs: detail.songs ?? '',
+    mediaSource: detail.mediaSource,
+    youtubeUrl:
+      detail.youtubeVideoId !== null
+        ? `https://www.youtube.com/watch?v=${detail.youtubeVideoId}`
+        : '',
     encodingGroup: detail.encodingGroup ?? '',
     hasHq: detail.hasHq,
     hasLq: detail.hasLq,
@@ -220,8 +238,11 @@ function VideoEditor({
     (item) => ({ value: item.id, label: item.title }),
   )
 
+  const youtubeWarning = youtubeUrlWarning(form.youtubeUrl)
   const mediaUrls = videoAssetUrls(
     {
+      mediaSource: form.mediaSource,
+      youtubeVideoId: normalizeYoutubeVideoId(form.youtubeUrl.trim()),
       encodingGroup:
         form.encodingGroup === ''
           ? null
@@ -312,6 +333,8 @@ function VideoEditor({
         description: form.description,
         guests: form.guests,
         songs: form.songs,
+        mediaSource: form.mediaSource,
+        youtubeUrl: form.youtubeUrl,
         encodingGroup: form.encodingGroup,
         hasHq: form.hasHq,
         hasLq: form.hasLq,
@@ -482,53 +505,88 @@ function VideoEditor({
         <h2 className="font-bold text-(--bss-text)">Média</h2>
         <div className="grid gap-4 md:grid-cols-2">
           <AdminSearchSelect
-            label="Videóprofil"
-            value={form.encodingGroup}
-            onChange={(value) => patch({ encodingGroup: value })}
-            options={[
-              { value: '16a9_HD', label: '16:9 HD' },
-              { value: '16a9_SD', label: '16:9 SD' },
-              { value: '4a3_SD', label: '4:3 SD' },
-            ]}
-            placeholder="Nincs profil"
-            emptyOptionLabel="Nincs profil"
+            label="Forrás"
+            value={form.mediaSource}
+            onChange={(value) =>
+              patch({ mediaSource: value as VideoMediaSourceKind })
+            }
+            options={MEDIA_SOURCE_OPTIONS}
           />
-          <fieldset className="flex flex-col gap-2 text-sm">
-            <legend className="font-bold text-(--bss-text)">
-              Elérhető minőségek
-            </legend>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                autoComplete="off"
-                checked={form.hasHq}
-                onChange={(event) => patch({ hasHq: event.target.checked })}
-              />
-              HQ
-            </label>
-            <label className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                autoComplete="off"
-                checked={form.hasLq}
-                onChange={(event) => patch({ hasLq: event.target.checked })}
-              />
-              LQ
-            </label>
-          </fieldset>
         </div>
-        <AdminTextField
-          label="Alapfájlnév"
-          value={form.baseFilename}
-          onChange={(value) => patch({ baseFilename: value })}
-          maxLength={255}
-          hint="Kiterjesztés és könyvtár nélkül, például: galanyito_2025."
-        />
-        {mediaUrls.videoUrl !== null && mediaUrls.thumbnailUrl !== null && (
-          <div className="break-all text-xs text-(--bss-text-secondary)">
-            <p>Videó: {mediaUrls.videoUrl}</p>
-            <p>Thumbnail: {mediaUrls.thumbnailUrl}</p>
-          </div>
+        {form.mediaSource === 'youtube' ? (
+          <>
+            <div>
+              <AdminTextField
+                label="YouTube URL"
+                value={form.youtubeUrl}
+                onChange={(value) => patch({ youtubeUrl: value })}
+                hint="watch, youtu.be, embed, live vagy shorts link. Publikáláskor ellenőrizzük, hogy a videó elérhető-e a YouTube-on."
+              />
+              {youtubeWarning !== null && (
+                <p role="alert" className="mt-1 text-xs text-(--orange)">
+                  {youtubeWarning}
+                </p>
+              )}
+            </div>
+            {mediaUrls.thumbnailUrl !== null && (
+              <div className="break-all text-xs text-(--bss-text-secondary)">
+                <p>Thumbnail: {mediaUrls.thumbnailUrl}</p>
+              </div>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="grid gap-4 md:grid-cols-2">
+              <AdminSearchSelect
+                label="Videóprofil"
+                value={form.encodingGroup}
+                onChange={(value) => patch({ encodingGroup: value })}
+                options={[
+                  { value: '16a9_HD', label: '16:9 HD' },
+                  { value: '16a9_SD', label: '16:9 SD' },
+                  { value: '4a3_SD', label: '4:3 SD' },
+                ]}
+                placeholder="Nincs profil"
+                emptyOptionLabel="Nincs profil"
+              />
+              <fieldset className="flex flex-col gap-2 text-sm">
+                <legend className="font-bold text-(--bss-text)">
+                  Elérhető minőségek
+                </legend>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    autoComplete="off"
+                    checked={form.hasHq}
+                    onChange={(event) => patch({ hasHq: event.target.checked })}
+                  />
+                  HQ
+                </label>
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    autoComplete="off"
+                    checked={form.hasLq}
+                    onChange={(event) => patch({ hasLq: event.target.checked })}
+                  />
+                  LQ
+                </label>
+              </fieldset>
+            </div>
+            <AdminTextField
+              label="Alapfájlnév"
+              value={form.baseFilename}
+              onChange={(value) => patch({ baseFilename: value })}
+              maxLength={255}
+              hint="Kiterjesztés és könyvtár nélkül, például: galanyito_2025."
+            />
+            {mediaUrls.videoUrl !== null && mediaUrls.thumbnailUrl !== null && (
+              <div className="break-all text-xs text-(--bss-text-secondary)">
+                <p>Videó: {mediaUrls.videoUrl}</p>
+                <p>Thumbnail: {mediaUrls.thumbnailUrl}</p>
+              </div>
+            )}
+          </>
         )}
       </section>
 
@@ -564,6 +622,13 @@ function VideoEditor({
             hint="Üresen hagyva publikáláskor a mostani időpont kerül rá; csak múltbeli időpont adható meg."
           />
         </div>
+        {form.mediaSource === 'youtube' && form.visibility !== 'public' && (
+          <WarningList
+            warnings={[
+              'A láthatóság csak az oldalon rejti el a videót: a YouTube-on bárki megnézheti, akinek megvan a linkje.',
+            ]}
+          />
+        )}
       </section>
 
       <TagSection
