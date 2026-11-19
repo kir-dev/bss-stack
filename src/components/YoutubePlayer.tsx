@@ -95,7 +95,6 @@ function PosterImage({
     }
   }
 
-  // An image cached before hydration fires `load` before React listens.
   const measureRef = useCallback(
     (node: HTMLImageElement | null) => {
       if (node !== null && node.complete) {
